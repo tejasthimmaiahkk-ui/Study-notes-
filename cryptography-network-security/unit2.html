@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit II · Symmetric Key Cryptography — Cryptography</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="crypto" data-page="unit2.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Unit II · 14 hours · CO2</div>
+  <h1>Symmetric Key Cryptography</h1>
+  <p class="lead">We start with ciphers you can do with pencil and paper, learn exactly why each one breaks, and use those lessons to understand how the modern standards <b>DES</b> and <b>AES</b> are designed. Every cipher here has a live demo — try your own name as plaintext.</p>
+  <div class="meta"><span class="chip acc">Substitution</span><span class="chip acc">Transposition</span><span class="chip acc">Stream &amp; block</span><span class="chip acc">DES</span><span class="chip acc">Triple DES</span><span class="chip acc">AES</span><span class="chip acc">Key expansion</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="symmetric-model">
+<h2><span class="num">2.0</span> The symmetric-key cipher model</h2>
+<div class="box found">
+  <p>You need from Unit I: plaintext/ciphertext/key vocabulary, <b>mod 26</b> arithmetic, additive and multiplicative <b>inverses</b>, and 2×2 matrix inverse mod 26. Letters are numbered <b>A = 0, B = 1, …, Z = 25</b>.</p>
+</div>
+<p>In symmetric-key encryption, Alice and Bob share <b>one secret key K</b>. The same key (or one trivially derived from it) is used to encrypt and decrypt.</p>
+<figure class="fig">
+<svg viewBox="0 0 760 200" width="760" role="img" aria-label="Symmetric cipher model">
+ <rect class="dg-good" x="10" y="70" width="90" height="44" rx="8"/><text class="dg-tb" x="55" y="97" text-anchor="middle">Alice</text>
+ <rect class="dg-acc" x="150" y="70" width="150" height="44" rx="8"/><text class="dg-tb" x="225" y="90" text-anchor="middle">Encryption</text><text class="dg-ts" x="225" y="106" text-anchor="middle">C = E<tspan baseline-shift="sub" font-size="9">K</tspan>(P)</text>
+ <rect class="dg-acc" x="460" y="70" width="150" height="44" rx="8"/><text class="dg-tb" x="535" y="90" text-anchor="middle">Decryption</text><text class="dg-ts" x="535" y="106" text-anchor="middle">P = D<tspan baseline-shift="sub" font-size="9">K</tspan>(C)</text>
+ <rect class="dg-good" x="660" y="70" width="90" height="44" rx="8"/><text class="dg-tb" x="705" y="97" text-anchor="middle">Bob</text>
+ <path class="dg-line" d="M100 92 H146" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M300 92 H456" marker-end="url(#arr)"/><text class="dg-ts" x="378" y="84" text-anchor="middle">ciphertext (insecure channel)</text>
+ <path class="dg-line" d="M610 92 H656" marker-end="url(#arr)"/>
+ <rect class="dg-warn" x="315" y="10" width="130" height="34" rx="6"/><text class="dg-tb" x="380" y="32" text-anchor="middle">Shared secret key K</text>
+ <path class="dg-line" d="M315 27 H225 V66" marker-end="url(#arr)"/><path class="dg-line" d="M445 27 H535 V66" marker-end="url(#arr)"/>
+ <text class="dg-ts" x="380" y="150" text-anchor="middle">Key is delivered beforehand over a SECURE channel (in person, KDC, or public-key exchange — Unit IV)</text>
+ <path class="dg-dash" d="M225 125 V160 H535 V125"/>
+</svg>
+<figcaption>Fig 2.1 — Symmetric-key encipherment. Encryption and decryption are inverses: D<sub>K</sub>(E<sub>K</sub>(P)) = P.</figcaption>
+</figure>
+<p>A cipher's security rests on the <b>key</b>, not the secrecy of the algorithm (Kerckhoffs). We therefore judge a cipher by the attacks of Unit I: can it survive <b>brute force</b> (is the key space large?) and <b>statistical attacks</b> (does the ciphertext hide the patterns of the language?)</p>
+<h3>The two basic building blocks</h3>
+<div class="two-col">
+  <div class="box def" data-title="Substitution"><p>Replace each symbol by <b>another symbol</b>. The <b>positions</b> stay the same, the <b>symbols</b> change. HELLO → KHOOR.</p></div>
+  <div class="box def" data-title="Transposition"><p><b>Reorder</b> the symbols. The <b>symbols</b> stay the same, their <b>positions</b> change. HELLO → LOHEL.</p></div>
+</div>
+<p>Substitution ciphers are <b>monoalphabetic</b> (a letter always maps to the same ciphertext letter) or <b>polyalphabetic</b> (the same letter may map to different letters depending on position). Every modern cipher combines both building blocks in many rounds.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="mono-ciphers">
+<h2><span class="num">2.1</span> Monoalphabetic substitution ciphers</h2>
+
+<div class="concept">
+  <h3>Additive cipher (shift cipher / Caesar cipher)</h3>
+  <div class="f-exp">Shift every letter forward by a fixed amount k (the key) around the alphabet. Julius Caesar used k = 3.
+    <div class="box formula"><span class="eq">C = (P + k) mod 26 &nbsp;&nbsp;&nbsp;&nbsp; P = (C − k) mod 26</span></div>
+    Key domain: k ∈ ℤ<sub>26</sub>. Decryption key = additive inverse of k (for k = 3, shift by 23).</div>
+  <div class="f-use">Historically military messages; today ROT13 (k = 13) hides spoilers on forums. Its real use is teaching: it shows the idea of a key and of brute force.</div>
+  <div class="f-imp"><b>Encrypt "hello" with k = 15:</b>
+    <table class="num compact"><tr><th>Plain</th><th>h</th><th>e</th><th>l</th><th>l</th><th>o</th></tr>
+    <tr><td>P</td><td>7</td><td>4</td><td>11</td><td>11</td><td>14</td></tr>
+    <tr><td>P + 15</td><td>22</td><td>19</td><td>26</td><td>26</td><td>29</td></tr>
+    <tr><td>mod 26</td><td>22</td><td>19</td><td>0</td><td>0</td><td>3</td></tr>
+    <tr><th>Cipher</th><th>W</th><th>T</th><th>A</th><th>A</th><th>D</th></tr></table>
+    Decrypt WTAAD: (22 − 15) = 7 → h, (19 − 15) = 4 → e, (0 − 15) = −15 ≡ 11 → l, … → "hello".</div>
+  <div class="f-lim">Only <b>26 keys</b> (25 useful): brute force is instant. It is also vulnerable to frequency analysis: the most common ciphertext letter is probably E.</div>
+</div>
+
+<div class="concept">
+  <h3>Multiplicative cipher</h3>
+  <div class="f-exp">Multiply each letter by the key k.
+    <div class="box formula"><span class="eq">C = (P × k) mod 26 &nbsp;&nbsp;&nbsp;&nbsp; P = (C × k<sup>−1</sup>) mod 26</span></div>
+    The key must have a multiplicative inverse, so <b>k ∈ ℤ<sub>26</sub>*</b> = {1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25} — only 12 keys.</div>
+  <div class="f-use">A building block — combined with the additive cipher it gives the affine cipher; multiplication by constants also appears in AES's MixColumns.</div>
+  <div class="f-imp"><b>"hello", k = 7:</b> h: 7×7 = 49 ≡ 23 → X; e: 4×7 = 28 ≡ 2 → C; l: 11×7 = 77 ≡ 25 → Z; o: 14×7 = 98 ≡ 20 → U → <b>XCZZU</b>.<br>
+  Decrypt with 7<sup>−1</sup> = 15: X: 23 × 15 = 345 ≡ 7 → h ✓</div>
+  <div class="f-lim">Only 12 keys; a key like 2 or 13 is invalid (two letters would map to the same ciphertext letter and decryption becomes impossible). A always maps to A (0 × k = 0).</div>
+</div>
+
+<div class="concept">
+  <h3>Affine cipher</h3>
+  <div class="f-exp">Combines multiplicative and additive ciphers with a pair of keys (k₁, k₂):
+    <div class="box formula"><span class="eq">C = (P × k₁ + k₂) mod 26 &nbsp;&nbsp;&nbsp;&nbsp; P = ((C − k₂) × k₁<sup>−1</sup>) mod 26</span></div>
+    k₁ ∈ ℤ<sub>26</sub>* (12 choices), k₂ ∈ ℤ<sub>26</sub> (26 choices) → 12 × 26 = <b>312 keys</b>.</div>
+  <div class="f-use">Classic textbook cipher; illustrates that combining two weak ciphers gives a (slightly) larger key space.</div>
+  <div class="f-imp"><b>"hello" with (7, 2):</b> h: 7×7 + 2 = 51 ≡ 25 → Z; e: 28 + 2 = 30 ≡ 4 → E; l: 77 + 2 = 79 ≡ 1 → B; o: 98 + 2 = 100 ≡ 22 → W → <b>ZEBBW</b>.<br>
+    Decrypt Z: (25 − 2) × 15 = 345 ≡ 7 → h ✓<br>
+    <b>Known-plaintext attack:</b> if Eve knows two plaintext/ciphertext letter pairs, she gets two linear congruences in k₁, k₂ and solves them (Unit I, 1.8).</div>
+  <div class="f-lim">312 keys are trivially brute-forced; still monoalphabetic, so frequency analysis works.</div>
+</div>
+<div class="demo box" data-demo="affine" data-title="Interactive demo — additive, multiplicative and affine ciphers (with brute-force attack)"></div>
+
+<div class="concept">
+  <h3>Monoalphabetic substitution with a random key</h3>
+  <div class="f-exp">The key is an arbitrary <b>permutation</b> of the alphabet: a table saying A→N, B→O, C→A, … Each plaintext letter is replaced using the table.</div>
+  <div class="f-use">Newspaper "cryptogram" puzzles; historical diplomatic codes.</div>
+  <div class="f-imp">Key space = 26! ≈ <b>4 × 10<sup>26</sup></b> — far too big for brute force even today.</div>
+  <div class="f-lim">Still broken in minutes by <b>frequency analysis</b>: a monoalphabetic cipher preserves the frequency of every letter. E is ~12.7 % of English text, so the most frequent ciphertext letter is probably E; common pairs (TH, HE, IN) and triples (THE, AND) confirm guesses. <b>Lesson: a large key space is necessary but not sufficient.</b></div>
+</div>
+<div class="demo box" data-demo="freq" data-title="Interactive demo — frequency analysis"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="poly-ciphers">
+<h2><span class="num">2.2</span> Polyalphabetic substitution ciphers</h2>
+<p>To defeat frequency analysis, the same plaintext letter should become <b>different</b> ciphertext letters at different positions. The key therefore becomes a <b>stream of keys</b> k₁, k₂, k₃, … where each depends on the position.</p>
+
+<div class="concept">
+  <h3>Autokey cipher</h3>
+  <div class="f-exp">The first key k₁ is agreed secretly; after that, <b>each plaintext letter becomes the key for the next letter</b>: k₂ = P₁, k₃ = P₂, … Encryption is additive: C<sub>i</sub> = (P<sub>i</sub> + k<sub>i</sub>) mod 26.</div>
+  <div class="f-use">Historical (Vigenère's actual idea). It shows how a key stream can be generated from the message itself.</div>
+  <div class="f-imp"><b>"attack is today", k₁ = 12:</b>
+    <table class="num compact">
+      <tr><th>P</th><td>a</td><td>t</td><td>t</td><td>a</td><td>c</td><td>k</td><td>i</td><td>s</td><td>t</td><td>o</td><td>d</td><td>a</td><td>y</td></tr>
+      <tr><th>P value</th><td>0</td><td>19</td><td>19</td><td>0</td><td>2</td><td>10</td><td>8</td><td>18</td><td>19</td><td>14</td><td>3</td><td>0</td><td>24</td></tr>
+      <tr><th>Key</th><td>12</td><td>0</td><td>19</td><td>19</td><td>0</td><td>2</td><td>10</td><td>8</td><td>18</td><td>19</td><td>14</td><td>3</td><td>0</td></tr>
+      <tr><th>C value</th><td>12</td><td>19</td><td>12</td><td>19</td><td>2</td><td>12</td><td>18</td><td>0</td><td>11</td><td>7</td><td>17</td><td>3</td><td>24</td></tr>
+      <tr><th>C</th><td>M</td><td>T</td><td>M</td><td>T</td><td>C</td><td>M</td><td>S</td><td>A</td><td>L</td><td>H</td><td>R</td><td>D</td><td>Y</td></tr>
+    </table>
+    Ciphertext <b>MTMTCMSALHRDY</b>. Notice: t → T, M; a → M, T, D — the same letter encrypts differently.</div>
+  <div class="f-lim">Only 26 possible values for k₁, so brute force on k₁ recovers everything (once the first letter is known, all keys follow).</div>
+</div>
+
+<div class="concept">
+  <h3>Playfair cipher</h3>
+  <div class="f-exp">Used by the British Army in WWI. Encrypts <b>pairs of letters (digraphs)</b> using a 5 × 5 key matrix built from a keyword. I and J share one cell (25 letters).</div>
+  <div class="f-use">Field communication in WWI/WWII — no machine needed, yet much stronger than Caesar because single-letter frequencies are hidden.</div>
+  <div class="f-imp">
+    <p><b>Building the matrix:</b> write the keyword (dropping repeated letters) row by row, then fill with the remaining letters of the alphabet in order. Keyword <b>MONARCHY</b>:</p>
+    <table class="grid" style="width:auto;margin:auto"><tr><td class="hl2">M</td><td class="hl2">O</td><td class="hl2">N</td><td class="hl2">A</td><td class="hl2">R</td></tr><tr><td class="hl2">C</td><td class="hl2">H</td><td class="hl2">Y</td><td>B</td><td>D</td></tr><tr><td>E</td><td>F</td><td>G</td><td>I/J</td><td>K</td></tr><tr><td>L</td><td>P</td><td>Q</td><td>S</td><td>T</td></tr><tr><td>U</td><td>V</td><td>W</td><td>X</td><td>Z</td></tr></table>
+    <p><b>Preparing the plaintext:</b> split into pairs; if a pair has two identical letters insert a filler <b>X</b> between them (BALLOON → BA LX LO ON); if the length is odd, add X at the end.</p>
+    <p><b>Three rules for each pair:</b></p>
+    <ol class="steps">
+      <li><b>Same row</b> → replace each by the letter to its <b>right</b> (wrap around). AR → RM.</li>
+      <li><b>Same column</b> → replace each by the letter <b>below</b> (wrap around). MU → CM.</li>
+      <li><b>Rectangle</b> (different row and column) → replace each by the letter in <b>its own row</b> but in the <b>other letter's column</b>. HS → BP, EA → IM.</li>
+    </ol>
+    <p>Decryption uses the same matrix with <b>left</b> and <b>up</b> instead of right and down.</p>
+    <p><b>Worked:</b> INSTRUMENTS → IN ST RU ME NT SX → <b>GA TL MZ CL RQ XA</b>. (IN: rectangle, I is row 3 col 4, N row 1 col 3 → row 3 col 3 = G, row 1 col 4 = A.)</p>
+  </div>
+  <div class="f-lim">Digraph frequencies remain (there are only 600 digraphs); with a few hundred letters of ciphertext it is broken. A pair and its reverse (AB, BA) give reversed ciphertext pairs — another pattern for attackers.</div>
+</div>
+<div class="demo box" data-demo="playfair" data-title="Interactive demo — Playfair"></div>
+
+<div class="concept">
+  <h3>Vigenère cipher</h3>
+  <div class="f-exp">Uses a <b>keyword</b> of length m; the key stream is the keyword repeated: k = (k₁, …, k<sub>m</sub>, k₁, …, k<sub>m</sub>, …). Each letter is shifted (additive cipher) by the key letter above it.
+    <div class="box formula"><span class="eq">C<sub>i</sub> = (P<sub>i</sub> + K<sub>i mod m</sub>) mod 26 &nbsp;&nbsp;&nbsp; P<sub>i</sub> = (C<sub>i</sub> − K<sub>i mod m</sub>) mod 26</span></div></div>
+  <div class="f-use">Known for 300 years as "le chiffre indéchiffrable" (the unbreakable cipher); used in the American Civil War.</div>
+  <div class="f-imp"><b>"she is listening", keyword PASCAL</b> (P=15, A=0, S=18, C=2, A=0, L=11):
+    <table class="num compact">
+      <tr><th>P</th><td>s</td><td>h</td><td>e</td><td>i</td><td>s</td><td>l</td><td>i</td><td>s</td><td>t</td><td>e</td><td>n</td><td>i</td><td>n</td><td>g</td></tr>
+      <tr><th>P value</th><td>18</td><td>7</td><td>4</td><td>8</td><td>18</td><td>11</td><td>8</td><td>18</td><td>19</td><td>4</td><td>13</td><td>8</td><td>13</td><td>6</td></tr>
+      <tr><th>Key</th><td>15</td><td>0</td><td>18</td><td>2</td><td>0</td><td>11</td><td>15</td><td>0</td><td>18</td><td>2</td><td>0</td><td>11</td><td>15</td><td>0</td></tr>
+      <tr><th>C value</th><td>7</td><td>7</td><td>22</td><td>10</td><td>18</td><td>22</td><td>23</td><td>18</td><td>11</td><td>6</td><td>13</td><td>19</td><td>2</td><td>6</td></tr>
+      <tr><th>C</th><td>H</td><td>H</td><td>W</td><td>K</td><td>S</td><td>W</td><td>X</td><td>S</td><td>L</td><td>G</td><td>N</td><td>T</td><td>C</td><td>G</td></tr>
+    </table>
+    Ciphertext <b>HHWKSWXSLGNTCG</b>. Equivalent method: look up row = key letter, column = plaintext letter in the Vigenère tableau (see demo).</div>
+  <div class="f-lim">The key repeats every m letters. <b>Kasiski test</b>: repeated ciphertext fragments are usually the same plaintext encrypted with the same key position, so the distance between them is a multiple of m. Once m is known, the ciphertext splits into m Caesar ciphers, each broken by frequency analysis.</div>
+</div>
+<div class="demo box" data-demo="vigenere" data-title="Interactive demo — Vigenère with tableau"></div>
+
+<div class="concept">
+  <h3>Hill cipher</h3>
+  <div class="f-exp">Invented by Lester Hill (1929). The plaintext is split into blocks of m letters; each block (a row vector) is multiplied by an <b>m × m key matrix K</b> mod 26. Each ciphertext letter depends on <b>all</b> letters of the block.
+    <div class="box formula"><span class="eq">C = P × K (mod 26) &nbsp;&nbsp;&nbsp;&nbsp; P = C × K<sup>−1</sup> (mod 26)</span></div>
+    K must be invertible mod 26: gcd(det K, 26) = 1.</div>
+  <div class="f-use">First cipher based on linear algebra; the idea "mix several symbols together with a matrix" lives on in AES's MixColumns.</div>
+  <div class="f-imp"><b>Encrypt HELP with K = <span class="mat c2"><span>3</span><span>3</span><span>2</span><span>5</span></span></b> (det = 9, invertible).
+    <ol class="steps">
+      <li>Blocks: HE = (7, 4), LP = (11, 15).</li>
+      <li>(7, 4) × K = (7·3 + 4·2, 7·3 + 4·5) = (29, 41) ≡ (3, 15) → <b>DP</b>.</li>
+      <li>(11, 15) × K = (33 + 30, 33 + 75) = (63, 108) ≡ (11, 4) → <b>LE</b>.</li>
+      <li>Ciphertext <b>DPLE</b>. K<sup>−1</sup> = <span class="mat c2"><span>15</span><span>17</span><span>20</span><span>9</span></span> (computed in Unit I 1.7). (3, 15) × K<sup>−1</sup> = (45 + 300, 51 + 135) = (345, 186) ≡ (7, 4) = HE ✓</li>
+    </ol></div>
+  <div class="f-lim">Completely <b>linear</b>, so a <b>known-plaintext attack</b> breaks it: with m blocks of known plaintext P and ciphertext C (as m × m matrices), K = P<sup>−1</sup> × C. Not every matrix is a valid key.</div>
+</div>
+<div class="demo box" data-demo="hill" data-title="Interactive demo — 2×2 Hill cipher"></div>
+
+<div class="concept">
+  <h3>One-time pad (Vernam cipher)</h3>
+  <div class="f-exp">The key is <b>truly random</b>, <b>as long as the message</b>, and <b>used only once</b>. Each plaintext symbol is combined with one key symbol: additive mod 26 for letters, or <b>XOR</b> for bits (Vernam, 1917). Claude Shannon proved (1949) that it gives <b>perfect secrecy</b>: the ciphertext reveals <i>nothing</i> about the plaintext, because every plaintext of that length is equally likely.</div>
+  <div class="f-use">The Moscow–Washington hotline during the Cold War; spies' number stations; diplomatic communication where keys can be couriered in advance.</div>
+  <div class="f-imp">Bits: P = 1011 0110, K = 0110 1100 → C = P ⊕ K = 1101 1010. Decrypt: C ⊕ K = 1011 0110 = P (because K ⊕ K = 0).</div>
+  <div class="f-lim">Impractical: generating, distributing and storing a random key as long as all the traffic is the same problem as sending the message securely. <b>Reusing</b> the key is fatal: C₁ ⊕ C₂ = P₁ ⊕ P₂ leaks both messages (the Soviet VENONA failure).</div>
+</div>
+<div class="demo box" data-demo="otp" data-title="Interactive demo — one-time pad with XOR (and why reuse breaks it)"></div>
+
+<div class="box oos" data-title="Beyond the syllabus · Rotor machines and the Enigma">
+  <p>A <b>rotor cipher</b> uses mechanical wheels, each wired as a monoalphabetic substitution. After each letter the rotor turns one step, so the substitution changes with every letter — a polyalphabetic cipher with a very long period. The German <b>Enigma</b> (WWII) used 3–4 rotors, a reflector and a plugboard. It was broken by Polish mathematicians and Alan Turing's team at Bletchley Park, largely by exploiting procedural mistakes and known plaintext ("cribs") such as weather reports. Rotor machines are the bridge between pencil ciphers and computer ciphers like DES.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="transposition">
+<h2><span class="num">2.3</span> Transposition ciphers</h2>
+<p>A transposition cipher does not change any letter — it <b>changes their positions</b>. The ciphertext has exactly the same letter frequencies as the plaintext (so a cryptanalyst can tell it is a transposition), but the order is scrambled.</p>
+
+<div class="concept">
+  <h3>Keyless transposition — Rail fence cipher</h3>
+  <div class="f-exp">Write the plaintext in a <b>zig-zag</b> on a number of "rails" (rows), then read the ciphertext row by row. The number of rails is the only secret.</div>
+  <div class="f-use">Simple scrambling in the American Civil War; classroom examples of transposition.</div>
+  <div class="f-imp"><b>"meet me after the toga party", 2 rails:</b>
+<pre><code>m . e . m . a . t . r . h . t . g . p . r . y
+. e . t . e . f . e . t . e . o . a . a . t .</code></pre>
+    Row 1: MEMATRHTGPRY, Row 2: ETEFETEOAAT → <b>MEMATRHTGPRYETEFETEOAAT</b>.</div>
+  <div class="f-lim">Very few possible keys (number of rails); easily broken by trying all depths.</div>
+</div>
+<div class="demo box" data-demo="rail" data-title="Interactive demo — rail fence"></div>
+
+<div class="concept">
+  <h3>Keyed (columnar) transposition</h3>
+  <div class="f-exp">Write the plaintext <b>row by row</b> in a grid whose width equals the key length, then read it out <b>column by column</b> in the order given by the key. The key is a permutation of column numbers (or a word whose alphabetical order gives the numbers).</div>
+  <div class="f-use">Widely used in WWI/WWII, often applied twice (double transposition) or combined with substitution.</div>
+  <div class="f-imp"><b>Key 4 3 1 2 5 6 7, plaintext "attack postponed until two am" (padded xyz):</b>
+<pre><code>Key:   4 3 1 2 5 6 7
+       a t t a c k p
+       o s t p o n e
+       d u n t i l t
+       w o a m x y z</code></pre>
+    Read column 1 first (the one labelled 1): TTNA, then 2: APTM, then 3: TSUO, then 4: AODW, 5: COIX, 6: KNLY, 7: PETZ →
+    <b>TTNAAPTMTSUOAODWCOIXKNLYPETZ</b>.<br>
+    Decryption: compute rows = length ÷ key length, fill the columns in key order, read row-wise.</div>
+  <div class="f-lim">Letter frequencies are unchanged; anagramming and analysing common digraphs across columns can recover the order. <b>Double transposition</b> (applying it twice) is much stronger.</div>
+</div>
+<div class="demo box" data-demo="columnar" data-title="Interactive demo — keyed columnar transposition"></div>
+
+<div class="box tip"><b>Product cipher idea:</b> substitution alone leaks frequencies; transposition alone leaks letter counts. Combining many rounds of both gives a cipher much stronger than either — exactly the principle behind DES and AES.</div>
+
+<div class="box practice">
+  <ol class="qlist">
+    <li>Encrypt "CRYPTO" with the additive cipher, key 7.
+      <details class="ans"><summary>Show answer</summary><div>C2→9 J, R17→24 Y, Y24→31≡5 F, P15→22 W, T19→26≡0 A, O14→21 V → <b>JYFWAV</b>.</div></details></li>
+    <li>Use the affine cipher with keys (5, 8) to encrypt "AFFINE" and then decrypt the result.
+      <details class="ans"><summary>Show answer</summary><div>C = 5P + 8: A0→8 I, F5→33≡7 H, F→H, I8→48≡22 W, N13→73≡21 V, E4→28≡2 C → <b>IHHWVC</b>. Decrypt: 5<sup>−1</sup> = 21; I: (8−8)×21 = 0 → A ✓.</div></details></li>
+    <li>Encrypt "BALLOON" with Playfair key MONARCHY.
+      <details class="ans"><summary>Show answer</summary><div>Pairs BA LX LO ON. BA: B (row 2, col 4) and A (row 1, col 4) are in the same column → take the letter below each: B→I, A→B → IB. LX: rectangle → SU. LO: rectangle → PM. ON: same row → right → NA. Ciphertext <b>IBSUPMNA</b>.</div></details></li>
+    <li>Encrypt "HELLO" with Vigenère key "KEY".
+      <details class="ans"><summary>Show answer</summary><div>Key KEYKE (10, 4, 24, 10, 4): H7+10 = 17 R; E4+4 = 8 I; L11+24 = 35 ≡ 9 J; L11+10 = 21 V; O14+4 = 18 S → <b>RIJVS</b>.</div></details></li>
+    <li>Encrypt "WE ARE DISCOVERED FLEE AT ONCE" with a 3-rail fence.
+      <details class="ans"><summary>Show answer</summary><div><b>WECRLTEERDSOEEFEAOCAIVDEN</b></div></details></li>
+    <li>Hill cipher: encrypt "ACT" with K = [[6,24,1],[13,16,10],[20,17,15]] using C = P × K.
+      <details class="ans"><summary>Show answer</summary><div>P = (0, 2, 19). Column 1: 0·6 + 2·13 + 19·20 = 406 ≡ 16 → Q; column 2: 0 + 32 + 323 = 355 ≡ 17 → R; column 3: 0 + 20 + 285 = 305 ≡ 19 → T. Ciphertext <b>QRT</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="stream-block">
+<h2><span class="num">2.4</span> Stream ciphers and block ciphers</h2>
+<div class="box found" data-title="Foundation — bits, bytes and XOR">
+  <p>Modern ciphers work on <b>bits</b> (0/1), not letters. 8 bits = 1 byte; a byte is written as two hexadecimal digits (0–9, A–F), e.g. 1011 0110 = B6.</p>
+  <p><b>XOR (⊕, exclusive-or)</b> is addition mod 2 with no carry: 0⊕0 = 0, 0⊕1 = 1, 1⊕0 = 1, 1⊕1 = 0. Key facts: <b>x ⊕ x = 0</b>, <b>x ⊕ 0 = x</b>, so <b>(P ⊕ K) ⊕ K = P</b>. That is why XOR with a key is its own inverse — the same operation encrypts and decrypts.</p>
+  <table class="num compact" style="width:auto"><tr><th>a</th><th>b</th><th>a ⊕ b</th></tr><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td></tr></table>
+</div>
+
+<div class="concept">
+  <h3>Stream cipher</h3>
+  <div class="f-exp">Encrypts <b>one symbol (bit, byte or letter) at a time</b>. A <b>key stream</b> k₁, k₂, k₃, … is generated (from a short key) and combined with the plaintext stream: c<sub>i</sub> = p<sub>i</sub> ⊕ k<sub>i</sub>. Additive, Caesar, autokey, Vigenère and the one-time pad are all stream ciphers.</div>
+  <div class="f-use">Real-time communication where data arrives continuously or in unpredictable sizes: mobile phone voice (A5/1 in GSM), RC4 in old Wi-Fi (WEP) and SSL, ChaCha20 in modern TLS and WhatsApp.</div>
+  <div class="f-imp">A key-stream generator (e.g. a Linear Feedback Shift Register or RC4 — Unit III) expands a short secret key into a long pseudo-random stream; the stream is XORed with the data.</div>
+  <div class="f-lim">The same key stream must <b>never be reused</b> (same problem as the one-time pad). A bit flip in the ciphertext flips the same bit in the plaintext, so integrity must be added separately.</div>
+</div>
+<div class="concept">
+  <h3>Block cipher</h3>
+  <div class="f-exp">Encrypts a <b>fixed-size block</b> of plaintext (e.g. 64 bits in DES, 128 bits in AES) as a whole, using the same key for every block. Each ciphertext bit depends on all plaintext bits of the block. Playfair (2 letters) and Hill (m letters) are classical block ciphers.</div>
+  <div class="f-use">Files, disks, databases, packets — DES, 3DES, AES, Blowfish, IDEA.</div>
+  <div class="f-imp">The message is split into blocks (the last block is <b>padded</b>), and a <b>mode of operation</b> (ECB, CBC, CTR … — Unit III) decides how the blocks are chained.</div>
+  <div class="f-lim">Needs padding; identical blocks give identical ciphertext unless a chaining mode is used; usually somewhat slower in hardware than simple stream ciphers.</div>
+</div>
+<table>
+  <tr><th>Basis</th><th>Stream cipher</th><th>Block cipher</th></tr>
+  <tr><td>Unit of encryption</td><td>1 bit / byte at a time</td><td>Fixed block (64, 128 bits)</td></tr>
+  <tr><td>Key use</td><td>Different key-stream value for each symbol</td><td>Same key for every block</td></tr>
+  <tr><td>Main operations</td><td>XOR with key stream</td><td>Substitution + permutation in rounds</td></tr>
+  <tr><td>Speed / hardware</td><td>Very fast, simple circuits</td><td>Slower, more complex</td></tr>
+  <tr><td>Error propagation</td><td>A bit error affects only that bit</td><td>A bit error can garble a whole block</td></tr>
+  <tr><td>Padding</td><td>Not needed</td><td>Needed for the last block</td></tr>
+  <tr><td>Examples</td><td>RC4, A5/1, ChaCha20, OTP</td><td>DES, 3DES, AES, IDEA, Blowfish</td></tr>
+</table>
+
+<h3>Components of a modern block cipher</h3>
+<p>Modern block ciphers are built from a few simple components, repeated over many rounds:</p>
+<div class="concept">
+  <h3>P-boxes (permutation boxes)</h3>
+  <div class="f-exp">A P-box <b>transposes bits</b>. Three kinds: <b>straight</b> (n inputs → n outputs, a pure reordering, invertible), <b>expansion</b> (n → m with m &gt; n, some bits are copied, not invertible), and <b>compression</b> (n → m with m &lt; n, some bits are dropped, not invertible).</div>
+  <div class="f-use">DES uses all three: the initial/final permutations (straight), the expansion P-box (32 → 48), PC-2 compression (56 → 48) and the straight P-box in the round function.</div>
+  <div class="f-imp">Described by a table: entry i says which input bit goes to output position i. E.g. a 5-bit straight P-box [3, 1, 5, 2, 4] sends input bit 3 to output position 1.</div>
+  <div class="f-lim">A P-box alone is linear and easy to invert by anyone who knows the table — it provides diffusion only, never secrecy by itself.</div>
+</div>
+<div class="concept">
+  <h3>S-boxes (substitution boxes)</h3>
+  <div class="f-exp">An S-box is a small <b>lookup table</b> that substitutes an m-bit input with an n-bit output. It is the <b>only non-linear component</b> of DES and AES — and non-linearity is what defeats algebraic attacks.</div>
+  <div class="f-use">DES has eight 6-bit → 4-bit S-boxes; AES has one 8-bit → 8-bit S-box used 16 times per round.</div>
+  <div class="f-imp">Input bits select a row and a column of a table; the entry is the output.</div>
+  <div class="f-lim">Must be designed very carefully: a poorly chosen S-box enables differential and linear cryptanalysis.</div>
+</div>
+<div class="concept">
+  <h3>Other components: XOR, circular shift, swap, split and combine</h3>
+  <div class="f-exp"><b>XOR</b> mixes the round key into the data. <b>Circular shift</b> rotates bits left/right (used in DES key generation). <b>Swap</b> exchanges the left and right halves. <b>Split/combine</b> divides a block into halves and joins them back.</div>
+  <div class="f-use">All of them appear in DES; AES uses XOR, byte rotation (RotWord) and shifts of rows.</div>
+  <div class="f-imp">These operations are cheap in hardware and software and are all invertible (except split/combine, which are trivially reversible).</div>
+  <div class="f-lim">All are linear — security comes only from combining them with S-boxes over many rounds.</div>
+</div>
+
+<div class="concept">
+  <h3>Product ciphers: confusion and diffusion (Shannon)</h3>
+  <div class="f-exp">Claude Shannon introduced two design goals. <b>Diffusion</b>: hide the relationship between ciphertext and plaintext — each plaintext bit should affect many ciphertext bits (achieved by P-boxes, MixColumns). <b>Confusion</b>: hide the relationship between ciphertext and key — each ciphertext bit should depend on the key in a complex way (achieved by S-boxes). A <b>product cipher</b> combines substitution, permutation and other components in <b>rounds</b> to achieve both.</div>
+  <div class="f-use">Every modern block cipher is a product cipher: DES (16 rounds), AES (10–14 rounds).</div>
+  <div class="f-imp">Round i: mix in round key K<sub>i</sub> → substitute (S-boxes) → permute (P-box). After enough rounds every output bit depends on every input bit and every key bit (the <b>avalanche effect</b>).</div>
+  <div class="f-lim">More rounds = more security but less speed; designers choose the minimum number with a safety margin.</div>
+</div>
+
+<div class="concept">
+  <h3>Feistel and non-Feistel ciphers</h3>
+  <div class="f-exp">
+    <p>A <b>Feistel cipher</b> (Horst Feistel, IBM) splits the block into halves L and R. In each round:</p>
+    <span class="eq">L<sub>i</sub> = R<sub>i−1</sub> &nbsp;&nbsp;&nbsp;&nbsp; R<sub>i</sub> = L<sub>i−1</sub> ⊕ f(R<sub>i−1</sub>, K<sub>i</sub>)</span>
+    <p>The magic: the round function <b>f need not be invertible</b>. Decryption is the same structure with the round keys in reverse order, because XORing f(…) a second time cancels it. A <b>non-Feistel</b> cipher (e.g. AES) uses only invertible components and has separate inverse operations for decryption.</p>
+  </div>
+  <div class="f-use">Feistel: DES, 3DES, Blowfish, Twofish. Non-Feistel (substitution–permutation network): AES.</div>
+  <div class="f-imp">Encryption and decryption share the same hardware/software (only the key order changes) — a big advantage in the 1970s.</div>
+  <div class="f-lim">Only half the block is changed per round, so Feistel ciphers need more rounds than an SPN like AES for the same diffusion.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 520 270" width="520" role="img" aria-label="One Feistel round">
+ <rect class="dg-acc" x="60" y="10" width="140" height="34" rx="6"/><text class="dg-tb" x="130" y="32" text-anchor="middle">L(i−1)</text>
+ <rect class="dg-acc" x="320" y="10" width="140" height="34" rx="6"/><text class="dg-tb" x="390" y="32" text-anchor="middle">R(i−1)</text>
+ <path class="dg-line" d="M390 44 V95"/>
+ <rect class="dg-warn" x="300" y="70" width="70" height="40" rx="6"/><text class="dg-tb" x="335" y="95" text-anchor="middle">f</text>
+ <path class="dg-line" d="M390 90 H372" marker-end="url(#arr)"/>
+ <rect class="dg-box" x="420" y="70" width="80" height="40" rx="6"/><text class="dg-t" x="460" y="95" text-anchor="middle">K(i)</text>
+ <path class="dg-line" d="M420 90 L390 90"/>
+ <path class="dg-line" d="M300 90 H146" marker-end="url(#arr)"/>
+ <circle class="dg-box" cx="130" cy="90" r="14"/><text class="dg-tb" x="130" y="95" text-anchor="middle">⊕</text>
+ <path class="dg-line" d="M130 44 V74" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M130 104 V150 L390 200 V218" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M390 95 V150 L130 200 V218" marker-end="url(#arr)"/>
+ <rect class="dg-acc" x="60" y="220" width="140" height="34" rx="6"/><text class="dg-tb" x="130" y="242" text-anchor="middle">L(i) = R(i−1)</text>
+ <rect class="dg-acc" x="320" y="220" width="140" height="34" rx="6"/><text class="dg-tb" x="390" y="242" text-anchor="middle">R(i) = L(i−1) ⊕ f</text>
+ <text class="dg-ts" x="260" y="186" text-anchor="middle">swap</text>
+</svg>
+<figcaption>Fig 2.2 — One Feistel round: mixer (⊕ with f) followed by a swap.</figcaption>
+</figure>
+<div class="demo box" data-demo="feistel" data-title="Interactive demo — a toy Feistel cipher (f is NOT invertible, yet decryption works)"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="des">
+<h2><span class="num">2.5</span> Data Encryption Standard (DES)</h2>
+
+<div class="concept">
+  <h3>History and overview</h3>
+  <div class="f-exp">In 1973 the US National Bureau of Standards (now NIST) asked for a national cipher. IBM's <b>Lucifer</b>, modified with help from the NSA, was published as <b>DES (FIPS 46) in 1977</b>. DES is a <b>Feistel block cipher</b>:
+    <ul><li>Block size: <b>64 bits</b> plaintext → 64 bits ciphertext.</li>
+    <li>Key: <b>64 bits</b> given, of which <b>56 bits</b> are effective (every 8th bit is a parity bit).</li>
+    <li><b>16 rounds</b>, each using a different <b>48-bit round key</b> generated from the cipher key.</li></ul></div>
+  <div class="f-use">For 25 years the world's standard: ATM PIN encryption, banking networks (still as Triple DES in payment cards), UNIX password hashing (crypt), early SSL.</div>
+  <div class="f-imp">Structure: <b>Initial permutation (IP)</b> → <b>16 Feistel rounds</b> → (32-bit swap) → <b>Final permutation (FP = IP<sup>−1</sup>)</b>. The key generator produces K₁…K₁₆.</div>
+  <div class="f-lim">56-bit key is too short today (broken by brute force in 1998, 56 hours; in 1999, 22 hours). Withdrawn as a standard in 2005, replaced by AES.</div>
+</div>
+
+<figure class="fig">
+<svg viewBox="0 0 640 470" width="600" role="img" aria-label="General structure of DES">
+ <rect class="dg-good" x="150" y="8" width="220" height="32" rx="6"/><text class="dg-tb" x="260" y="29" text-anchor="middle">64-bit plaintext</text>
+ <path class="dg-line" d="M260 40 V58" marker-end="url(#arr)"/>
+ <rect class="dg-acc" x="150" y="60" width="220" height="32" rx="6"/><text class="dg-tb" x="260" y="81" text-anchor="middle">Initial permutation (IP)</text>
+ <path class="dg-line" d="M260 92 V110" marker-end="url(#arr)"/>
+ <rect class="dg-box" x="150" y="112" width="220" height="38" rx="6"/><text class="dg-tb" x="260" y="136" text-anchor="middle">Round 1</text>
+ <path class="dg-line" d="M260 150 V168" marker-end="url(#arr)"/>
+ <rect class="dg-box" x="150" y="170" width="220" height="38" rx="6"/><text class="dg-tb" x="260" y="194" text-anchor="middle">Round 2</text>
+ <text class="dg-tb" x="260" y="236" text-anchor="middle">⋮</text>
+ <rect class="dg-box" x="150" y="252" width="220" height="38" rx="6"/><text class="dg-tb" x="260" y="276" text-anchor="middle">Round 16</text>
+ <path class="dg-line" d="M260 290 V308" marker-end="url(#arr)"/>
+ <rect class="dg-warn" x="150" y="310" width="220" height="30" rx="6"/><text class="dg-t" x="260" y="330" text-anchor="middle">32-bit swap (undo last swap)</text>
+ <path class="dg-line" d="M260 340 V358" marker-end="url(#arr)"/>
+ <rect class="dg-acc" x="150" y="360" width="220" height="32" rx="6"/><text class="dg-tb" x="260" y="381" text-anchor="middle">Final permutation (IP⁻¹)</text>
+ <path class="dg-line" d="M260 392 V410" marker-end="url(#arr)"/>
+ <rect class="dg-good" x="150" y="412" width="220" height="32" rx="6"/><text class="dg-tb" x="260" y="433" text-anchor="middle">64-bit ciphertext</text>
+ <rect class="dg-warn" x="450" y="60" width="170" height="32" rx="6"/><text class="dg-tb" x="535" y="81" text-anchor="middle">56-bit cipher key</text>
+ <rect class="dg-found" x="450" y="112" width="170" height="280" rx="8"/><text class="dg-tb" x="535" y="230" text-anchor="middle">Round-key</text><text class="dg-tb" x="535" y="248" text-anchor="middle">generator</text>
+ <path class="dg-line" d="M535 92 V110" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M450 131 H372" marker-end="url(#arr)"/><text class="dg-ts" x="410" y="125" text-anchor="middle">K1 (48)</text>
+ <path class="dg-line" d="M450 189 H372" marker-end="url(#arr)"/><text class="dg-ts" x="410" y="183" text-anchor="middle">K2 (48)</text>
+ <path class="dg-line" d="M450 271 H372" marker-end="url(#arr)"/><text class="dg-ts" x="410" y="265" text-anchor="middle">K16 (48)</text>
+</svg>
+<figcaption>Fig 2.3 — General structure of DES.</figcaption>
+</figure>
+
+<h3>Initial and final permutations</h3>
+<p>Both are <b>straight P-boxes</b> (64 → 64) and are inverses of each other. Read the IP table as: output bit 1 is input bit 58, output bit 2 is input bit 50, … They have <b>no cryptographic significance</b> (they are keyless and public) — they were included to make loading data into 1970s hardware convenient.</p>
+<div class="two-col">
+<table class="grid compact"><tr><th colspan="8">Initial permutation (IP)</th></tr>
+<tr><td>58</td><td>50</td><td>42</td><td>34</td><td>26</td><td>18</td><td>10</td><td>2</td></tr>
+<tr><td>60</td><td>52</td><td>44</td><td>36</td><td>28</td><td>20</td><td>12</td><td>4</td></tr>
+<tr><td>62</td><td>54</td><td>46</td><td>38</td><td>30</td><td>22</td><td>14</td><td>6</td></tr>
+<tr><td>64</td><td>56</td><td>48</td><td>40</td><td>32</td><td>24</td><td>16</td><td>8</td></tr>
+<tr><td>57</td><td>49</td><td>41</td><td>33</td><td>25</td><td>17</td><td>9</td><td>1</td></tr>
+<tr><td>59</td><td>51</td><td>43</td><td>35</td><td>27</td><td>19</td><td>11</td><td>3</td></tr>
+<tr><td>61</td><td>53</td><td>45</td><td>37</td><td>29</td><td>21</td><td>13</td><td>5</td></tr>
+<tr><td>63</td><td>55</td><td>47</td><td>39</td><td>31</td><td>23</td><td>15</td><td>7</td></tr></table>
+<table class="grid compact"><tr><th colspan="8">Final permutation (IP⁻¹)</th></tr>
+<tr><td>40</td><td>8</td><td>48</td><td>16</td><td>56</td><td>24</td><td>64</td><td>32</td></tr>
+<tr><td>39</td><td>7</td><td>47</td><td>15</td><td>55</td><td>23</td><td>63</td><td>31</td></tr>
+<tr><td>38</td><td>6</td><td>46</td><td>14</td><td>54</td><td>22</td><td>62</td><td>30</td></tr>
+<tr><td>37</td><td>5</td><td>45</td><td>13</td><td>53</td><td>21</td><td>61</td><td>29</td></tr>
+<tr><td>36</td><td>4</td><td>44</td><td>12</td><td>52</td><td>20</td><td>60</td><td>28</td></tr>
+<tr><td>35</td><td>3</td><td>43</td><td>11</td><td>51</td><td>19</td><td>59</td><td>27</td></tr>
+<tr><td>34</td><td>2</td><td>42</td><td>10</td><td>50</td><td>18</td><td>58</td><td>26</td></tr>
+<tr><td>33</td><td>1</td><td>41</td><td>9</td><td>49</td><td>17</td><td>57</td><td>25</td></tr></table>
+</div>
+<div class="box example" data-title="Using a permutation table">
+  <p>Q: Input bit 58 — where does it go in IP? It is the 1st entry, so it goes to output position <b>1</b>. Where does input bit 1 go? 1 appears in row 5, column 8 → position 4×8 + 8 = <b>40</b>. Check with FP: entry 1 of FP is 40 ✓ (FP sends it back).</p>
+</div>
+
+<h3>A DES round</h3>
+<p>Each round is a Feistel round: L<sub>i</sub> = R<sub>i−1</sub>, R<sub>i</sub> = L<sub>i−1</sub> ⊕ f(R<sub>i−1</sub>, K<sub>i</sub>). The heart of DES is the <b>DES function f</b>, which takes the 32-bit right half and the 48-bit round key and produces 32 bits through four steps:</p>
+
+<figure class="fig">
+<svg viewBox="0 0 560 360" width="520" role="img" aria-label="DES function">
+ <rect class="dg-acc" x="170" y="8" width="220" height="30" rx="6"/><text class="dg-tb" x="280" y="28" text-anchor="middle">R(i−1) — 32 bits</text>
+ <path class="dg-line" d="M280 38 V56" marker-end="url(#arr)"/>
+ <rect class="dg-box" x="140" y="58" width="280" height="32" rx="6"/><text class="dg-t" x="280" y="79" text-anchor="middle">① Expansion P-box: 32 → 48 bits</text>
+ <path class="dg-line" d="M280 90 V112" marker-end="url(#arr)"/>
+ <circle class="dg-box" cx="280" cy="128" r="14"/><text class="dg-tb" x="280" y="133" text-anchor="middle">⊕</text>
+ <rect class="dg-warn" x="420" y="112" width="130" height="32" rx="6"/><text class="dg-t" x="485" y="133" text-anchor="middle">K(i) — 48 bits</text>
+ <path class="dg-line" d="M420 128 H296" marker-end="url(#arr)"/><text class="dg-ts" x="350" y="122" text-anchor="middle">② whitener</text>
+ <path class="dg-line" d="M280 142 V162" marker-end="url(#arr)"/>
+ <g>
+  <rect class="dg-found" x="40" y="164" width="56" height="44" rx="5"/><text class="dg-t" x="68" y="190" text-anchor="middle">S1</text>
+  <rect class="dg-found" x="102" y="164" width="56" height="44" rx="5"/><text class="dg-t" x="130" y="190" text-anchor="middle">S2</text>
+  <rect class="dg-found" x="164" y="164" width="56" height="44" rx="5"/><text class="dg-t" x="192" y="190" text-anchor="middle">S3</text>
+  <rect class="dg-found" x="226" y="164" width="56" height="44" rx="5"/><text class="dg-t" x="254" y="190" text-anchor="middle">S4</text>
+  <rect class="dg-found" x="288" y="164" width="56" height="44" rx="5"/><text class="dg-t" x="316" y="190" text-anchor="middle">S5</text>
+  <rect class="dg-found" x="350" y="164" width="56" height="44" rx="5"/><text class="dg-t" x="378" y="190" text-anchor="middle">S6</text>
+  <rect class="dg-found" x="412" y="164" width="56" height="44" rx="5"/><text class="dg-t" x="440" y="190" text-anchor="middle">S7</text>
+  <rect class="dg-found" x="474" y="164" width="56" height="44" rx="5"/><text class="dg-t" x="502" y="190" text-anchor="middle">S8</text>
+ </g>
+ <text class="dg-ts" x="280" y="226" text-anchor="middle">③ eight S-boxes: 6 bits in → 4 bits out each (48 → 32)</text>
+ <path class="dg-line" d="M280 232 V254" marker-end="url(#arr)"/>
+ <rect class="dg-box" x="140" y="256" width="280" height="32" rx="6"/><text class="dg-t" x="280" y="277" text-anchor="middle">④ Straight P-box: 32 → 32 bits</text>
+ <path class="dg-line" d="M280 288 V310" marker-end="url(#arr)"/>
+ <rect class="dg-acc" x="170" y="312" width="220" height="30" rx="6"/><text class="dg-tb" x="280" y="332" text-anchor="middle">f(R, K) — 32 bits</text>
+</svg>
+<figcaption>Fig 2.4 — The DES function f: expansion, key XOR, S-boxes, permutation.</figcaption>
+</figure>
+
+<div class="concept">
+  <h3>① Expansion P-box (32 → 48)</h3>
+  <div class="f-exp">R is only 32 bits but the round key is 48 bits, so R is expanded. The 32 bits are split into 8 sections of 4 bits; each section becomes 6 bits by borrowing the <b>neighbouring bit on each side</b> (circularly).</div>
+  <div class="f-use">Matches the key size and makes each input bit influence two S-boxes → faster avalanche.</div>
+  <div class="f-imp">
+  <table class="grid compact" style="width:auto;margin:auto"><tr><td>32</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr><tr><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td></tr><tr><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td></tr><tr><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td></tr><tr><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td></tr><tr><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td></tr><tr><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td><td>29</td></tr><tr><td>28</td><td>29</td><td>30</td><td>31</td><td>32</td><td>1</td></tr></table></div>
+  <div class="f-lim">Not invertible (16 bits are duplicated) — fine, because f never needs to be inverted in a Feistel cipher.</div>
+</div>
+<div class="concept">
+  <h3>② Whitener (XOR with round key)</h3>
+  <div class="f-exp">The 48-bit expanded value is XORed with the 48-bit round key K<sub>i</sub>. This is the only place the key enters the round.</div>
+  <div class="f-use">Ties every round's output to the secret key.</div>
+  <div class="f-imp">Bitwise XOR of two 48-bit strings.</div>
+  <div class="f-lim">XOR is linear; the S-boxes that follow provide the non-linearity.</div>
+</div>
+<div class="concept">
+  <h3>③ S-boxes (48 → 32)</h3>
+  <div class="f-exp">The 48 bits are split into eight 6-bit chunks, one per S-box. Each S-box is a table of <b>4 rows × 16 columns</b> of 4-bit values. For a 6-bit input b₁b₂b₃b₄b₅b₆:
+    <ul><li><b>Row</b> = the outer bits b₁b₆ (00–11 → 0–3)</li><li><b>Column</b> = the middle bits b₂b₃b₄b₅ (0000–1111 → 0–15)</li></ul>
+  The entry is the 4-bit output.</div>
+  <div class="f-use">The only non-linear part of DES — its real source of security (confusion).</div>
+  <div class="f-imp"><b>Example:</b> input to S-box 1 is <b>1</b>0001<b>1</b>. Row = 11₂ = 3, column = 0001₂ = 1. S1[3][1] = <b>12</b> = <b>1100</b>.
+  <table class="grid compact"><tr><th></th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th></tr>
+  <tr><th>0</th><td>14</td><td>4</td><td>13</td><td>1</td><td>2</td><td>15</td><td>11</td><td>8</td><td>3</td><td>10</td><td>6</td><td>12</td><td>5</td><td>9</td><td>0</td><td>7</td></tr>
+  <tr><th>1</th><td>0</td><td>15</td><td>7</td><td>4</td><td>14</td><td>2</td><td>13</td><td>1</td><td>10</td><td>6</td><td>12</td><td>11</td><td>9</td><td>5</td><td>3</td><td>8</td></tr>
+  <tr><th>2</th><td>4</td><td>1</td><td>14</td><td>8</td><td>13</td><td>6</td><td>2</td><td>11</td><td>15</td><td>12</td><td>9</td><td>7</td><td>3</td><td>10</td><td>5</td><td>0</td></tr>
+  <tr><th>3</th><td>15</td><td class="hl">12</td><td>8</td><td>2</td><td>4</td><td>9</td><td>1</td><td>7</td><td>5</td><td>11</td><td>3</td><td>14</td><td>10</td><td>0</td><td>6</td><td>13</td></tr></table>
+  <p style="text-align:center"><small>S-box 1 (S1). S2–S8 have the same shape with different entries.</small></p></div>
+  <div class="f-lim">The design criteria were kept secret in 1977, causing suspicion of an NSA "backdoor". In 1994 IBM revealed they had been designed to resist differential cryptanalysis — a technique the public only discovered in 1990.</div>
+</div>
+<div class="demo box" data-demo="dessbox" data-title="Interactive demo — DES S-box lookup"></div>
+<div class="concept">
+  <h3>④ Straight P-box (32 → 32)</h3>
+  <div class="f-exp">The 32 S-box output bits are permuted so that the output of each S-box feeds several different S-boxes in the next round.</div>
+  <div class="f-use">Diffusion across S-boxes.</div>
+  <div class="f-imp"><table class="grid compact" style="width:auto;margin:auto"><tr><td>16</td><td>7</td><td>20</td><td>21</td><td>29</td><td>12</td><td>28</td><td>17</td></tr><tr><td>1</td><td>15</td><td>23</td><td>26</td><td>5</td><td>18</td><td>31</td><td>10</td></tr><tr><td>2</td><td>8</td><td>24</td><td>14</td><td>32</td><td>27</td><td>3</td><td>9</td></tr><tr><td>19</td><td>13</td><td>30</td><td>6</td><td>22</td><td>11</td><td>4</td><td>25</td></tr></table></div>
+  <div class="f-lim">Fixed and public; contributes no secrecy alone.</div>
+</div>
+
+<div class="concept">
+  <h3>Round-key generation (key schedule)</h3>
+  <div class="f-exp">Creates sixteen 48-bit keys from the 64-bit cipher key in three stages.</div>
+  <div class="f-use">Every round uses a different subset of key bits, so all 56 key bits influence the ciphertext many times.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>Parity drop (PC-1, compression 64 → 56):</b> bits 8, 16, 24, …, 64 (parity bits) are dropped and the rest permuted.</li>
+      <li>Split into two 28-bit halves <b>C</b> and <b>D</b>.</li>
+      <li><b>Shift left (circular)</b> each half by <b>1 bit in rounds 1, 2, 9, 16</b> and by <b>2 bits in all other rounds</b> (total 28 shifts, so C and D return to their start after round 16).</li>
+      <li><b>Compression P-box (PC-2, 56 → 48):</b> picks 48 of the 56 bits → round key K<sub>i</sub>.</li>
+      <li>Repeat steps 3–4 for 16 rounds, feeding the shifted halves forward.</li>
+    </ol>
+  </div>
+  <div class="f-lim">Because the schedule is simple and linear, certain keys produce identical or repeating round keys — the <b>weak keys</b> (see 2.6).</div>
+</div>
+
+<div class="concept">
+  <h3>Cipher and reverse cipher</h3>
+  <div class="f-exp">Decryption uses <b>exactly the same algorithm</b> with the round keys in reverse order (K₁₆ first, K₁ last). This works because of the Feistel structure: each round is its own inverse once the halves are swapped, and FP undoes IP.</div>
+  <div class="f-use">One chip/program for both encryption and decryption.</div>
+  <div class="f-imp">The swap after round 16 is removed (or equivalently an extra swap is added) so that the decryption rounds align with the encryption rounds in reverse.</div>
+  <div class="f-lim">Any mistake in key order gives garbage — a common implementation bug.</div>
+</div>
+
+<div class="box example" data-title="Worked example — the classic DES test vector">
+  <p>Key = <code>133457799BBCDFF1</code>, Plaintext = <code>0123456789ABCDEF</code>.</p>
+  <ol class="steps">
+    <li>After IP: <code>CC00CCFF F0AAF0AA</code> → L₀ = <code>CC00CCFF</code>, R₀ = <code>F0AAF0AA</code>.</li>
+    <li>Round 1: E(R₀) = <code>7A15557A1555</code>; K₁ = <code>1B02EFFC7072</code>; XOR = <code>6117BA866527</code>; S-boxes → <code>5C82B597</code>; P-box → f = <code>234AA9BB</code>.</li>
+    <li>L₁ = R₀ = <code>F0AAF0AA</code>; R₁ = L₀ ⊕ f = <code>CC00CCFF ⊕ 234AA9BB</code> = <code>EF4A6544</code>.</li>
+    <li>… 15 more rounds (see demo) …</li>
+    <li>Ciphertext = <code>85E813540F0AB405</code>.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="des" data-title="Interactive demo — DES round by round (with avalanche test)"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="des-security">
+<h2><span class="num">2.6</span> DES analysis, security and Triple DES</h2>
+
+<h3>Properties</h3>
+<div class="two-col">
+  <div class="box def" data-title="Avalanche effect"><p>A small change in the plaintext (or key) causes a <b>large change</b> in the ciphertext. Flipping one plaintext bit of DES changes about <b>half</b> (≈ 32) of the 64 ciphertext bits after a few rounds. Try it in the demo above.</p></div>
+  <div class="box def" data-title="Completeness effect"><p>Each bit of the ciphertext depends on <b>many bits</b> of the plaintext (and key). DES achieves this after about 5 rounds thanks to expansion, S-boxes and P-boxes.</p></div>
+</div>
+
+<h3>Design criteria</h3>
+<ul>
+  <li><b>S-boxes:</b> each row is a permutation of 0–15; they are non-linear; changing one input bit changes at least two output bits; outputs depend on all input bits.</li>
+  <li><b>P-boxes:</b> the four output bits of each S-box go to six different S-boxes in the next round; no output bit goes to the same S-box.</li>
+  <li><b>Number of rounds:</b> 16 rounds are enough to make differential cryptanalysis no better than brute force.</li>
+</ul>
+
+<h3>Weaknesses of DES</h3>
+<div class="concept">
+  <h3>Weaknesses in the cipher design</h3>
+  <div class="f-exp"><b>S-boxes:</b> in S4 the last three output bits can be derived like the first. Two specifically chosen inputs to an S-box array can give the same output. <b>P-boxes:</b> IP and FP have no security value; the first and fourth bits of every 4-bit expansion section are duplicates.</div>
+  <div class="f-use">These observations helped researchers build better ciphers (AES).</div>
+  <div class="f-imp">None of these leads to a practical attack on full 16-round DES.</div>
+  <div class="f-lim">They show that 1970s design principles were not fully understood publicly.</div>
+</div>
+<div class="concept">
+  <h3>Weaknesses in the key</h3>
+  <div class="f-exp">
+    <ul>
+      <li><b>Key size:</b> 2<sup>56</sup> ≈ 7.2 × 10<sup>16</sup> keys — the main weakness.</li>
+      <li><b>Weak keys</b> (4 keys): after the parity drop C and D are all 0s or all 1s, so all 16 round keys are identical; encrypting <b>twice</b> with a weak key returns the plaintext. e.g. <code>0101 0101 0101 0101</code>, <code>FEFE FEFE FEFE FEFE</code>.</li>
+      <li><b>Semi-weak keys</b> (6 pairs): only two different round keys, each used 8 times; encryption with one key of a pair can be decrypted with the other.</li>
+      <li><b>Possible weak keys</b> (48 keys): only four distinct round keys.</li>
+      <li><b>Key complement:</b> if C = E(K, P) then C̄ = E(K̄, P̄) — testing one key also tests its complement, halving brute force to 2<sup>55</sup>.</li>
+    </ul></div>
+  <div class="f-use">Implementations explicitly reject weak and semi-weak keys.</div>
+  <div class="f-imp">With 64 weak/semi-weak/possible-weak keys out of 2<sup>56</sup>, a random key is practically never weak.</div>
+  <div class="f-lim">Nothing fixes the 56-bit key size — that is why DES is replaced, not patched.</div>
+</div>
+
+<h3>Attacks on DES</h3>
+<table>
+  <tr><th>Attack</th><th>Idea</th><th>Cost</th></tr>
+  <tr><td><b>Brute force</b></td><td>Try all keys</td><td>2<sup>55</sup> on average; EFF Deep Crack (1998): 56 hours; Deep Crack + distributed.net (1999): 22 hours</td></tr>
+  <tr><td><b>Differential cryptanalysis</b> (Biham &amp; Shamir, 1990)</td><td>Chosen-plaintext: study how differences in input pairs propagate to output differences</td><td>2<sup>47</sup> chosen plaintexts — impractical</td></tr>
+  <tr><td><b>Linear cryptanalysis</b> (Matsui, 1993)</td><td>Known-plaintext: find linear approximations of the cipher</td><td>2<sup>43</sup> known plaintexts — impractical</td></tr>
+</table>
+
+<h3>Multiple DES</h3>
+<div class="concept">
+  <h3>Double DES and the meet-in-the-middle attack</h3>
+  <div class="f-exp">Encrypt twice with two keys: C = E<sub>K2</sub>(E<sub>K1</sub>(P)). One expects 2<sup>112</sup> security, but the <b>meet-in-the-middle attack</b> (Diffie &amp; Hellman, 1977) reduces it to about <b>2<sup>57</sup></b>.</div>
+  <div class="f-use">Explains why "double" encryption is never used and Triple DES is used instead.</div>
+  <div class="f-imp">Given a known pair (P, C): the middle value M = E<sub>K1</sub>(P) = D<sub>K2</sub>(C).
+    <ol class="steps"><li>Encrypt P with all 2<sup>56</sup> values of K1, store the results M in a table.</li><li>Decrypt C with all 2<sup>56</sup> values of K2; look each result up in the table.</li><li>A match gives a candidate (K1, K2); confirm with a second (P, C) pair.</li></ol>
+    Work ≈ 2<sup>56</sup> + 2<sup>56</sup> = 2<sup>57</sup> (plus a lot of memory).</div>
+  <div class="f-lim">Requires 2<sup>56</sup> memory entries — large, but time is what matters for security estimates.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 660 130" width="640" role="img" aria-label="Meet in the middle">
+ <rect class="dg-good" x="5" y="45" width="60" height="36" rx="6"/><text class="dg-tb" x="35" y="68" text-anchor="middle">P</text>
+ <rect class="dg-acc" x="110" y="45" width="110" height="36" rx="6"/><text class="dg-t" x="165" y="68" text-anchor="middle">Encrypt K1</text>
+ <rect class="dg-warn" x="275" y="40" width="110" height="46" rx="6"/><text class="dg-tb" x="330" y="61" text-anchor="middle">M</text><text class="dg-ts" x="330" y="77" text-anchor="middle">match here</text>
+ <rect class="dg-acc" x="440" y="45" width="110" height="36" rx="6"/><text class="dg-t" x="495" y="68" text-anchor="middle">Decrypt K2</text>
+ <rect class="dg-good" x="595" y="45" width="60" height="36" rx="6"/><text class="dg-tb" x="625" y="68" text-anchor="middle">C</text>
+ <path class="dg-line" d="M65 63 H106" marker-end="url(#arr)"/><path class="dg-line" d="M220 63 H271" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M595 63 H554" marker-end="url(#arr)"/><path class="dg-line" d="M440 63 H389" marker-end="url(#arr)"/>
+ <text class="dg-ts" x="165" y="105" text-anchor="middle">2⁵⁶ forward trials, store</text>
+ <text class="dg-ts" x="495" y="105" text-anchor="middle">2⁵⁶ backward trials, look up</text>
+</svg>
+<figcaption>Fig 2.5 — Meet-in-the-middle attack on double DES.</figcaption>
+</figure>
+
+<div class="concept">
+  <h3>Triple DES (3DES / TDEA)</h3>
+  <div class="f-exp">Applies DES three times in <b>Encrypt–Decrypt–Encrypt (EDE)</b> order.
+    <ul><li><b>Two-key 3DES:</b> C = E<sub>K1</sub>(D<sub>K2</sub>(E<sub>K1</sub>(P))) — 112-bit key.</li>
+    <li><b>Three-key 3DES:</b> C = E<sub>K3</sub>(D<sub>K2</sub>(E<sub>K1</sub>(P))) — 168-bit key.</li></ul>
+    Decryption: P = D<sub>K1</sub>(E<sub>K2</sub>(D<sub>K3</sub>(C))).</div>
+  <div class="f-use">Banking/payment industry (EMV cards, PIN blocks), PGP and S/MIME options, legacy systems. Being phased out (NIST disallowed new use after 2023).</div>
+  <div class="f-imp">Why D in the middle? <b>Backward compatibility</b>: setting K1 = K2 (= K3) makes 3DES collapse to single DES, so new equipment can talk to old. Meet-in-the-middle on 3-key 3DES costs ≈ 2<sup>112</sup>.</div>
+  <div class="f-lim">Three times slower than DES; still a 64-bit block (vulnerable to birthday-bound attacks such as Sweet32 after ~32 GB of data under one key).</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 660 110" width="640" role="img" aria-label="Triple DES EDE">
+ <rect class="dg-good" x="5" y="38" width="50" height="34" rx="6"/><text class="dg-tb" x="30" y="60" text-anchor="middle">P</text>
+ <rect class="dg-acc" x="95" y="38" width="120" height="34" rx="6"/><text class="dg-t" x="155" y="60" text-anchor="middle">Encrypt (K1)</text>
+ <rect class="dg-warn" x="260" y="38" width="120" height="34" rx="6"/><text class="dg-t" x="320" y="60" text-anchor="middle">Decrypt (K2)</text>
+ <rect class="dg-acc" x="425" y="38" width="160" height="34" rx="6"/><text class="dg-t" x="505" y="60" text-anchor="middle">Encrypt (K3 or K1)</text>
+ <rect class="dg-good" x="615" y="38" width="40" height="34" rx="6"/><text class="dg-tb" x="635" y="60" text-anchor="middle">C</text>
+ <path class="dg-line" d="M55 55 H91" marker-end="url(#arr)"/><path class="dg-line" d="M215 55 H256" marker-end="url(#arr)"/><path class="dg-line" d="M380 55 H421" marker-end="url(#arr)"/><path class="dg-line" d="M585 55 H611" marker-end="url(#arr)"/>
+ <text class="dg-ts" x="330" y="96" text-anchor="middle">K1 = K2 = K3 ⇒ behaves as single DES (compatibility)</text>
+</svg>
+<figcaption>Fig 2.6 — Triple DES in EDE mode.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="aes">
+<h2><span class="num">2.7</span> Advanced Encryption Standard (AES)</h2>
+
+<div class="concept">
+  <h3>Introduction</h3>
+  <div class="f-exp">In 1997 NIST announced an open competition for a DES replacement. Fifteen algorithms were submitted; five finalists (MARS, RC6, <b>Rijndael</b>, Serpent, Twofish) were analysed publicly. <b>Rijndael</b>, by Belgian cryptographers Joan Daemen and Vincent Rijmen, won in 2000 and became <b>FIPS 197 in November 2001</b>.
+  <br><b>NIST criteria:</b> (1) <b>security</b> — resistance to all known attacks, key ≥ 128 bits; (2) <b>cost</b> — computational efficiency and low memory; (3) <b>implementation</b> — flexibility (hardware, software, smart cards) and simplicity.</div>
+  <div class="f-use">Everywhere: HTTPS/TLS, Wi-Fi (WPA2/WPA3), disk encryption (BitLocker, FileVault), WhatsApp/Signal attachments, VPNs, ZIP/RAR passwords, government TOP SECRET data (AES-192/256).</div>
+  <div class="f-imp">A <b>non-Feistel</b> cipher (substitution–permutation network). Block = <b>128 bits</b>; three versions by key size:
+  <table class="num"><tr><th>Version</th><th>Key size</th><th>Rounds (Nr)</th><th>Round keys</th><th>Words in expanded key</th></tr>
+  <tr><td>AES-128</td><td>128 bits (16 bytes)</td><td>10</td><td>11</td><td>44</td></tr>
+  <tr><td>AES-192</td><td>192 bits (24 bytes)</td><td>12</td><td>13</td><td>52</td></tr>
+  <tr><td>AES-256</td><td>256 bits (32 bytes)</td><td>14</td><td>15</td><td>60</td></tr></table>
+  Round keys are always 128 bits regardless of version.</div>
+  <div class="f-lim">The algorithm is secure; real-world failures come from implementations (side channels, bad modes like ECB, nonce reuse, weak key management).</div>
+</div>
+
+<h3>Data units and the state</h3>
+<p>AES works with five units: <b>bit</b> (0/1), <b>byte</b> (8 bits, written as 2 hex digits), <b>word</b> (4 bytes = 32 bits, a row or column), <b>block</b> (16 bytes = 128 bits) and the <b>state</b> — the 16 bytes arranged as a <b>4 × 4 matrix of bytes</b>, filled <b>column by column</b>.</p>
+<figure class="fig">
+<svg viewBox="0 0 620 200" width="600" role="img" aria-label="Block to state">
+ <text class="dg-tb" x="10" y="22">Block: 16 bytes</text>
+ <g font-family="monospace">
+ <rect class="dg-box" x="10" y="32" width="580" height="30" rx="4"/>
+ <text class="dg-tm" x="20" y="52">b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15</text>
+ </g>
+ <path class="dg-line" d="M300 66 V88" marker-end="url(#arr)"/>
+ <text class="dg-tb" x="10" y="110">State (4 × 4)</text>
+ <rect class="dg-acc" x="200" y="96" width="220" height="100" rx="6"/>
+ <text class="dg-tm" x="215" y="118">b0   b4   b8   b12</text>
+ <text class="dg-tm" x="215" y="141">b1   b5   b9   b13</text>
+ <text class="dg-tm" x="215" y="164">b2   b6   b10  b14</text>
+ <text class="dg-tm" x="215" y="187">b3   b7   b11  b15</text>
+ <text class="dg-ts" x="440" y="150">column-major: each</text><text class="dg-ts" x="440" y="165">column is one word</text>
+</svg>
+<figcaption>Fig 2.7 — Converting a 128-bit block into the AES state, column by column.</figcaption>
+</figure>
+
+<h3>Structure of each round</h3>
+<figure class="fig">
+<svg viewBox="0 0 560 440" width="460" role="img" aria-label="AES encryption structure">
+ <rect class="dg-good" x="170" y="6" width="220" height="30" rx="6"/><text class="dg-tb" x="280" y="26" text-anchor="middle">Plaintext (128 bits)</text>
+ <path class="dg-line" d="M280 36 V52" marker-end="url(#arr)"/>
+ <rect class="dg-warn" x="170" y="54" width="220" height="30" rx="6"/><text class="dg-t" x="280" y="74" text-anchor="middle">AddRoundKey (K0) — pre-round</text>
+ <path class="dg-line" d="M280 84 V102" marker-end="url(#arr)"/>
+ <rect class="dg-plain" x="140" y="104" width="280" height="170" rx="10" style="stroke-dasharray:6 4"/>
+ <text class="dg-ta" x="150" y="122">Rounds 1 … Nr−1</text>
+ <rect class="dg-acc" x="190" y="130" width="180" height="28" rx="6"/><text class="dg-t" x="280" y="149" text-anchor="middle">SubBytes</text>
+ <rect class="dg-acc" x="190" y="164" width="180" height="28" rx="6"/><text class="dg-t" x="280" y="183" text-anchor="middle">ShiftRows</text>
+ <rect class="dg-acc" x="190" y="198" width="180" height="28" rx="6"/><text class="dg-t" x="280" y="217" text-anchor="middle">MixColumns</text>
+ <rect class="dg-warn" x="190" y="232" width="180" height="28" rx="6"/><text class="dg-t" x="280" y="251" text-anchor="middle">AddRoundKey (Ki)</text>
+ <path class="dg-line" d="M280 274 V292" marker-end="url(#arr)"/>
+ <rect class="dg-plain" x="140" y="294" width="280" height="110" rx="10" style="stroke-dasharray:6 4"/>
+ <text class="dg-ta" x="150" y="312">Last round (Nr)</text>
+ <rect class="dg-acc" x="190" y="318" width="180" height="24" rx="6"/><text class="dg-t" x="280" y="335" text-anchor="middle">SubBytes</text>
+ <rect class="dg-acc" x="190" y="346" width="180" height="24" rx="6"/><text class="dg-t" x="280" y="363" text-anchor="middle">ShiftRows</text>
+ <rect class="dg-warn" x="190" y="374" width="180" height="24" rx="6"/><text class="dg-t" x="280" y="391" text-anchor="middle">AddRoundKey (KNr)</text>
+ <path class="dg-line" d="M280 404 V414" marker-end="url(#arr)"/>
+ <text class="dg-tb" x="280" y="432" text-anchor="middle">Ciphertext (128 bits)</text>
+ <rect class="dg-found" x="450" y="54" width="100" height="350" rx="8"/><text class="dg-tb" x="500" y="220" text-anchor="middle">Key</text><text class="dg-tb" x="500" y="238" text-anchor="middle">expansion</text>
+ <text class="dg-ts" x="500" y="256" text-anchor="middle">w0 … w43</text>
+</svg>
+<figcaption>Fig 2.8 — AES encryption: one pre-round key addition, Nr−1 full rounds, and a last round without MixColumns.</figcaption>
+</figure>
+
+<div class="box found" data-title="Foundation — arithmetic on bytes: the field GF(2⁸)">
+  <p>AES treats each byte as a <b>polynomial</b> with coefficients 0/1. Byte 57 (hex) = 0101 0111 = x<sup>6</sup> + x<sup>4</sup> + x<sup>2</sup> + x + 1.</p>
+  <ul>
+    <li><b>Addition</b> = XOR (coefficients are added mod 2). 57 ⊕ 83 = D4.</li>
+    <li><b>Multiplication</b> = polynomial multiplication, then reduce modulo the irreducible polynomial <b>m(x) = x<sup>8</sup> + x<sup>4</sup> + x<sup>3</sup> + x + 1</b> (hex 11B) so the result fits in 8 bits.</li>
+    <li><b>Multiplying by 02 ("xtime")</b>: shift left by one bit; if the bit that fell off (the old MSB) was 1, XOR the result with <b>1B</b>.</li>
+    <li>Multiplying by 03 = (×02) ⊕ (×01). Larger constants are built from repeated xtime.</li>
+  </ul>
+  <p><b>Example 57 × 13:</b> 57×02 = AE; 57×04 = xtime(AE) = 5C ⊕ 1B = 47; 57×08 = 8E; 57×10 = xtime(8E) = 1C ⊕ 1B = 07. Since 13 = 10 + 02 + 01: 57 × 13 = 07 ⊕ AE ⊕ 57 = <b>FE</b>.</p>
+  <p>Because 2<sup>8</sup> = 256 elements with a prime-polynomial modulus form a <b>field</b>, every non-zero byte has a multiplicative inverse — this is used to build the S-box.</p>
+</div>
+<div class="demo box" data-demo="gfmul" data-title="Interactive demo — multiplication in GF(2⁸)"></div>
+
+<h3>The four transformations</h3>
+<div class="concept">
+  <h3>SubBytes (substitution)</h3>
+  <div class="f-exp">Each of the 16 bytes is replaced <b>independently</b> using the AES <b>S-box</b> (a 16 × 16 table): the left hex digit selects the <b>row</b>, the right hex digit the <b>column</b>. It is the only non-linear transformation in AES (confusion). <b>InvSubBytes</b> uses the inverse S-box.</div>
+  <div class="f-use">Defeats linear and differential cryptanalysis; there is just one S-box, so it is easy to implement as a 256-byte table.</div>
+  <div class="f-imp">Byte <b>53</b>: row 5, column 3 → <b>ED</b>.<br>How the S-box is built (algebraically — not a random table): (1) take the multiplicative inverse of the byte in GF(2<sup>8</sup>) (53<sup>−1</sup> = CA; 00 maps to 00); (2) apply an affine transformation: b′ᵢ = bᵢ ⊕ b₍ᵢ₊₄₎ ⊕ b₍ᵢ₊₅₎ ⊕ b₍ᵢ₊₆₎ ⊕ b₍ᵢ₊₇₎ ⊕ cᵢ with constant c = 63.</div>
+  <div class="f-lim">A table-lookup implementation can leak key information through CPU cache timing (cache-timing side-channel attacks); modern CPUs use the AES-NI instructions instead.</div>
+</div>
+<div class="demo box" data-demo="aessbox" data-title="Interactive demo — AES S-box"></div>
+<div class="concept">
+  <h3>ShiftRows (permutation)</h3>
+  <div class="f-exp">The bytes of each <b>row</b> are rotated left: <b>row 0 by 0</b>, <b>row 1 by 1</b>, <b>row 2 by 2</b>, <b>row 3 by 3</b> bytes. InvShiftRows rotates right by the same amounts.</div>
+  <div class="f-use">Moves bytes between columns, so that MixColumns (which works within columns) eventually mixes all 16 bytes — diffusion across the whole block.</div>
+  <div class="f-imp">
+    <table class="grid compact" style="width:auto;margin:auto"><tr><td>s00</td><td>s01</td><td>s02</td><td>s03</td><td style="border:none">→</td><td>s00</td><td>s01</td><td>s02</td><td>s03</td></tr>
+    <tr><td>s10</td><td>s11</td><td>s12</td><td>s13</td><td style="border:none">→</td><td>s11</td><td>s12</td><td>s13</td><td>s10</td></tr>
+    <tr><td>s20</td><td>s21</td><td>s22</td><td>s23</td><td style="border:none">→</td><td>s22</td><td>s23</td><td>s20</td><td>s21</td></tr>
+    <tr><td>s30</td><td>s31</td><td>s32</td><td>s33</td><td style="border:none">→</td><td>s33</td><td>s30</td><td>s31</td><td>s32</td></tr></table></div>
+  <div class="f-lim">Linear and keyless by itself.</div>
+</div>
+<div class="concept">
+  <h3>MixColumns (mixing)</h3>
+  <div class="f-exp">Each <b>column</b> (4 bytes) is multiplied by a constant 4 × 4 matrix in GF(2<sup>8</sup>), so every output byte depends on all four input bytes of the column.
+  <span class="eq"><span class="mat c1"><span>s′₀</span><span>s′₁</span><span>s′₂</span><span>s′₃</span></span> = <span class="mat c4"><span>02</span><span>03</span><span>01</span><span>01</span><span>01</span><span>02</span><span>03</span><span>01</span><span>01</span><span>01</span><span>02</span><span>03</span><span>03</span><span>01</span><span>01</span><span>02</span></span> × <span class="mat c1"><span>s₀</span><span>s₁</span><span>s₂</span><span>s₃</span></span></span>
+  InvMixColumns uses the inverse matrix with entries 0E, 0B, 0D, 09.</div>
+  <div class="f-use">Main source of diffusion: after two rounds every byte of the state depends on every byte of the input.</div>
+  <div class="f-imp"><b>Example:</b> column (DB, 13, 53, 45):<br>
+  s′₀ = 02·DB ⊕ 03·13 ⊕ 01·53 ⊕ 01·45 = AD ⊕ 35 ⊕ 53 ⊕ 45 = <b>8E</b>. (02·DB: DB = 1101 1011, shift → 1011 0110, MSB was 1 so ⊕ 1B → <b>AD</b>; 03·13 = 26 ⊕ 13 = <b>35</b>.)<br>
+  Full result: (DB, 13, 53, 45) → (<b>8E, 4D, A1, BC</b>).</div>
+  <div class="f-lim">Skipped in the last round (it would add no security there and keeps encryption/decryption structurally similar).</div>
+</div>
+<div class="concept">
+  <h3>AddRoundKey</h3>
+  <div class="f-exp">The state is XORed, column by column, with the 128-bit round key (4 words). It is the <b>only step that uses the key</b>, and it is its own inverse.</div>
+  <div class="f-use">Without it AES would be a fixed public permutation — anyone could invert it.</div>
+  <div class="f-imp">Column c of the state ⊕ word w[4·round + c].</div>
+  <div class="f-lim">Security depends entirely on a good key schedule producing unrelated round keys.</div>
+</div>
+
+<h3>Key expansion</h3>
+<div class="concept">
+  <h3>AES-128 key expansion</h3>
+  <div class="f-exp">The 16-byte key becomes <b>44 words</b> w₀ … w₄₃ (11 round keys × 4 words). The first four words are the key itself; each later word depends on the previous word and the word four positions back.</div>
+  <div class="f-use">Produces a different round key for every round so that each round's AddRoundKey is unique.</div>
+  <div class="f-imp">
+    <div class="box formula" data-title="Rule for i = 4 … 43">
+      <span class="eq">if i mod 4 ≠ 0: &nbsp; w<sub>i</sub> = w<sub>i−1</sub> ⊕ w<sub>i−4</sub></span>
+      <span class="eq">if i mod 4 = 0: &nbsp; w<sub>i</sub> = t ⊕ w<sub>i−4</sub>, &nbsp; t = SubWord(RotWord(w<sub>i−1</sub>)) ⊕ RCon<sub>i/4</sub></span>
+    </div>
+    <ul><li><b>RotWord</b>: rotate the 4 bytes left by one (like ShiftRows on one row): [a b c d] → [b c d a].</li>
+    <li><b>SubWord</b>: apply the S-box to each of the 4 bytes.</li>
+    <li><b>RCon</b> (round constant): [RC, 00, 00, 00] with RC = 01, 02, 04, 08, 10, 20, 40, 80, 1B, 36 for rounds 1–10 (powers of x in GF(2<sup>8</sup>)).</li></ul>
+  </div>
+  <div class="f-lim">The key schedule is fairly simple; related-key attacks exploit this for AES-192/256 in theory (requiring keys with chosen relations, unrealistic in practice).</div>
+</div>
+<div class="box example" data-title="Worked example — computing w₄ (FIPS-197 key 2B7E1516 28AED2A6 ABF71588 09CF4F3C)">
+  <ol class="steps">
+    <li>w₀ = 2B7E1516, w₁ = 28AED2A6, w₂ = ABF71588, w₃ = 09CF4F3C.</li>
+    <li>i = 4, 4 mod 4 = 0 → special rule. RotWord(w₃) = <b>CF4F3C09</b>.</li>
+    <li>SubWord: S(CF) = 8A, S(4F) = 84, S(3C) = EB, S(09) = 01 → <b>8A84EB01</b>.</li>
+    <li>⊕ RCon₁ = 01000000 → t = <b>8B84EB01</b>.</li>
+    <li>w₄ = t ⊕ w₀ = 8B84EB01 ⊕ 2B7E1516 = <b>A0FAFE17</b>.</li>
+    <li>w₅ = w₄ ⊕ w₁ = A0FAFE17 ⊕ 28AED2A6 = <b>88542CB1</b> (ordinary rule).</li>
+  </ol>
+</div>
+<div class="box oos" data-title="Beyond the syllabus · AES-192 and AES-256 key expansion">
+  <p>AES-192 works with 6-word groups (Nk = 6): the special rule applies when i mod 6 = 0. AES-256 uses Nk = 8: the special rule applies when i mod 8 = 0, <b>and</b> an extra SubWord (without RotWord or RCon) is applied when i mod 8 = 4.</p>
+</div>
+
+<div class="demo box" data-demo="aes" data-title="Interactive demo — AES encryption step by step (state matrix + key expansion)"></div>
+
+<div class="box example" data-title="Worked example — first round of the FIPS-197 example">
+  <p>Plaintext 3243F6A8 885A308D 313198A2 E0370734, key 2B7E1516 28AED2A6 ABF71588 09CF4F3C.</p>
+  <table class="num compact"><tr><th>Step</th><th>State (column by column)</th></tr>
+  <tr><td>Input</td><td class="mono">32 43 F6 A8 | 88 5A 30 8D | 31 31 98 A2 | E0 37 07 34</td></tr>
+  <tr><td>AddRoundKey(K0)</td><td class="mono">19 3D E3 BE | A0 F4 E2 2B | 9A C6 8D 2A | E9 F8 48 08</td></tr>
+  <tr><td>SubBytes</td><td class="mono">D4 27 11 AE | E0 BF 98 F1 | B8 B4 5D E5 | 1E 41 52 30</td></tr>
+  <tr><td>ShiftRows</td><td class="mono">D4 BF 5D 30 | E0 B4 52 AE | B8 41 11 F1 | 1E 27 98 E5</td></tr>
+  <tr><td>MixColumns</td><td class="mono">04 66 81 E5 | E0 CB 19 9A | 48 F8 D3 7A | 28 06 26 4C</td></tr>
+  <tr><td>AddRoundKey(K1)</td><td class="mono">A4 9C 7F F2 | 68 9F 35 2B | 6B 5B EA 43 | 02 6A 50 49</td></tr>
+  </table>
+  <p>After 10 rounds the ciphertext is <b>3925841D 02DC09FB DC118597 196A0B32</b>.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="aes-analysis">
+<h2><span class="num">2.8</span> Performance analysis of AES</h2>
+<div class="concept">
+  <h3>Security</h3>
+  <div class="f-exp">AES was designed after DES's weaknesses were understood.
+    <ul>
+      <li><b>Brute force:</b> 2<sup>128</sup> keys (vs DES 2<sup>56</sup>) — a machine that broke DES in 1 second would need ~10<sup>13</sup> years for AES-128.</li>
+      <li><b>Statistical attacks:</b> strong diffusion and confusion — no statistical pattern of the plaintext survives; extensive testing found none.</li>
+      <li><b>Differential and linear attacks:</b> the S-box and MixColumns were designed using the "wide trail strategy" so no useful differential or linear trail exists beyond a few rounds.</li>
+    </ul></div>
+  <div class="f-use">Approved by the US NSA for TOP SECRET information (with 192/256-bit keys).</div>
+  <div class="f-imp">Best known attack on full AES-128 (biclique, 2011) needs 2<sup>126.1</sup> operations — only about 4× faster than brute force, i.e. still impossible.</div>
+  <div class="f-lim"><b>Side-channel attacks</b> (timing, power, cache) target implementations, not the algorithm; quantum computers (Grover's algorithm) would halve the effective key length — AES-256 remains safe.</div>
+</div>
+<div class="concept">
+  <h3>Implementation</h3>
+  <div class="f-exp">AES can be implemented efficiently on every platform because every step is byte-oriented.</div>
+  <div class="f-use">8-bit smart cards and IoT devices, 32/64-bit PCs and servers, dedicated hardware (routers, SSDs).</div>
+  <div class="f-imp">8-bit: S-box table + xtime. 32-bit: SubBytes, ShiftRows and MixColumns are merged into four 1-KB lookup tables ("T-tables") — one round becomes 16 table lookups and XORs. Since 2010, Intel/AMD/ARM CPUs have <b>AES-NI</b> instructions that do a whole round in one instruction (several GB/s).</div>
+  <div class="f-lim">Table-based software is vulnerable to cache-timing attacks unless done carefully.</div>
+</div>
+<div class="concept">
+  <h3>Simplicity and cost</h3>
+  <div class="f-exp">The algorithms are simple: one S-box, XOR, shifts and a small matrix. Encryption and decryption need separate (inverse) components, but they are equally simple.</div>
+  <div class="f-use">Cheap processors and small memory suffice — ideal for embedded and mobile devices.</div>
+  <div class="f-imp">Fewer rounds than DES (10 vs 16) because each AES round changes the <b>whole</b> state, while a Feistel round changes only half.</div>
+  <div class="f-lim">Decryption is slightly slower than encryption (InvMixColumns uses larger constants 09, 0B, 0D, 0E).</div>
+</div>
+
+<h3>DES vs AES</h3>
+<table>
+  <tr><th>Feature</th><th>DES</th><th>AES</th></tr>
+  <tr><td>Year / standard</td><td>1977, FIPS 46</td><td>2001, FIPS 197</td></tr>
+  <tr><td>Designer</td><td>IBM (Lucifer) + NSA</td><td>Daemen &amp; Rijmen (Rijndael), open competition</td></tr>
+  <tr><td>Structure</td><td>Feistel network</td><td>Substitution–permutation network (non-Feistel)</td></tr>
+  <tr><td>Block size</td><td>64 bits</td><td>128 bits</td></tr>
+  <tr><td>Key size</td><td>56 bits (64 with parity)</td><td>128 / 192 / 256 bits</td></tr>
+  <tr><td>Rounds</td><td>16</td><td>10 / 12 / 14</td></tr>
+  <tr><td>Round key size</td><td>48 bits</td><td>128 bits</td></tr>
+  <tr><td>S-boxes</td><td>8 different, 6 → 4 bits</td><td>1, 8 → 8 bits (algebraic)</td></tr>
+  <tr><td>Operations</td><td>Expansion, XOR, S-box, permutation, swap</td><td>SubBytes, ShiftRows, MixColumns, AddRoundKey</td></tr>
+  <tr><td>Decryption</td><td>Same algorithm, reversed keys</td><td>Inverse transformations</td></tr>
+  <tr><td>Security today</td><td>Broken by brute force</td><td>No practical attack</td></tr>
+  <tr><td>Speed</td><td>Slower in software</td><td>Faster, hardware support (AES-NI)</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="unit2-review">
+<h2><span class="num">2.9</span> Unit II review and self-test</h2>
+<div class="box summary">
+<ul>
+  <li>Additive C = P + k; multiplicative C = P·k (k ∈ ℤ₂₆*); affine C = P·k₁ + k₂ (312 keys). All monoalphabetic → frequency analysis.</li>
+  <li>Polyalphabetic: autokey, Playfair (5×5, digraphs, 3 rules), Vigenère (repeating keyword; Kasiski test), Hill (C = PK, known-plaintext attack), one-time pad (perfect secrecy, never reuse).</li>
+  <li>Transposition: rail fence (zig-zag), keyed columnar (write rows, read columns by key).</li>
+  <li>Stream (bit/byte at a time, key stream) vs block (fixed blocks, padding). Components: P-boxes, S-boxes, XOR, shifts, swap. Confusion (S-boxes) &amp; diffusion (P-boxes).</li>
+  <li>DES: 64-bit block, 56-bit key, 16 Feistel rounds, f = expansion → XOR K<sub>i</sub> → 8 S-boxes → P-box. Key: parity drop → shifts (1 in rounds 1, 2, 9, 16) → compression.</li>
+  <li>3DES = EDE; double DES falls to meet-in-the-middle (2<sup>57</sup>).</li>
+  <li>AES: 128-bit block, 10/12/14 rounds; SubBytes, ShiftRows, MixColumns, AddRoundKey; last round has no MixColumns; key expansion with RotWord, SubWord, RCon.</li>
+</ul>
+</div>
+<div class="quiz">
+  <div class="mcq" data-ans="c"><p class="q">1. How many keys does the affine cipher have (mod 26)?</p><ol><li>26</li><li>12</li><li>312</li><li>26!</li></ol><p class="why">12 valid multipliers × 26 shifts.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">2. In Playfair, if both letters of a pair are in the same row, each is replaced by:</p><ol><li>the letter below</li><li>the letter to its right</li><li>the letter in the other's column</li><li>itself</li></ol><p class="why">Same row → right (wrap around); same column → below.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">3. Which classical cipher achieves perfect secrecy?</p><ol><li>Vigenère</li><li>Hill</li><li>Playfair</li><li>One-time pad</li></ol><p class="why">Random key, as long as the message, used once.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">4. The input to a DES S-box is 6 bits; the output is:</p><ol><li>4 bits</li><li>6 bits</li><li>8 bits</li><li>32 bits</li></ol><p class="why">Eight S-boxes reduce 48 bits to 32 bits.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">5. In which DES rounds is each key half shifted by only one bit?</p><ol><li>1, 8, 9, 16</li><li>1, 2, 9, 16</li><li>1, 2, 15, 16</li><li>All rounds</li></ol><p class="why">Total shifts 4×1 + 12×2 = 28.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">6. Double DES gives effective security of about:</p><ol><li>2<sup>112</sup></li><li>2<sup>56</sup></li><li>2<sup>57</sup></li><li>2<sup>168</sup></li></ol><p class="why">Meet-in-the-middle attack.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">7. Which AES transformation is omitted in the final round?</p><ol><li>SubBytes</li><li>ShiftRows</li><li>AddRoundKey</li><li>MixColumns</li></ol><p class="why">The last round is SubBytes, ShiftRows, AddRoundKey.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">8. How many words does AES-128 key expansion generate?</p><ol><li>44</li><li>40</li><li>52</li><li>60</li></ol><p class="why">11 round keys × 4 words.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">9. In ShiftRows, row 2 of the state is rotated left by:</p><ol><li>1 byte</li><li>2 bytes</li><li>3 bytes</li><li>0 bytes</li></ol><p class="why">Row r is rotated by r bytes.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">10. Which component provides confusion in DES and AES?</p><ol><li>P-box</li><li>XOR</li><li>S-box</li><li>Swap</li></ol><p class="why">S-boxes are the non-linear component.</p></div>
+</div>
+<h3>Likely exam questions</h3>
+<table>
+  <tr><th>Marks</th><th>Question</th></tr>
+  <tr><td>2</td><td>Define substitution and transposition. · What is the key domain of the multiplicative cipher? · What is a one-time pad? · State the AES key sizes and rounds. · What is the avalanche effect? · What are weak keys in DES?</td></tr>
+  <tr><td>5</td><td>Encrypt/decrypt using Playfair / Vigenère / Hill / affine / rail fence / columnar. · Compare stream and block ciphers. · Explain the Feistel structure. · Explain Triple DES. · Explain meet-in-the-middle. · Explain AES key expansion.</td></tr>
+  <tr><td>10</td><td>Explain the structure of DES with a neat diagram (rounds, f-function, key generation). · Explain AES and its four transformations. · Discuss classical substitution ciphers with examples. · Analyse the security of DES. · Compare DES and AES and analyse AES performance.</td></tr>
+</table>
+</section>
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="crypto-core.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>
