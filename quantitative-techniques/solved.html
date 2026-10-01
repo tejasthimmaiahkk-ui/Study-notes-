@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solved University-Pattern Questions — Quantitative Techniques</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="quant" data-page="solved.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Exam practice · long-answer questions</div>
+  <h1>Solved University-Pattern Questions</h1>
+  <p class="lead">22 high-weightage questions (8–12 marks) in the patterns that repeat most in university aptitude and quantitative-techniques papers. Each one has several linked parts, often from different chapters (e.g. time and work + wages, ratio + partnership + salary, logarithms + geometric progression). Each has the approach, every step of the working, the final answer and the usual mistakes.</p>
+  <div class="meta"><span class="chip acc">13 from Unit I</span><span class="chip acc">9 from Unit II</span><span class="chip">All values verified by computation</span></div>
+</div>
+<div class="box tip" data-title="How to use this page">
+  <ol>
+    <li>Solve each part on paper first (about 2–3 minutes per part). Write the formula before you substitute — it earns a mark even if the arithmetic slips.</li>
+    <li>Open the solution and compare your <b>method</b> as well as your answer. Many parts can also be done by a shortcut, shown as "Quick check".</li>
+    <li>Underline the answer to each part and state the unit (₹, km/h, days, m²).</li>
+  </ol>
+  <p><b>Where these patterns come from:</b> 24BCASE2 is a new syllabus, so few papers exist for it yet. These questions follow the long-answer patterns that repeat across university aptitude papers (BCA, BBA and B.Com quantitative-aptitude and business-mathematics papers) and placement tests. Also check your own university's past papers in your college library.</p>
+</div>
+
+<!-- ================================================================ Q1 -->
+<section class="topic" id="q1">
+<h2><span class="num">Q1</span> HCF and LCM applications: remainders, traffic lights and pairs <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">HCF</span><span class="chip">LCM</span><span class="chip">Remainders</span><span class="chip">HCF × LCM</span></div>
+<div class="box question"><ol type="a">
+<li>Find the greatest number that divides 1657 and 2037 leaving remainders 6 and 5 respectively.</li>
+<li>Find the least number which, when divided by 12, 15, 20 and 54, leaves a remainder of 8 in each case.</li>
+<li>Find the least number which leaves a remainder of 3 when divided by 5, 6, 7 or 8, but is exactly divisible by 9.</li>
+<li>Three traffic lights change every 48 s, 72 s and 108 s. They change together at 8:20:00 a.m. When will they next change together?</li>
+<li>The sum of two numbers is 216 and their HCF is 27. Find all possible pairs of numbers.</li>
+</ol></div>
+<div class="box approach"><p>Spot the key word: "greatest number that divides" → <b>HCF</b>; "least number divisible by" or "together again" → <b>LCM</b>. With a remainder, first subtract it (HCF) or add it (LCM). For (e) write the numbers as 27a and 27b with a, b co-prime.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Greatest number with different remainders</h4>
+<p>The required number divides 1657 − 6 = <b>1651</b> and 2037 − 5 = <b>2032</b> exactly, so it is HCF(1651, 2032).</p>
+<p>Euclid's division: 2032 = 1 × 1651 + 381; 1651 = 4 × 381 + 127; 381 = 3 × 127 + 0. So HCF = <b>127</b>.</p>
+<p>Check: 1657 = 13 × 127 + 6 ✓, 2037 = 16 × 127 + 5 ✓.</p>
+<h4>(b) Least number with the same remainder</h4>
+<p>12 = 2²·3, 15 = 3·5, 20 = 2²·5, 54 = 2·3³. LCM = 2²·3³·5 = <b>540</b>. Required number = 540 + 8 = <b>548</b>.</p>
+<h4>(c) Same remainder and divisible by 9</h4>
+<p>LCM(5, 6, 7, 8) = 840, so the number is 840k + 3. 840 = 9 × 93 + 3, so 840k + 3 ≡ 3k + 3 (mod 9).</p>
+<p>Need 3k + 3 divisible by 9 → k + 1 divisible by 3 → smallest k = 2. Number = 840 × 2 + 3 = <b>1683</b>. Check: digit sum 1+6+8+3 = 18 → divisible by 9 ✓.</p>
+<h4>(d) Lights changing together</h4>
+<p>48 = 2⁴·3, 72 = 2³·3², 108 = 2²·3³. LCM = 2⁴·3³ = 432 s = 7 min 12 s. Next together at <b>8:27:12 a.m.</b></p>
+<h4>(e) Pairs with a given HCF and sum</h4>
+<p>Let the numbers be 27a and 27b with HCF(a, b) = 1. Then 27(a + b) = 216 → a + b = 8.</p>
+<p>Co-prime pairs adding to 8: (1, 7) and (3, 5). [(2, 6) and (4, 4) are not co-prime.] So the pairs are <b>(27, 189)</b> and <b>(81, 135)</b>.</p>
+<div class="box answer"><p>(a) 127 (b) 548 (c) 1683 (d) 8:27:12 a.m. (e) (27, 189) and (81, 135)</p></div>
+<div class="box warn"><p>Adding the remainder in an HCF question or subtracting it in an LCM question. In (e), forgetting to reject pairs like (2, 6), which would make the HCF 54, not 27.</p></div>
+<p>See <a href="unit1.html#hcf-lcm">Unit I, 1.3</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q2 -->
+<section class="topic" id="q2">
+<h2><span class="num">Q2</span> Number system: remainders, unit digits, divisibility and factors <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Cyclicity</span><span class="chip">Remainder theorem</span><span class="chip">Divisibility by 72</span><span class="chip">Number of factors</span></div>
+<div class="box question"><ol type="a">
+<li>Find the remainder when 2¹⁰⁰ is divided by 7.</li>
+<li>Find the unit digit of 7⁹⁵ × 3⁵⁸.</li>
+<li>A number divided by 342 leaves remainder 47. What is the remainder when the same number is divided by 18?</li>
+<li>Find the digits x and y if the five-digit number 4x67y is divisible by 72.</li>
+<li>Find the number of factors of 720 and the sum of all its factors.</li>
+<li>Find the remainder when 17 × 23 × 29 is divided by 12.</li>
+</ol></div>
+<div class="box approach"><p>Powers → find a power that gives remainder 1 (or the unit-digit cycle of 4). Products → replace each number by its remainder first. 72 = 8 × 9 with 8 and 9 co-prime, so test both rules. Factors → write the prime factorisation N = p<sup>a</sup>q<sup>b</sup>r<sup>c</sup>.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) 2¹⁰⁰ mod 7</h4>
+<p>2³ = 8 = 7 + 1, so 2³ leaves remainder 1. 100 = 3 × 33 + 1, so 2¹⁰⁰ = (2³)³³ × 2 → remainder 1³³ × 2 = <b>2</b>.</p>
+<h4>(b) Unit digit</h4>
+<p>Unit digits of powers of 7 repeat 7, 9, 3, 1 (cycle 4). 95 = 4 × 23 + 3 → 3rd in cycle → <b>3</b>.</p>
+<p>Powers of 3 repeat 3, 9, 7, 1. 58 = 4 × 14 + 2 → 2nd in cycle → <b>9</b>.</p>
+<p>Unit digit of the product = unit digit of 3 × 9 = 27 → <b>7</b>.</p>
+<h4>(c) Change of divisor</h4>
+<p>N = 342k + 47. Since 342 = 18 × 19, the term 342k is divisible by 18. So the remainder is 47 mod 18 = 47 − 36 = <b>11</b>.</p>
+<p>This works only because 18 is a factor of 342.</p>
+<h4>(d) Divisible by 72</h4>
+<p><b>By 8:</b> the last three digits 67y must be divisible by 8. 672 = 8 × 84 → y = 2 (and 670–679 contains no other multiple of 8).</p>
+<p><b>By 9:</b> digit sum 4 + x + 6 + 7 + 2 = 19 + x must be a multiple of 9 → x = 8.</p>
+<p>Number = <b>48672</b> (= 72 × 676 ✓). So <b>x = 8, y = 2</b>.</p>
+<h4>(e) Factors of 720</h4>
+<p>720 = 2⁴ × 3² × 5¹.</p>
+<p>Number of factors = (4 + 1)(2 + 1)(1 + 1) = 5 × 3 × 2 = <b>30</b>.</p>
+<p>Sum of factors = (1 + 2 + 4 + 8 + 16)(1 + 3 + 9)(1 + 5) = 31 × 13 × 6 = <b>2418</b>.</p>
+<h4>(f) Remainder of a product</h4>
+<p>17 → 5, 23 → 11, 29 → 5 (remainders mod 12). 5 × 11 × 5 = 275 = 12 × 22 + 11 → remainder <b>11</b>.</p>
+<p>Quick check with negative remainders: 23 ≡ −1, so 5 × (−1) × 5 = −25 ≡ −25 + 36 = 11 ✓.</p>
+<div class="box answer"><p>(a) 2 (b) 7 (c) 11 (d) x = 8, y = 2 (e) 30 factors, sum 2418 (f) 11</p></div>
+<div class="box warn"><p>Using the rule for 4 instead of 8 in (d), or testing "divisible by 72" as "divisible by 6 and 12" (not co-prime, so it does not work). In (c), applying the shortcut when the new divisor is not a factor of the old one.</p></div>
+<p>See <a href="unit1.html#remainders">Unit I, 1.4</a> and <a href="unit1.html#divisibility">1.2</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q3 -->
+<section class="topic" id="q3">
+<h2><span class="num">Q3</span> Percentages: population, price–consumption, election and exam <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Multiplying factor</span><span class="chip">Successive change</span><span class="chip">Percentage of percentage</span></div>
+<div class="box question"><ol type="a">
+<li>The population of a town is 1,25,000. It increases by 8 % in the first year, decreases by 5 % in the second year and increases by 10 % in the third year. Find the population after three years and the net percentage change.</li>
+<li>The price of sugar rises by 25 %. By what percentage must a family reduce its consumption so that its expenditure on sugar does not change?</li>
+<li>In an election between two candidates, 20 % of the voters did not vote and 10 % of the votes cast were invalid. The winner got 55 % of the valid votes and won by 1296 votes. Find the total number of voters and the votes received by each candidate.</li>
+<li>A candidate needs 40 % to pass. He gets 178 marks and fails by 22 marks. Find the maximum marks. Another candidate scores 62 %. By how many marks does she clear the pass mark?</li>
+</ol></div>
+<div class="box approach"><p>Turn every percentage change into a <b>multiplying factor</b> (+8 % → × 1.08, −5 % → × 0.95) and multiply them. For "keep expenditure the same", price × consumption is constant. For the election, build the chain voters → votes cast → valid votes → margin step by step.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Successive changes</h4>
+<p>Population = 1,25,000 × 1.08 × 0.95 × 1.10</p>
+<p>1,25,000 × 1.08 = 1,35,000 → × 0.95 = 1,28,250 → × 1.10 = <b>1,41,075</b>.</p>
+<p>Net change = (1,41,075 − 1,25,000)/1,25,000 × 100 = 16,075/1,25,000 × 100 = <b>12.86 % increase</b> (not 8 − 5 + 10 = 13 %).</p>
+<h4>(b) Price up, consumption down</h4>
+<p>Expenditure = price × consumption. New price = 1.25 × old, so new consumption = old/1.25 = 0.8 × old → reduce by <b>20 %</b>.</p>
+<p>Formula: reduction = r/(100 + r) × 100 = 25/125 × 100 = 20 %.</p>
+<h4>(c) Election</h4>
+<p>Let total voters = V.</p>
+<ol class="steps">
+<li>Votes cast = 80 % of V = 0.8V.</li>
+<li>Valid votes = 90 % of 0.8V = 0.72V.</li>
+<li>Winner 55 %, loser 45 % of valid votes → margin = 10 % of 0.72V = 0.072V.</li>
+<li>0.072V = 1296 → V = 1296/0.072 = <b>18,000</b>.</li>
+</ol>
+<p>Valid votes = 0.72 × 18,000 = 12,960. Winner = 0.55 × 12,960 = <b>7,128</b>; loser = 0.45 × 12,960 = <b>5,832</b>. Check: 7,128 − 5,832 = 1,296 ✓.</p>
+<h4>(d) Pass mark</h4>
+<p>Pass mark = 178 + 22 = 200 = 40 % of maximum → maximum = 200/0.4 = <b>500</b>.</p>
+<p>Second candidate = 62 % of 500 = 310 → clears the pass mark by 310 − 200 = <b>110 marks</b>.</p>
+<div class="box answer"><p>(a) 1,41,075; +12.86 % (b) 20 % (c) 18,000 voters; winner 7,128, loser 5,832 (d) 500 marks; 110 marks above the pass mark</p></div>
+<div class="box warn"><p>Adding percentages in (a) (gives 13 %). Answering 25 % in (b). In (c), taking the percentages of the total voters instead of the valid votes.</p></div>
+<p>See <a href="unit1.html#percentages">Unit I, 1.5</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q4 -->
+<section class="topic" id="q4">
+<h2><span class="num">Q4</span> Profit and loss with marked price, discounts, false weights and a chain of sales <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Marked price</span><span class="chip">Successive discounts</span><span class="chip">Dishonest dealer</span><span class="chip">Percentages</span></div>
+<div class="box question"><ol type="a">
+<li>A shopkeeper marks goods 40 % above cost price and allows successive discounts of 10 % and 5 %. Find his profit percentage.</li>
+<li>A dealer uses a weight of 900 g instead of 1 kg and sells at 10 % above cost price. Find his actual gain percentage.</li>
+<li>By selling an article for ₹720, a man loses 10 %. At what price should he sell it to gain 15 %?</li>
+<li>A sells an article to B at a profit of 20 %, B sells it to C at a loss of 10 %, and C pays ₹2,160. What did A pay for it?</li>
+<li>Two articles are sold for ₹9,900 each, one at a gain of 10 % and the other at a loss of 10 %. Find the overall gain or loss percentage.</li>
+</ol></div>
+<div class="box approach"><p>Take <b>CP = 100</b> whenever no value is given and follow the price through each step with multiplying factors. For false weights compare what the customer pays with what the dealer actually gives.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Mark-up with two discounts</h4>
+<p>Let CP = ₹100 → MP = ₹140 → after 10 % discount = ₹126 → after 5 % discount = ₹119.70.</p>
+<p>Profit = ₹19.70 on ₹100 → <b>19.7 %</b>.</p>
+<p>Single equivalent discount of 10 % and 5 % = 10 + 5 − (10 × 5)/100 = 14.5 %, and 140 × 0.855 = 119.70 ✓.</p>
+<h4>(b) False weight + mark-up</h4>
+<p>Let 1 g cost ₹1. The customer pays for 1000 g at 10 % above CP: SP = ₹1,100. The dealer actually gives 900 g, costing him ₹900.</p>
+<p>Gain = (1100 − 900)/900 × 100 = <b>22.22 %</b>.</p>
+<h4>(c) From a loss to a gain</h4>
+<p>SP = 90 % of CP → CP = 720/0.9 = ₹800. For a 15 % gain, SP = 1.15 × 800 = <b>₹920</b>.</p>
+<h4>(d) Chain of sales</h4>
+<p>C pays = A's cost × 1.20 × 0.90 = 1.08 × A's cost. A's cost = 2160/1.08 = <b>₹2,000</b>.</p>
+<h4>(e) Same SP, equal gain and loss</h4>
+<p>CP of first = 9900/1.1 = ₹9,000; CP of second = 9900/0.9 = ₹11,000. Total CP = ₹20,000, total SP = ₹19,800.</p>
+<p>Loss = ₹200 → 200/20,000 × 100 = <b>1 % loss</b>.</p>
+<p>Shortcut: when SP is the same and the gain % equals the loss % = x, there is always a loss of x²/100 % = 100/100 = 1 %.</p>
+<div class="box answer"><p>(a) 19.7 % profit (b) 22.22 % gain (c) ₹920 (d) ₹2,000 (e) 1 % loss</p></div>
+<div class="box warn"><p>Adding discounts (15 % instead of 14.5 %). In (b), dividing by 1000 instead of the 900 g the dealer actually spent money on. In (e), saying "no profit, no loss".</p></div>
+<p>See <a href="unit1.html#profit-loss">Unit I, 1.6</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q5 -->
+<section class="topic" id="q5">
+<h2><span class="num">Q5</span> Partnership with withdrawal, a new partner and a working partner's salary <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Capital × time</span><span class="chip">Ratio</span><span class="chip">Percentage</span></div>
+<div class="box question"><p>A and B start a business with ₹60,000 and ₹40,000. After 4 months A withdraws ₹20,000 and C joins with ₹50,000. A is the working partner and receives 10 % of the profit as salary; the rest is shared in the ratio of capital invested. The profit at the end of the year is ₹1,02,000. Find each partner's share and A's total income from the business.</p></div>
+<div class="box approach"><p>Profit share ∝ capital × months. Split A's year into two periods because his capital changed. Take the salary out of the profit <b>before</b> sharing the rest.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>Step 1 — Capital-months</h4>
+<table class="num compact"><tr><th>Partner</th><th>Capital × months</th><th>Total</th></tr>
+<tr><td>A</td><td>60,000 × 4 + 40,000 × 8</td><td>5,60,000</td></tr>
+<tr><td>B</td><td>40,000 × 12</td><td>4,80,000</td></tr>
+<tr><td>C</td><td>50,000 × 8</td><td>4,00,000</td></tr></table>
+<p>Ratio = 5,60,000 : 4,80,000 : 4,00,000 = 56 : 48 : 40 = <b>7 : 6 : 5</b> (divide by 80,000). Sum of ratio = 18.</p>
+<h4>Step 2 — Salary first</h4>
+<p>A's salary = 10 % of 1,02,000 = ₹10,200. Profit left to share = 1,02,000 − 10,200 = ₹91,800.</p>
+<h4>Step 3 — Share the rest</h4>
+<p>One part = 91,800/18 = ₹5,100.</p>
+<p>A = 7 × 5,100 = <b>₹35,700</b>; B = 6 × 5,100 = <b>₹30,600</b>; C = 5 × 5,100 = <b>₹25,500</b>. Check: 35,700 + 30,600 + 25,500 = 91,800 ✓.</p>
+<h4>Step 4 — A's total</h4>
+<p>A's total = 10,200 + 35,700 = <b>₹45,900</b>.</p>
+<div class="box answer"><p>Ratio 7 : 6 : 5. A ₹35,700 (+ salary ₹10,200 = ₹45,900), B ₹30,600, C ₹25,500.</p></div>
+<div class="box warn"><p>Using the capitals alone (60 : 40 : 50) and ignoring time; using 12 months for C; sharing the full ₹1,02,000 before removing the salary.</p></div>
+<p>See <a href="unit1.html#ratio">Unit I, 1.7</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q6 -->
+<section class="topic" id="q6">
+<h2><span class="num">Q6</span> Ratio and proportion: ages, coins, mixture and division of money <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Ratio</span><span class="chip">Compound ratio</span><span class="chip">Mean and fourth proportional</span><span class="chip">Linear equation</span></div>
+<div class="box question"><ol type="a">
+<li>The ratio of the present ages of A and B is 4 : 5. Six years ago it was 2 : 3. Find their present ages. After how many years will the ratio be 5 : 6?</li>
+<li>A bag contains 50 p, 25 p and 10 p coins in the ratio 5 : 9 : 4, worth ₹206 in all. Find the number of coins of each type.</li>
+<li>60 litres of a mixture contains milk and water in the ratio 7 : 3. How much water must be added to make the ratio 3 : 2?</li>
+<li>Divide ₹7,000 among A, B and C so that A : B = 2 : 3 and B : C = 4 : 5.</li>
+<li>Find the mean proportional between 9 and 16, and the fourth proportional to 4, 9 and 12.</li>
+</ol></div>
+<div class="box approach"><p>Write each quantity as a multiple of x (4x and 5x; 5x, 9x and 4x coins) and form one equation. In a mixture only the added liquid changes — the other stays fixed. For a compound ratio make the common term (B) equal.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Ages</h4>
+<p>Ages 4x and 5x. (4x − 6)/(5x − 6) = 2/3 → 12x − 18 = 10x − 12 → x = 3. Present ages <b>A = 12, B = 15</b>.</p>
+<p>(12 + t)/(15 + t) = 5/6 → 72 + 6t = 75 + 5t → t = <b>3 years</b>.</p>
+<h4>(b) Coins</h4>
+<p>Coins 5x, 9x, 4x. Value in ₹ = 0.50(5x) + 0.25(9x) + 0.10(4x) = 2.5x + 2.25x + 0.4x = 5.15x.</p>
+<p>5.15x = 206 → x = 40. Coins: 50 p = <b>200</b>, 25 p = <b>360</b>, 10 p = <b>160</b>.</p>
+<h4>(c) Mixture</h4>
+<p>Milk = 7/10 × 60 = 42 L, water = 18 L. Milk stays 42 L. 42/(18 + w) = 3/2 → 18 + w = 28 → w = <b>10 litres</b>.</p>
+<h4>(d) Compound ratio</h4>
+<p>A : B = 2 : 3 = 8 : 12; B : C = 4 : 5 = 12 : 15 (make B = 12 in both). A : B : C = 8 : 12 : 15, sum 35.</p>
+<p>One part = 7,000/35 = 200. A = <b>₹1,600</b>, B = <b>₹2,400</b>, C = <b>₹3,000</b>.</p>
+<h4>(e) Proportionals</h4>
+<p>Mean proportional = √(9 × 16) = <b>12</b>. Fourth proportional x: 4 : 9 = 12 : x → x = 9 × 12/4 = <b>27</b>.</p>
+<div class="box answer"><p>(a) 12 and 15 years; after 3 years (b) 200, 360, 160 coins (c) 10 L (d) ₹1,600, ₹2,400, ₹3,000 (e) 12 and 27</p></div>
+<div class="box warn"><p>In (b), dividing ₹206 in the ratio 5 : 9 : 4 (that is the ratio of the <i>number</i> of coins, not of their value). In (c), changing the milk quantity.</p></div>
+<p>See <a href="unit1.html#ratio">Unit I, 1.7</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q7 -->
+<section class="topic" id="q7">
+<h2><span class="num">Q7</span> Averages: overlapping groups, a new member, a batsman and weighted averages <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Sum = average × count</span><span class="chip">Weighted average</span><span class="chip">Average speed</span></div>
+<div class="box question"><ol type="a">
+<li>The average of 11 results is 50. The average of the first six is 49 and of the last six is 52. Find the sixth result.</li>
+<li>The average age of 39 students is 15 years. When the teacher's age is included, the average rises to 15.5 years. Find the teacher's age.</li>
+<li>A batsman scores 87 runs in his 17th innings and raises his average by 3. Find his average after the 17th innings.</li>
+<li>Sections A, B and C have 30, 50 and 20 students with average marks 60, 72 and 80. Find the average of all the students.</li>
+<li>A car goes from P to Q at 60 km/h and returns at 40 km/h. Find the average speed for the whole journey.</li>
+</ol></div>
+<div class="box approach"><p>Convert every average into a <b>total</b> (sum = average × number), add or subtract totals, then divide again. Never average averages unless the groups are equal in size.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Overlapping groups</h4>
+<p>Total of 11 = 550. First six = 294, last six = 312. The 6th result is counted in both: 294 + 312 − 550 = <b>56</b>.</p>
+<h4>(b) Teacher included</h4>
+<p>Total of 39 students = 39 × 15 = 585. Total of 40 people = 40 × 15.5 = 620. Teacher = 620 − 585 = <b>35 years</b>.</p>
+<p>Quick check: the teacher brings 15 years plus 0.5 for each of the 40 people → 15 + 20 = 35 ✓.</p>
+<h4>(c) Batsman</h4>
+<p>Let the average after 16 innings be a. Then 16a + 87 = 17(a + 3) → 16a + 87 = 17a + 51 → a = 36. New average = <b>39</b>.</p>
+<p>Shortcut: new average = 87 − 3 × 16 = 39.</p>
+<h4>(d) Weighted average</h4>
+<p>Average = (30 × 60 + 50 × 72 + 20 × 80)/(30 + 50 + 20) = (1800 + 3600 + 1600)/100 = <b>70</b>.</p>
+<p>(The simple average of 60, 72 and 80 would be 70.67 — wrong, because the sections are of different sizes.)</p>
+<h4>(e) Average speed</h4>
+<p>Let PQ = d. Time = d/60 + d/40 = 5d/120 = d/24. Average speed = 2d ÷ (d/24) = <b>48 km/h</b>.</p>
+<p>Formula for equal distances: 2xy/(x + y) = 2 × 60 × 40/100 = 48.</p>
+<div class="box answer"><p>(a) 56 (b) 35 years (c) 39 (d) 70 (e) 48 km/h</p></div>
+<div class="box warn"><p>In (e), answering 50 km/h (the simple average of the speeds). In (c), giving the old average (36) instead of the new one.</p></div>
+<p>See <a href="unit1.html#averages">Unit I, 1.8</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q8 -->
+<section class="topic" id="q8">
+<h2><span class="num">Q8</span> Problems on trains: pole, platform, two trains and a walking man <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Unit conversion</span><span class="chip">Relative speed</span><span class="chip">Length to cover</span></div>
+<div class="box question"><ol type="a">
+<li>A train 240 m long passes a pole in 12 s and a platform in 30 s. Find the speed of the train in km/h and the length of the platform.</li>
+<li>Two trains 150 m and 200 m long run at 54 km/h and 72 km/h. How long do they take to cross each other when moving (i) in opposite directions, (ii) in the same direction?</li>
+<li>A train 240 m long passes a man walking at 6 km/h in the same direction in 18 s. Find the speed of the train.</li>
+</ol></div>
+<div class="box approach"><p>Distance to cover = train length (pole or man) or train length + platform length (or the other train's length). Speed = relative speed: add speeds in opposite directions, subtract in the same direction. Convert km/h → m/s by × 5/18.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Pole and platform</h4>
+<p>Speed = 240/12 = 20 m/s = 20 × 18/5 = <b>72 km/h</b>.</p>
+<p>Platform: distance in 30 s = 20 × 30 = 600 m = 240 + platform → platform = <b>360 m</b>.</p>
+<h4>(b) Two trains</h4>
+<p>Distance = 150 + 200 = 350 m.</p>
+<p>(i) Opposite: relative speed = 54 + 72 = 126 km/h = 126 × 5/18 = 35 m/s → time = 350/35 = <b>10 s</b>.</p>
+<p>(ii) Same direction: relative speed = 72 − 54 = 18 km/h = 5 m/s → time = 350/5 = <b>70 s</b>.</p>
+<h4>(c) Train and walking man</h4>
+<p>Let the train's speed be v km/h. Relative speed = (v − 6) km/h = (v − 6) × 5/18 m/s.</p>
+<p>(v − 6) × 5/18 × 18 = 240 → 5(v − 6) = 240 → v − 6 = 48 → v = <b>54 km/h</b>.</p>
+<div class="box answer"><p>(a) 72 km/h; platform 360 m (b) (i) 10 s (ii) 70 s (c) 54 km/h</p></div>
+<div class="box warn"><p>Forgetting to add the platform (or the other train) to the distance; mixing m/s with km/h.</p></div>
+<p>See <a href="unit1.html#tsd">Unit I, 1.9</a> (train animation demo).</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q9 -->
+<section class="topic" id="q9">
+<h2><span class="num">Q9</span> Boats and streams with simultaneous equations, and the late/early problem <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Upstream / downstream</span><span class="chip">Linear equations in 1/u, 1/d</span><span class="chip">Time difference</span></div>
+<div class="box question"><ol type="a">
+<li>A boat goes 30 km upstream and 44 km downstream in 10 hours. It goes 40 km upstream and 55 km downstream in 13 hours. Find the speed of the boat in still water and the speed of the stream.</li>
+<li>Walking at 5 km/h a student reaches college 10 minutes late; walking at 6 km/h he reaches 5 minutes early. Find the distance to college and the correct time he should take.</li>
+</ol></div>
+<div class="box approach"><p>(a) Let the upstream speed be u and the downstream speed d. Time = distance/speed gives two equations that are linear in 1/u and 1/d. Then boat = (d + u)/2, stream = (d − u)/2. (b) The two times differ by 10 + 5 = 15 minutes.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Boat and stream</h4>
+<p>Put p = 1/u and q = 1/d:</p>
+<p>30p + 44q = 10 … (1) &nbsp;&nbsp; 40p + 55q = 13 … (2)</p>
+<p>(1) × 4: 120p + 176q = 40; (2) × 3: 120p + 165q = 39. Subtract: 11q = 1 → q = 1/11 → <b>d = 11 km/h</b>.</p>
+<p>From (1): 30p = 10 − 44/11 = 6 → p = 1/5 → <b>u = 5 km/h</b>.</p>
+<p>Boat in still water = (11 + 5)/2 = <b>8 km/h</b>; stream = (11 − 5)/2 = <b>3 km/h</b>.</p>
+<p>Check (2): 40/5 + 55/11 = 8 + 5 = 13 h ✓.</p>
+<h4>(b) Late and early</h4>
+<p>d/5 − d/6 = 15 min = 1/4 h → d/30 = 1/4 → d = <b>7.5 km</b>.</p>
+<p>At 5 km/h: 7.5/5 = 1.5 h = 90 min (10 min late) → correct time = <b>80 minutes</b>. Check: at 6 km/h, 75 min = 5 min early ✓.</p>
+<div class="box answer"><p>(a) Boat 8 km/h, stream 3 km/h (b) 7.5 km; 80 minutes</p></div>
+<div class="box warn"><p>In (b), using a difference of 5 minutes instead of 15. In (a), trying to solve directly for u and d (the equations are not linear in u and d).</p></div>
+<p>See <a href="unit1.html#tsd">Unit I, 1.9</a> and <a href="unit1.html#algebra">1.12</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q10 -->
+<section class="topic" id="q10">
+<h2><span class="num">Q10</span> Time and work: working together, one leaving, wages and man-hours <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">LCM method</span><span class="chip">Wages ∝ work</span><span class="chip">M·D·H/W rule</span><span class="chip">Ratio</span></div>
+<div class="box question"><p>A, B and C can finish a job in 12, 15 and 20 days respectively.</p><ol type="a">
+<li>In how many days can they finish it together? If they are paid ₹4,500 for the job done together, find each one's share.</li>
+<li>Instead, A and B work together for 4 days and then leave; C finishes the rest. How long does C take, and how should ₹4,500 now be shared?</li>
+<li>12 men working 8 hours a day finish a piece of work in 10 days. How many days will 16 men working 6 hours a day take to do twice the work?</li>
+</ol></div>
+<div class="box approach"><p>Take total work = LCM(12, 15, 20) = <b>60 units</b>. Then A does 5, B 4, C 3 units per day. Wages are shared in proportion to the <b>work done</b> (not the days worked).</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) All together</h4>
+<p>Work = 60 units; rates A = 60/12 = 5, B = 60/15 = 4, C = 60/20 = 3 units/day. Together = 12 units/day → 60/12 = <b>5 days</b>.</p>
+<p>Working equal days, work done ∝ rate = 5 : 4 : 3. Shares of ₹4,500: A = <b>₹1,875</b>, B = <b>₹1,500</b>, C = <b>₹1,125</b>.</p>
+<h4>(b) A and B leave after 4 days</h4>
+<p>A + B in 4 days = 4 × 9 = 36 units. Remaining = 24 units. C alone: 24/3 = <b>8 days</b> (total 12 days).</p>
+<table class="num compact"><tr><th>Worker</th><th>Work done</th><th>Fraction</th><th>Share of ₹4,500</th></tr>
+<tr><td>A</td><td>4 × 5 = 20</td><td>20/60</td><td>₹1,500</td></tr>
+<tr><td>B</td><td>4 × 4 = 16</td><td>16/60</td><td>₹1,200</td></tr>
+<tr><td>C</td><td>8 × 3 = 24</td><td>24/60</td><td>₹1,800</td></tr></table>
+<h4>(c) Man-hours rule</h4>
+<p>M₁D₁H₁/W₁ = M₂D₂H₂/W₂ → 12 × 10 × 8/1 = 16 × D × 6/2 → 960 = 48D → D = <b>20 days</b>.</p>
+<div class="box answer"><p>(a) 5 days; ₹1,875, ₹1,500, ₹1,125 (b) 8 days; ₹1,500, ₹1,200, ₹1,800 (c) 20 days</p></div>
+<div class="box warn"><p>Sharing wages in the ratio of days taken (12 : 15 : 20) — that is the <i>inverse</i> of efficiency. In (c), forgetting to double the work.</p></div>
+<p>See <a href="unit1.html#time-work">Unit I, 1.10</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q11 -->
+<section class="topic" id="q11">
+<h2><span class="num">Q11</span> Pipes and cisterns: two inlets with a leak, closing a pipe, and tank capacity <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Negative work</span><span class="chip">LCM method</span><span class="chip">Linear equation</span></div>
+<div class="box question"><ol type="a">
+<li>Pipes A and B fill a tank in 20 min and 30 min; a leak C empties the full tank in 40 min. If all three are open, how long does the tank take to fill? How much later is this than without the leak?</li>
+<li>A and B are opened together (no leak). After 6 minutes B is closed. How long does it take in total to fill the tank?</li>
+<li>A leak empties a full tank in 8 hours. A tap filling 6 litres per minute is opened, and now the full tank empties in 12 hours. Find the capacity of the tank.</li>
+</ol></div>
+<div class="box approach"><p>Treat a leak as a worker with <b>negative</b> rate. Use total = LCM(20, 30, 40) = 120 units. In (c), the leak's rate minus the tap's rate equals the new net emptying rate.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) With the leak</h4>
+<p>Tank = 120 units. A = +6, B = +4, C = −3 units/min. Net = 7 units/min → 120/7 = <b>17 1/7 min</b> (≈ 17 min 9 s).</p>
+<p>Without the leak: 10 units/min → 12 min. Delay = 17 1/7 − 12 = <b>5 1/7 min</b>.</p>
+<h4>(b) Closing B</h4>
+<p>A + B for 6 min = 6 × 10 = 60 units (half the tank). Remaining 60 units by A alone: 60/6 = 10 min. Total = <b>16 minutes</b>.</p>
+<h4>(c) Capacity</h4>
+<p>Let the capacity be V litres. Leak rate = V/480 L/min (8 h = 480 min). Net emptying rate with the tap = V/720 L/min.</p>
+<p>V/480 − 6 = V/720 → V(1/480 − 1/720) = 6 → V × (3 − 2)/1440 = 6 → V = <b>8,640 litres</b>.</p>
+<p>Check: leak rate = 18 L/min, minus 6 = 12 L/min → 8640/12 = 720 min = 12 h ✓.</p>
+<div class="box answer"><p>(a) 17 1/7 min; 5 1/7 min later (b) 16 min (c) 8,640 L</p></div>
+<div class="box warn"><p>Adding the leak's rate instead of subtracting it; in (c) mixing hours and minutes.</p></div>
+<p>See <a href="unit1.html#pipes">Unit I, 1.11</a> (tank animation demo).</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q12 -->
+<section class="topic" id="q12">
+<h2><span class="num">Q12</span> Linear equations: tickets, digits, fractions and three unknowns <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Forming equations</span><span class="chip">Substitution / elimination</span><span class="chip">Three variables</span></div>
+<div class="box question"><ol type="a">
+<li>A cinema sold 500 tickets for ₹63,000. Adult tickets cost ₹150 and child tickets ₹90. How many of each were sold?</li>
+<li>The sum of the digits of a two-digit number is 9. When the digits are reversed, the number increases by 27. Find the number.</li>
+<li>If 1 is added to both the numerator and denominator of a fraction it becomes 4/5; if 5 is subtracted from both it becomes 1/2. Find the fraction.</li>
+<li>Solve: x + y + z = 6, 2x − y + z = 3, x + 2y − z = 2.</li>
+</ol></div>
+<div class="box approach"><p>Name the unknowns, translate each sentence into one equation, then eliminate. A two-digit number with tens digit t and units digit u is <b>10t + u</b>. Always check the answer in the original words.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Tickets</h4>
+<p>Adults a, children 500 − a. 150a + 90(500 − a) = 63,000 → 60a + 45,000 = 63,000 → a = <b>300 adults</b>, <b>200 children</b>.</p>
+<h4>(b) Digits</h4>
+<p>t + u = 9 and (10u + t) − (10t + u) = 27 → 9(u − t) = 27 → u − t = 3.</p>
+<p>Adding: 2u = 12 → u = 6, t = 3. Number = <b>36</b> (63 − 36 = 27 ✓).</p>
+<h4>(c) Fraction x/y</h4>
+<p>(x + 1)/(y + 1) = 4/5 → 5x − 4y = −1 … (1). (x − 5)/(y − 5) = 1/2 → 2x − y = 5 → y = 2x − 5 … (2).</p>
+<p>Substitute: 5x − 4(2x − 5) = −1 → −3x + 20 = −1 → x = 7, y = 9. Fraction = <b>7/9</b>. Check: 8/10 = 4/5 ✓, 2/4 = 1/2 ✓.</p>
+<h4>(d) Three unknowns</h4>
+<ol class="steps">
+<li>(1) + (3): 2x + 3y = 8 … (4)</li>
+<li>(2) + (3): 3x + y = 5 … (5)</li>
+<li>(5) × 3 − (4): 9x − 2x = 15 − 8 → x = 1</li>
+<li>From (5): y = 5 − 3 = 2. From (1): z = 6 − 1 − 2 = 3.</li>
+</ol>
+<p><b>x = 1, y = 2, z = 3</b> (check (2): 2 − 2 + 3 = 3 ✓).</p>
+<div class="box answer"><p>(a) 300 adults, 200 children (b) 36 (c) 7/9 (d) x = 1, y = 2, z = 3</p></div>
+<div class="box warn"><p>Writing the two-digit number as t + u. Sign errors when eliminating — re-substitute into every original equation.</p></div>
+<p>See <a href="unit1.html#algebra">Unit I, 1.12</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q13 -->
+<section class="topic" id="q13">
+<h2><span class="num">Q13</span> Quadratic word problems: integers, a garden with a path, and a train <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Factorisation</span><span class="chip">Quadratic formula</span><span class="chip">Discriminant</span><span class="chip">Area</span><span class="chip">Speed</span></div>
+<div class="box question"><ol type="a">
+<li>The product of two consecutive positive odd integers is 255. Find them.</li>
+<li>The length of a rectangular garden is 4 m more than its breadth and its area is 192 m². Find its dimensions. A path 2 m wide is laid all round outside it; find the cost of paving the path at ₹50 per m².</li>
+<li>A train travels 360 km at a uniform speed. If the speed were 5 km/h more, the journey would take 1 hour less. Find the speed.</li>
+<li>Find k if 2x² + kx + 8 = 0 has equal roots, and find the roots.</li>
+</ol></div>
+<div class="box approach"><p>Form the equation, bring it to ax² + bx + c = 0, factorise (or use x = [−b ± √(b² − 4ac)]/2a), and <b>reject</b> roots that make no sense (negative lengths or speeds). Equal roots ⇔ b² − 4ac = 0.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Consecutive odd integers</h4>
+<p>x(x + 2) = 255 → x² + 2x − 255 = 0 → (x + 17)(x − 15) = 0 → x = 15 (reject −17). Integers <b>15 and 17</b>.</p>
+<h4>(b) Garden and path</h4>
+<p>b(b + 4) = 192 → b² + 4b − 192 = 0 → (b + 16)(b − 12) = 0 → b = 12. Garden <b>16 m × 12 m</b>.</p>
+<p>With the path: (16 + 4) × (12 + 4) = 20 × 16 = 320 m². Path area = 320 − 192 = 128 m². Cost = 128 × 50 = <b>₹6,400</b>.</p>
+<h4>(c) Train</h4>
+<p>360/v − 360/(v + 5) = 1 → 360 × 5 = v(v + 5) → v² + 5v − 1800 = 0.</p>
+<p>v = [−5 ± √(25 + 7200)]/2 = (−5 ± 85)/2 → v = <b>40 km/h</b> (reject −45). Check: 9 h vs 8 h ✓.</p>
+<h4>(d) Equal roots</h4>
+<p>b² − 4ac = k² − 64 = 0 → <b>k = ±8</b>. Root = −b/2a = −k/4 → for k = 8, x = −2 (twice); for k = −8, x = 2 (twice).</p>
+<div class="box answer"><p>(a) 15, 17 (b) 16 m × 12 m; ₹6,400 (c) 40 km/h (d) k = ±8; roots −2, −2 or 2, 2</p></div>
+<div class="box warn"><p>Adding 2 m instead of 4 m to each side for a path all round; keeping the negative root.</p></div>
+<p>See <a href="unit1.html#algebra">Unit I, 1.12</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q14 -->
+<section class="topic" id="q14">
+<h2><span class="num">Q14</span> Data interpretation — table set (sales of three companies) <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">DI table</span><span class="chip">Percentage change</span><span class="chip">Average</span><span class="chip">Ratio</span></div>
+<div class="box question"><p>Sales (₹ crore) of three companies:</p>
+<table class="num compact"><tr><th>Company</th><th>2020</th><th>2021</th><th>2022</th><th>2023</th><th>2024</th></tr>
+<tr><td>A</td><td>120</td><td>135</td><td>150</td><td>162</td><td>180</td></tr>
+<tr><td>B</td><td>90</td><td>108</td><td>117</td><td>126</td><td>144</td></tr>
+<tr><td>C</td><td>150</td><td>140</td><td>165</td><td>175</td><td>196</td></tr></table>
+<figure class="fig" id="q14chart"></figure>
+<ol type="i">
+<li>Find the percentage growth of each company from 2020 to 2024. Which grew fastest?</li>
+<li>Find the average annual sales of B.</li>
+<li>In which year did the total sales of the three companies grow the most (a) in absolute terms, (b) in percentage terms?</li>
+<li>Find the ratio of C's sales in 2021 to B's sales in 2024.</li>
+<li>C's sales in 2024 are what percentage of the total sales in 2024?</li>
+</ol></div>
+<div class="box approach"><p>Add a "Total" row first — three of the five parts need it. Percentage change = (new − old)/old × 100. Read carefully whether the question asks for absolute or percentage change: they can give different answers.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>Totals row</h4>
+<table class="num compact"><tr><th></th><th>2020</th><th>2021</th><th>2022</th><th>2023</th><th>2024</th></tr>
+<tr class="total"><td>Total</td><td>360</td><td>383</td><td>432</td><td>463</td><td>520</td></tr>
+<tr><td>Increase</td><td>—</td><td>23</td><td>49</td><td>31</td><td>57</td></tr>
+<tr><td>% increase</td><td>—</td><td>6.39 %</td><td>12.79 %</td><td>7.18 %</td><td>12.31 %</td></tr></table>
+<h4>(i) Growth 2020 → 2024</h4>
+<p>A: (180 − 120)/120 × 100 = 50 %. B: (144 − 90)/90 × 100 = <b>60 %</b>. C: (196 − 150)/150 × 100 = 30.67 %. <b>B grew fastest.</b></p>
+<h4>(ii) Average of B</h4>
+<p>(90 + 108 + 117 + 126 + 144)/5 = 585/5 = <b>₹117 crore</b>.</p>
+<h4>(iii) Largest growth in total</h4>
+<p>(a) Absolute: largest increase 57 → <b>2024</b>. (b) Percentage: 49/383 = 12.79 % is the largest → <b>2022</b>.</p>
+<p>The answers differ because 2024 grew from a bigger base (463).</p>
+<h4>(iv) Ratio</h4>
+<p>140 : 144 = <b>35 : 36</b>.</p>
+<h4>(v) Share of C in 2024</h4>
+<p>196/520 × 100 = <b>37.69 %</b>.</p>
+<div class="box answer"><p>(i) A 50 %, B 60 %, C 30.67 %; B fastest (ii) ₹117 crore (iii) absolute 2024, percentage 2022 (iv) 35 : 36 (v) 37.69 %</p></div>
+<div class="box warn"><p>Dividing by the new value instead of the old one when finding percentage change; assuming the biggest absolute increase is also the biggest percentage increase.</p></div>
+<p>See <a href="unit2.html#di">Unit II, 2.1</a> (DI generator).</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q15 -->
+<section class="topic" id="q15">
+<h2><span class="num">Q15</span> Data interpretation — pie chart with a bar chart (family budget) <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Pie chart</span><span class="chip">Central angle</span><span class="chip">Bar chart</span><span class="chip">Percentage increase</span></div>
+<div class="box question"><p>The pie chart shows how a family spends its monthly income. The bar chart shows its income (₹ thousand) for five months. The same split is used every month.</p>
+<div class="two-col"><figure class="fig" id="q15pie"></figure><figure class="fig" id="q15bar"></figure></div>
+<table class="num compact"><tr><th>Item</th><th>Food</th><th>Rent</th><th>Education</th><th>Transport</th><th>Savings</th><th>Others</th></tr><tr><td>%</td><td>30</td><td>20</td><td>15</td><td>10</td><td>15</td><td>10</td></tr></table>
+<p>Monthly income: Jan 50, Feb 55, Mar 60, Apr 52, May 63 (₹ thousand).</p>
+<ol type="i">
+<li>Find the central angle of each sector.</li>
+<li>How much was spent on education in March? By how much did rent exceed transport in March?</li>
+<li>Savings are what percentage of food + rent together?</li>
+<li>Find the total savings over the five months.</li>
+<li>In June income rises 20 % over March, and food goes up to 35 % of income. By what percentage does the food expense rise compared with March?</li>
+</ol></div>
+<div class="box approach"><p>Central angle = percentage × 3.6°. Amount = percentage × income of that month. For (iv) the percentage is the same, so add the incomes first, then take 15 %.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(i) Central angles</h4>
+<table class="num compact"><tr><th>Item</th><th>Food</th><th>Rent</th><th>Education</th><th>Transport</th><th>Savings</th><th>Others</th><th>Total</th></tr>
+<tr><td>Angle</td><td>108°</td><td>72°</td><td>54°</td><td>36°</td><td>54°</td><td>36°</td><td>360° ✓</td></tr></table>
+<h4>(ii) March (income ₹60,000)</h4>
+<p>Education = 15 % of 60,000 = <b>₹9,000</b>. Rent − transport = (20 − 10) % of 60,000 = <b>₹6,000</b>.</p>
+<h4>(iii) Savings vs food + rent</h4>
+<p>15/(30 + 20) × 100 = <b>30 %</b> (the income cancels out).</p>
+<h4>(iv) Total savings</h4>
+<p>Total income = 50 + 55 + 60 + 52 + 63 = 280 thousand. Savings = 15 % of ₹2,80,000 = <b>₹42,000</b>.</p>
+<h4>(v) June food expense</h4>
+<p>June income = 1.2 × 60,000 = ₹72,000. Food = 35 % × 72,000 = ₹25,200. March food = 30 % × 60,000 = ₹18,000.</p>
+<p>Increase = (25,200 − 18,000)/18,000 × 100 = <b>40 %</b>.</p>
+<div class="box answer"><p>(i) 108°, 72°, 54°, 36°, 54°, 36° (ii) ₹9,000; ₹6,000 (iii) 30 % (iv) ₹42,000 (v) 40 %</p></div>
+<div class="box warn"><p>Answering (v) as 5 % (35 − 30): the base income changed too, so compare the rupee amounts.</p></div>
+<p>See <a href="unit2.html#di">Unit II, 2.1</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q16 -->
+<section class="topic" id="q16">
+<h2><span class="num">Q16</span> Permutations and combinations: committee, word arrangements, numbers and a round table <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">nCr with cases</span><span class="chip">Repeated letters</span><span class="chip">Vowels together</span><span class="chip">Digits with 0</span><span class="chip">Circular</span></div>
+<div class="box question"><ol type="a">
+<li>A committee of 5 is to be formed from 6 men and 4 women. In how many ways can it be done if it must contain at least 2 women? In how many ways with exactly 2 women if a particular man must be included?</li>
+<li>How many arrangements of the letters of LEADER are there? In how many are the vowels together? In how many are they never all together? How many begin and end with E?</li>
+<li>How many 4-digit numbers can be formed from 0, 1, 2, 3, 4, 5 without repetition? How many of them are divisible by 5?</li>
+<li>In how many ways can 6 people sit around a round table if two particular people must sit together?</li>
+</ol></div>
+<div class="box approach"><p>"Select" → combinations; "arrange" → permutations. "At least" → split into cases (or total − unwanted). Repeated letters → divide by the factorial of each repeat. "Together" → glue them into one unit, then arrange inside the unit. 0 cannot be the first digit.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Committee</h4>
+<table class="num compact"><tr><th>Women</th><th>Men</th><th>Ways</th></tr>
+<tr><td>2</td><td>3</td><td>⁴C₂ × ⁶C₃ = 6 × 20 = 120</td></tr>
+<tr><td>3</td><td>2</td><td>⁴C₃ × ⁶C₂ = 4 × 15 = 60</td></tr>
+<tr><td>4</td><td>1</td><td>⁴C₄ × ⁶C₁ = 1 × 6 = 6</td></tr>
+<tr class="total"><td colspan="2">Total</td><td>186</td></tr></table>
+<p>Check by complement: ¹⁰C₅ − (0 women) − (1 woman) = 252 − 6 − 4 × 15 = 186 ✓.</p>
+<p>Exactly 2 women with a particular man: choose 2 women ⁴C₂ = 6, and the remaining 2 men from the other 5 men: ⁵C₂ = 10 → <b>60</b>.</p>
+<h4>(b) LEADER (L, E, A, D, E, R — E repeated twice)</h4>
+<p>Total = 6!/2! = 720/2 = <b>360</b>.</p>
+<p>Vowels E, A, E together: units {EAE}, L, D, R → 4! = 24 ways; inside the unit 3!/2! = 3 ways → 24 × 3 = <b>72</b>.</p>
+<p>Not all together = 360 − 72 = <b>288</b>.</p>
+<p>Begin and end with E: both E's fixed; arrange L, A, D, R in the middle: 4! = <b>24</b>.</p>
+<h4>(c) 4-digit numbers</h4>
+<p>First digit: 5 choices (not 0), then 5, 4, 3 → 5 × 5 × 4 × 3 = <b>300</b>.</p>
+<p>Divisible by 5 → last digit 0 or 5.</p>
+<ul><li>Ending in 0: remaining digits 5 × 4 × 3 = 60.</li><li>Ending in 5: first digit from {1, 2, 3, 4} (not 0, not 5) = 4, then 4 × 3 → 48.</li></ul>
+<p>Total = 60 + 48 = <b>108</b>.</p>
+<h4>(d) Round table</h4>
+<p>Glue the two people → 5 units around a table: (5 − 1)! = 24; the pair can swap: × 2 → <b>48</b>. (Total without restriction (6 − 1)! = 120.)</p>
+<div class="box answer"><p>(a) 186; 60 (b) 360, 72, 288, 24 (c) 300; 108 (d) 48</p></div>
+<div class="box warn"><p>"At least 2 women" done as ⁴C₂ × ⁸C₃ (counts some committees many times). Forgetting to divide by 2! for the repeated E. Treating 0 like any other digit in the first place.</p></div>
+<p>See <a href="unit2.html#pnc">Unit II, 2.2</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q17 -->
+<section class="topic" id="q17">
+<h2><span class="num">Q17</span> Probability with combinations: balls, dice, cards, committees and independent solvers <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">nCr for counting</span><span class="chip">Complement</span><span class="chip">Addition rule</span><span class="chip">Independent events</span></div>
+<div class="box question"><ol type="a">
+<li>A bag contains 5 red, 4 blue and 3 green balls. Three balls are drawn at random. Find the probability that (i) all are red, (ii) one of each colour, (iii) at least one is green.</li>
+<li>Two dice are thrown. Find the probability that (i) the sum is 8, (ii) the sum is a multiple of 3 or both dice show the same number.</li>
+<li>Two cards are drawn from a pack of 52. Find the probability that one is a king and the other a queen.</li>
+<li>A committee of 3 is chosen at random from 6 men and 4 women. Find the probability that it has exactly 2 women.</li>
+<li>A, B and C can solve a problem with probabilities 1/2, 1/3 and 1/4, independently. Find the probability that the problem is solved, and that exactly one of them solves it.</li>
+</ol></div>
+<div class="box approach"><p>P = favourable ways ÷ total ways, where both are counted with nCr. "At least one" → 1 − P(none). "Or" → P(A) + P(B) − P(A and B). Independent → multiply.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Balls (12 in all, total ways ¹²C₃ = 220)</h4>
+<p>(i) ⁵C₃/220 = 10/220 = <b>1/22</b>.</p>
+<p>(ii) ⁵C₁ × ⁴C₁ × ³C₁/220 = 60/220 = <b>3/11</b>.</p>
+<p>(iii) No green = ⁹C₃ = 84 → P(at least one green) = 1 − 84/220 = 136/220 = <b>34/55</b>.</p>
+<h4>(b) Two dice (36 outcomes)</h4>
+<p>(i) Sum 8: (2,6), (3,5), (4,4), (5,3), (6,2) → <b>5/36</b>.</p>
+<p>(ii) Multiple of 3: sums 3, 6, 9, 12 → 2 + 5 + 4 + 1 = 12 outcomes. Doubles: 6 outcomes. Both: (3,3) and (6,6) = 2.</p>
+<p>P = (12 + 6 − 2)/36 = 16/36 = <b>4/9</b>.</p>
+<h4>(c) King and queen</h4>
+<p>Total = ⁵²C₂ = 1326. Favourable = ⁴C₁ × ⁴C₁ = 16. P = 16/1326 = <b>8/663</b>.</p>
+<h4>(d) Committee</h4>
+<p>¹⁰C₃ = 120. Exactly 2 women = ⁴C₂ × ⁶C₁ = 36. P = 36/120 = <b>3/10</b>.</p>
+<h4>(e) Three solvers</h4>
+<p>P(not solved) = (1/2)(2/3)(3/4) = 1/4 → P(solved) = <b>3/4</b>.</p>
+<p>Exactly one = P(A only) + P(B only) + P(C only) = (1/2)(2/3)(3/4) + (1/2)(1/3)(3/4) + (1/2)(2/3)(1/4) = 6/24 + 3/24 + 2/24 = <b>11/24</b>.</p>
+<div class="box answer"><p>(a) 1/22, 3/11, 34/55 (b) 5/36, 4/9 (c) 8/663 (d) 3/10 (e) 3/4, 11/24</p></div>
+<div class="box warn"><p>In (b)(ii), counting (3,3) and (6,6) twice. In (e), adding 1/2 + 1/3 + 1/4 for "solved" (gives more than 1).</p></div>
+<p>See <a href="unit2.html#probability">Unit II, 2.3</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q18 -->
+<section class="topic" id="q18">
+<h2><span class="num">Q18</span> Logarithms: simplify, evaluate with tables, count digits, solve and prove <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Laws of logs</span><span class="chip">Characteristic</span><span class="chip">Log equations</span><span class="chip">Change of base</span></div>
+<div class="box question"><ol type="a">
+<li>Show that log(75/16) − 2 log(5/9) + log(32/243) = log 2.</li>
+<li>Given log 2 = 0.3010 and log 3 = 0.4771, find log 72 and log 4.5, and the number of digits in 2⁶⁴.</li>
+<li>Solve log₂ x + log₂ (x − 2) = 3.</li>
+<li>If a² + b² = 7ab, prove that log[(a + b)/3] = ½(log a + log b).</li>
+<li>Evaluate log₃ 5 × log₂₅ 27.</li>
+</ol></div>
+<div class="box approach"><p>Laws: log mn = log m + log n, log(m/n) = log m − log n, log mᵏ = k log m, log<sub>b</sub> a = log a/log b. Number of digits of N = (characteristic of log N) + 1. In log equations, reject values that make any log's argument ≤ 0.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Simplify</h4>
+<p>LHS = log[(75/16) × (81/25) × (32/243)] (since −2 log(5/9) = log(9/5)² = log(81/25)).</p>
+<p>= log[(75 × 81 × 32)/(16 × 25 × 243)] = log[(3 × 2)/3] … cancelling 75/25 = 3, 81/243 = 1/3, 32/16 = 2 → log 2 = RHS ✓.</p>
+<h4>(b) Using table values</h4>
+<p>log 72 = log(2³ × 3²) = 3(0.3010) + 2(0.4771) = 0.9030 + 0.9542 = <b>1.8572</b>.</p>
+<p>log 4.5 = log(9/2) = 0.9542 − 0.3010 = <b>0.6532</b>.</p>
+<p>log 2⁶⁴ = 64 × 0.3010 = 19.264 → characteristic 19 → <b>20 digits</b> (2⁶⁴ = 18,446,744,073,709,551,616).</p>
+<h4>(c) Equation</h4>
+<p>log₂[x(x − 2)] = 3 → x(x − 2) = 2³ = 8 → x² − 2x − 8 = 0 → (x − 4)(x + 2) = 0.</p>
+<p>x = −2 is rejected (log of a negative number is undefined). <b>x = 4</b>.</p>
+<h4>(d) Proof</h4>
+<p>a² + b² = 7ab → a² + 2ab + b² = 9ab → (a + b)² = 9ab → [(a + b)/3]² = ab.</p>
+<p>Take logs: 2 log[(a + b)/3] = log a + log b → log[(a + b)/3] = ½(log a + log b). ∎</p>
+<h4>(e) Change of base</h4>
+<p>log₃ 5 × log₂₅ 27 = (log 5/log 3) × (log 3³/log 5²) = (log 5/log 3) × (3 log 3/2 log 5) = <b>3/2</b>.</p>
+<div class="box answer"><p>(a) shown (b) 1.8572, 0.6532, 20 digits (c) x = 4 (d) proved (e) 3/2</p></div>
+<div class="box warn"><p>Writing log(m + n) = log m + log n (false). Keeping x = −2 in (c). Saying 2⁶⁴ has 19 digits.</p></div>
+<p>See <a href="unit2.html#logarithms">Unit II, 2.4</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q19 -->
+<section class="topic" id="q19">
+<h2><span class="num">Q19</span> AP and GP: terms and sums, and choosing between two salary offers (AP vs GP, using logs) <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">nth term</span><span class="chip">Sum of n terms</span><span class="chip">Infinite GP</span><span class="chip">Logarithms</span><span class="chip">Percentage growth</span></div>
+<div class="box question"><ol type="a">
+<li>The 4th term of an AP is 14 and the 12th term is 46. Find the AP, the sum of its first 20 terms, and which term is 98.</li>
+<li>Find the sum of all two-digit numbers divisible by 7.</li>
+<li>The 3rd term of a GP is 12 and the 6th term is 96. Find the sum of its first 8 terms. Also find the sum to infinity of 9 + 3 + 1 + ….</li>
+<li>A graduate gets two job offers, both starting at ₹3,60,000 a year. Offer X gives a fixed increment of ₹24,000 every year; offer Y gives a 6 % raise every year. Compare the 10th-year salary and the total earnings over 10 years. (Use 1.06⁹ ≈ 1.6895 and 1.06¹⁰ ≈ 1.7908, or logarithms.) From which year does Y pay more?</li>
+</ol></div>
+<div class="box approach"><p>AP: tₙ = a + (n − 1)d, Sₙ = n/2 [2a + (n − 1)d]. GP: tₙ = arⁿ⁻¹, Sₙ = a(rⁿ − 1)/(r − 1), S∞ = a/(1 − r) for |r| &lt; 1. A fixed increment is an AP; a percentage raise is a GP.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) AP</h4>
+<p>a + 3d = 14, a + 11d = 46 → 8d = 32 → d = 4, a = 2. AP: <b>2, 6, 10, 14, …</b></p>
+<p>S₂₀ = 20/2 [2 × 2 + 19 × 4] = 10 × 80 = <b>800</b>.</p>
+<p>2 + (n − 1)4 = 98 → n − 1 = 24 → <b>25th term</b>.</p>
+<h4>(b) Two-digit multiples of 7</h4>
+<p>14, 21, …, 98: a = 14, l = 98, d = 7 → n = (98 − 14)/7 + 1 = 13. Sum = 13/2 × (14 + 98) = <b>728</b>.</p>
+<h4>(c) GP</h4>
+<p>ar² = 12, ar⁵ = 96 → r³ = 8 → r = 2, a = 3. S₈ = 3(2⁸ − 1)/(2 − 1) = 3 × 255 = <b>765</b>.</p>
+<p>9 + 3 + 1 + …: a = 9, r = 1/3 → S∞ = 9/(1 − 1/3) = <b>13.5</b>.</p>
+<h4>(d) Salary offers</h4>
+<table class="num compact"><tr><th></th><th>Offer X (AP, d = 24,000)</th><th>Offer Y (GP, r = 1.06)</th></tr>
+<tr><td>10th-year salary</td><td>3,60,000 + 9 × 24,000 = <b>₹5,76,000</b></td><td>3,60,000 × 1.06⁹ = 3,60,000 × 1.6895 ≈ <b>₹6,08,212</b></td></tr>
+<tr><td>Total in 10 years</td><td>10/2 [7,20,000 + 9 × 24,000] = 5 × 9,36,000 = <b>₹46,80,000</b></td><td>3,60,000 × (1.06¹⁰ − 1)/0.06 = 3,60,000 × 13.1808 ≈ <b>₹47,45,086</b></td></tr></table>
+<p><b>Using logs for 1.06⁹:</b> log 1.06 = 0.0253 → 9 × 0.0253 = 0.2277 → antilog ≈ 1.6895.</p>
+<p><b>Year Y overtakes X:</b></p>
+<table class="num compact"><tr><th>Year</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+<tr><td>X (₹)</td><td>3,60,000</td><td>3,84,000</td><td>4,08,000</td><td>4,32,000</td><td>4,56,000</td><td>4,80,000</td></tr>
+<tr><td>Y (₹)</td><td>3,60,000</td><td>3,81,600</td><td>4,04,496</td><td>4,28,766</td><td>4,54,492</td><td>4,81,761</td></tr></table>
+<p>Y pays more <b>from the 6th year</b>, and over 10 years it pays ₹65,086 more in total.</p>
+<div class="box answer"><p>(a) 2, 6, 10, …; S₂₀ = 800; 25th term (b) 728 (c) 765; 13.5 (d) 10th year: X ₹5,76,000, Y ≈ ₹6,08,212; totals X ₹46,80,000, Y ≈ ₹47,45,086; Y is better from year 6 and overall.</p></div>
+<div class="box warn"><p>Using 1.06¹⁰ for the 10th-year salary (the first year has no raise, so the power is 9). Using S∞ when |r| ≥ 1.</p></div>
+<p>See <a href="unit2.html#sequences">Unit II, 2.5</a> and <a href="unit2.html#logarithms">2.4</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q20 -->
+<section class="topic" id="q20">
+<h2><span class="num">Q20</span> Mensuration: melting and recasting, painting a room, a conical tent and a circular path <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Volume conservation</span><span class="chip">Surface area</span><span class="chip">Cost problems</span><span class="chip">Pythagoras</span></div>
+<div class="box question"><p>Use π = 22/7.</p><ol type="a">
+<li>A metal sphere of radius 6 cm is melted and recast into a cylinder of radius 4 cm. Find the height of the cylinder. How many spheres of radius 1 cm could be made instead?</li>
+<li>A room is 12 m × 8 m × 4 m. It has one door 2 m × 1 m and two windows 1.5 m × 1 m. Find the cost of painting the four walls and the ceiling at ₹25 per m². Also find the cost of carpeting the floor with carpet 75 cm wide at ₹120 per metre.</li>
+<li>A conical tent has base radius 7 m and height 24 m. Find the canvas needed and the volume of air inside.</li>
+<li>A circular garden of radius 21 m has a path 3.5 m wide all round it, outside. Find the area of the path.</li>
+</ol></div>
+<div class="box approach"><p>Melting keeps the <b>volume</b> the same; painting, canvas and carpets use <b>areas</b>. Subtract doors and windows. Carpet length = floor area ÷ carpet width (convert 75 cm to 0.75 m). The slant height of a cone is l = √(r² + h²).</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Sphere → cylinder</h4>
+<p>Volume of sphere = 4/3 πr³ = 4/3 π × 216 = 288π cm³.</p>
+<p>πR²h = 288π → 16h = 288 → h = <b>18 cm</b>.</p>
+<p>Small spheres: (4/3 π × 6³)/(4/3 π × 1³) = 216 → <b>216 spheres</b>.</p>
+<h4>(b) Room</h4>
+<p>Four walls = 2(l + b)h = 2(12 + 8) × 4 = 160 m². Ceiling = 12 × 8 = 96 m². Openings = 2 + 2 × 1.5 = 5 m².</p>
+<p>Area to paint = 160 + 96 − 5 = 251 m² → cost = 251 × 25 = <b>₹6,275</b>.</p>
+<p>Carpet length = 96/0.75 = 128 m → cost = 128 × 120 = <b>₹15,360</b>.</p>
+<h4>(c) Conical tent</h4>
+<p>l = √(7² + 24²) = √625 = 25 m.</p>
+<p>Canvas = curved surface = πrl = 22/7 × 7 × 25 = <b>550 m²</b>.</p>
+<p>Volume = 1/3 πr²h = 1/3 × 22/7 × 49 × 24 = <b>1,232 m³</b>.</p>
+<h4>(d) Circular path</h4>
+<p>Outer radius = 21 + 3.5 = 24.5 m. Area = π(24.5² − 21²) = 22/7 × (24.5 + 21)(24.5 − 21) = 22/7 × 45.5 × 3.5 = <b>500.5 m²</b>.</p>
+<div class="box answer"><p>(a) 18 cm; 216 spheres (b) ₹6,275; ₹15,360 (c) 550 m²; 1,232 m³ (d) 500.5 m²</p></div>
+<div class="box warn"><p>Using the height instead of the slant height for canvas; not converting 75 cm to metres; including the floor in the painting.</p></div>
+<p>See <a href="unit2.html#geometry">Unit II, 2.6</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q21 -->
+<section class="topic" id="q21">
+<h2><span class="num">Q21</span> Data sufficiency set (six questions across chapters) <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Problem-solving strategies</span><span class="chip">Equations</span><span class="chip">Trains</span><span class="chip">Profit</span><span class="chip">Area</span></div>
+<div class="box question"><p>Each question has two statements. Choose:<br>
+<b>(A)</b> I alone is sufficient, II alone is not; <b>(B)</b> II alone is sufficient, I alone is not; <b>(C)</b> either statement alone is sufficient; <b>(D)</b> both together are needed; <b>(E)</b> even both together are not sufficient.</p>
+<ol>
+<li>What is the value of x? &nbsp;I: 3x + 2y = 18 &nbsp;II: x − y = 1</li>
+<li>Is the integer n even? &nbsp;I: n² is even &nbsp;II: 3n is odd</li>
+<li>What is the speed of a train? &nbsp;I: it crosses a 200 m platform in 20 s &nbsp;II: it crosses a pole in 10 s</li>
+<li>What is A's age? &nbsp;I: A is 5 years older than B &nbsp;II: the ratio of the ages of B and C is 3 : 4</li>
+<li>What is the profit percentage on an article? &nbsp;I: its cost price is ₹400 &nbsp;II: its selling price is 125 % of its cost price</li>
+<li>What is the area of a rectangle? &nbsp;I: its perimeter is 28 cm &nbsp;II: its diagonal is 10 cm</li>
+</ol></div>
+<div class="box approach"><p>Do not solve fully — only decide <b>whether</b> a unique answer exists. Test I alone, then II alone, then both together. Count unknowns against independent equations.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<ol>
+<li><b>D.</b> Each statement is one equation in two unknowns, so neither alone works. Together: from II, x = y + 1 → 3y + 3 + 2y = 18 → y = 3, x = 4.</li>
+<li><b>C.</b> I: if n were odd, n² would be odd, so n is even → "yes". II: 3n odd ⇒ n odd → "no". A definite answer (even "no") counts as sufficient, so each alone is sufficient.</li>
+<li><b>D.</b> I: L + 200 = 20v has two unknowns. II: L = 10v, two unknowns. Together: 10v + 200 = 20v → v = 20 m/s = 72 km/h.</li>
+<li><b>E.</b> I links A and B; II links B and C. No statement gives an actual age, so A cannot be found.</li>
+<li><b>B.</b> II alone: profit = 25 % (the CP cancels out). I alone gives no selling price.</li>
+<li><b>D.</b> I: l + b = 14 (many rectangles). II: l² + b² = 100 (many rectangles). Together: (l + b)² = l² + b² + 2lb → 196 = 100 + 2lb → lb = <b>48 cm²</b>.</li>
+</ol>
+<div class="box answer"><p>1 D, 2 C, 3 D, 4 E, 5 B, 6 D</p></div>
+<div class="box warn"><p>Thinking a "no" answer is not sufficient (Q2). Solving for l and b separately in Q6 — the area can be found without them.</p></div>
+<p>See <a href="unit2.html#strategies">Unit II, 2.7</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q22 -->
+<section class="topic" id="q22">
+<h2><span class="num">Q22</span> Caselet DI: students by gender and stream (percentages, ratio and fractions combined) <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Caselet</span><span class="chip">Percentages</span><span class="chip">Ratio</span><span class="chip">Tabulation</span></div>
+<div class="box question"><p>A college has 1,200 students, of whom 45 % are girls. One-third of the girls study Science, 40 % of the girls study Commerce and the rest study Arts. Of the boys, 35 % study Science, 50 % study Commerce and the rest study Arts.</p>
+<ol type="i">
+<li>Make a table of students by gender and stream.</li>
+<li>How many students study Science in all?</li>
+<li>Find the ratio of girls to boys in Arts.</li>
+<li>What percentage of Commerce students are girls?</li>
+<li>What percentage of all students study Arts?</li>
+</ol></div>
+<div class="box approach"><p>A caselet is a DI question with the data in words. The first job is always to turn the paragraph into a <b>table</b>; then each sub-question is one line of work.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(i) Table</h4>
+<p>Girls = 45 % of 1,200 = 540; boys = 660.</p>
+<p>Girls: Science = 540/3 = 180, Commerce = 40 % × 540 = 216, Arts = 540 − 180 − 216 = 144.</p>
+<p>Boys: Science = 35 % × 660 = 231, Commerce = 50 % × 660 = 330, Arts = 660 − 231 − 330 = 99.</p>
+<table class="num compact"><tr><th></th><th>Science</th><th>Commerce</th><th>Arts</th><th>Total</th></tr>
+<tr><td>Girls</td><td>180</td><td>216</td><td>144</td><td>540</td></tr>
+<tr><td>Boys</td><td>231</td><td>330</td><td>99</td><td>660</td></tr>
+<tr class="total"><td>Total</td><td>411</td><td>546</td><td>243</td><td>1,200</td></tr></table>
+<h4>(ii)–(v)</h4>
+<p>(ii) Science = <b>411</b>.</p>
+<p>(iii) Arts girls : boys = 144 : 99 = <b>16 : 11</b>.</p>
+<p>(iv) 216/546 × 100 = <b>39.56 %</b>.</p>
+<p>(v) 243/1200 × 100 = <b>20.25 %</b>.</p>
+<div class="box answer"><p>(ii) 411 (iii) 16 : 11 (iv) 39.56 % (v) 20.25 %</p></div>
+<div class="box warn"><p>Taking 40 % of all 1,200 students instead of the 540 girls; in (iv), dividing by the number of girls instead of the number of Commerce students.</p></div>
+<p>See <a href="unit2.html#di">Unit II, 2.1</a>.</p>
+</div></details>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (!window.K) return;
+  var yrs = ["2020", "2021", "2022", "2023", "2024"];
+  var q14 = document.getElementById("q14chart");
+  if (q14) {
+    q14.appendChild(K.lineChart({ labels: yrs, h: 220, series: [
+      { name: "A", values: [120, 135, 150, 162, 180] },
+      { name: "B", values: [90, 108, 117, 126, 144] },
+      { name: "C", values: [150, 140, 165, 175, 196] }] }));
+    q14.insertAdjacentHTML("beforeend", '<figcaption>Sales (₹ crore). Lines: <span style="color:' + K.PALETTE[0] + '">● A</span> <span style="color:' + K.PALETTE[1] + '">● B</span> <span style="color:' + K.PALETTE[2] + '">● C</span></figcaption>');
+  }
+  var pie = document.getElementById("q15pie");
+  if (pie) {
+    var items = ["Food", "Rent", "Education", "Transport", "Savings", "Others"];
+    var s = K.pieChart({ labels: items, values: [30, 20, 15, 10, 15, 10], size: 220 });
+    s.style.maxWidth = "220px"; s.style.margin = "0 auto";
+    pie.appendChild(s);
+    pie.insertAdjacentHTML("beforeend", '<figcaption>' + items.map(function (t, i) { return '<span style="color:' + K.PALETTE[i] + '">●</span> ' + t; }).join(" &nbsp;") + "</figcaption>");
+  }
+  var bar = document.getElementById("q15bar");
+  if (bar) {
+    bar.appendChild(K.barChart({ labels: ["Jan", "Feb", "Mar", "Apr", "May"], values: [50, 55, 60, 52, 63], h: 220, w: 360 }));
+    bar.insertAdjacentHTML("beforeend", '<figcaption>Monthly income (₹ thousand)</figcaption>');
+  }
+});
+</script>
+</body>
+</html>
