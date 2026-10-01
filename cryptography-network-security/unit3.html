@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit III · Public Key Cryptography &amp; Hashing — Cryptography</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="crypto" data-page="unit3.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Unit III · 14 hours · CO2, CO3</div>
+  <h1>Public Key Cryptography &amp; Hashing Techniques</h1>
+  <p class="lead">First we finish symmetric encryption by learning how block ciphers handle long messages and how modern stream ciphers work. Then we build the number theory (primes, Fermat, Euler, CRT) needed for <b>RSA, Rabin, ElGamal</b> and <b>elliptic curves</b>. We end with <b>hash functions</b>: MD5, Whirlpool and SHA-512.</p>
+  <div class="meta"><span class="chip acc">Modes of operation</span><span class="chip acc">RC4 / LFSR</span><span class="chip acc">Primes &amp; primality</span><span class="chip acc">Factorization</span><span class="chip acc">CRT</span><span class="chip acc">RSA · Rabin · ElGamal · ECC</span><span class="chip acc">MD5 · Whirlpool · SHA-512</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="modes">
+<h2><span class="num">3.1</span> Modern block ciphers: modes of operation</h2>
+<p>DES and AES encrypt exactly one block (64 or 128 bits). Real messages are longer. A <b>mode of operation</b> is the rule for applying a block cipher to a sequence of blocks P₁, P₂, …, P<sub>N</sub>. NIST defines five classic modes. (Notation: E = encryption with key K, D = decryption, ⊕ = XOR, IV = initialisation vector — a non-secret starting block.)</p>
+
+<div class="concept">
+  <h3>Electronic Codebook (ECB)</h3>
+  <div class="f-exp">Each block is encrypted <b>independently</b> with the same key: <span class="math">C<sub>i</sub> = E<sub>K</sub>(P<sub>i</sub>)</span>, <span class="math">P<sub>i</sub> = D<sub>K</sub>(C<sub>i</sub>)</span>. Like a codebook: the same plaintext block always gives the same ciphertext block.</div>
+  <div class="f-use">Only for encrypting single short values such as one key or one block of random data.</div>
+  <div class="f-imp">Blocks can be encrypted in parallel; an error in one ciphertext block affects only that block. Needs padding.</div>
+  <div class="f-lim"><b>Patterns leak</b> — identical plaintext blocks give identical ciphertext blocks (see the "ECB penguin" demo below). Blocks can be reordered, deleted or replayed without detection. Never use ECB for messages.</div>
+</div>
+<div class="concept">
+  <h3>Cipher Block Chaining (CBC)</h3>
+  <div class="f-exp">Each plaintext block is XORed with the <b>previous ciphertext block</b> before encryption:
+  <span class="eq">C<sub>i</sub> = E<sub>K</sub>(P<sub>i</sub> ⊕ C<sub>i−1</sub>), &nbsp; C₀ = IV &nbsp;&nbsp;&nbsp;&nbsp; P<sub>i</sub> = D<sub>K</sub>(C<sub>i</sub>) ⊕ C<sub>i−1</sub></span></div>
+  <div class="f-use">Most common mode for many years: TLS 1.0–1.2, IPSec ESP, file encryption.</div>
+  <div class="f-imp">Identical plaintext blocks now give different ciphertext. The IV must be unpredictable (random). Decryption can be parallel; encryption cannot.</div>
+  <div class="f-lim">Sequential encryption (slower); an error in C<sub>i</sub> corrupts P<sub>i</sub> fully and one bit of P<sub>i+1</sub>; padding-oracle attacks if implemented carelessly.</div>
+</div>
+<div class="concept">
+  <h3>Cipher Feedback (CFB)</h3>
+  <div class="f-exp">Turns a block cipher into a <b>self-synchronising stream cipher</b>. A shift register (initially IV) is encrypted; the leftmost s bits of the result are XORed with s bits of plaintext; the ciphertext bits are fed back into the register.
+  <span class="eq">C<sub>i</sub> = P<sub>i</sub> ⊕ MSB<sub>s</sub>(E<sub>K</sub>(S<sub>i−1</sub>))</span></div>
+  <div class="f-use">Character-oriented transmission (s = 8 bits), e.g. terminal sessions, where data units are smaller than a block.</div>
+  <div class="f-imp">Only the <b>encryption</b> function of the block cipher is used, even for decryption. No padding needed.</div>
+  <div class="f-lim">Slow when s is small (one block encryption per s bits); errors propagate for a few units.</div>
+</div>
+<div class="concept">
+  <h3>Output Feedback (OFB)</h3>
+  <div class="f-exp">Like CFB but the <b>output of the encryption</b> (not the ciphertext) is fed back. This produces a key stream independent of the plaintext — a <b>synchronous stream cipher</b>.
+  <span class="eq">O<sub>i</sub> = E<sub>K</sub>(O<sub>i−1</sub>), O₀ = IV &nbsp;&nbsp;&nbsp; C<sub>i</sub> = P<sub>i</sub> ⊕ O<sub>i</sub></span></div>
+  <div class="f-use">Noisy channels (satellite) — a bit error in transmission affects only that bit.</div>
+  <div class="f-imp">Key stream can be precomputed before the message arrives.</div>
+  <div class="f-lim">The IV must never repeat with the same key (key-stream reuse = one-time-pad reuse); bit-flipping attacks are easy.</div>
+</div>
+<div class="concept">
+  <h3>Counter (CTR)</h3>
+  <div class="f-exp">Encrypt a <b>counter</b> value for each block and XOR it with the plaintext:
+  <span class="eq">C<sub>i</sub> = P<sub>i</sub> ⊕ E<sub>K</sub>(Counter + i)</span></div>
+  <div class="f-use">Modern standard choice: AES-CTR and its authenticated version AES-GCM are used in TLS 1.3, IPSec, SSH, disk encryption.</div>
+  <div class="f-imp">Fully parallel for encryption and decryption; random access to any block; precomputation possible; no padding.</div>
+  <div class="f-lim">The counter/nonce must never repeat under the same key. Provides no integrity on its own (GCM adds it).</div>
+</div>
+
+<table>
+  <tr><th>Mode</th><th>Type</th><th>IV / nonce</th><th>Parallel encrypt?</th><th>Error propagation</th><th>Padding</th></tr>
+  <tr><td>ECB</td><td>Block</td><td>No</td><td>Yes</td><td>One block</td><td>Yes</td></tr>
+  <tr><td>CBC</td><td>Block</td><td>Random IV</td><td>No</td><td>Block i and 1 bit of i+1</td><td>Yes</td></tr>
+  <tr><td>CFB</td><td>Stream (self-sync)</td><td>IV</td><td>No</td><td>A few units</td><td>No</td></tr>
+  <tr><td>OFB</td><td>Stream (synchronous)</td><td>Unique IV</td><td>No (pre-computable)</td><td>Only the erroneous bits</td><td>No</td></tr>
+  <tr><td>CTR</td><td>Stream (synchronous)</td><td>Unique nonce</td><td>Yes</td><td>Only the erroneous bits</td><td>No</td></tr>
+</table>
+
+<figure class="fig">
+<svg viewBox="0 0 700 260" width="680" role="img" aria-label="ECB and CBC">
+ <text class="dg-ta" x="10" y="20">ECB</text>
+ <g>
+  <rect class="dg-good" x="60" y="30" width="80" height="26" rx="5"/><text class="dg-t" x="100" y="48" text-anchor="middle">P1</text>
+  <rect class="dg-acc" x="60" y="72" width="80" height="26" rx="5"/><text class="dg-t" x="100" y="90" text-anchor="middle">E(K)</text>
+  <rect class="dg-warn" x="60" y="114" width="80" height="26" rx="5"/><text class="dg-t" x="100" y="132" text-anchor="middle">C1</text>
+  <path class="dg-line" d="M100 56 V70" marker-end="url(#arr)"/><path class="dg-line" d="M100 98 V112" marker-end="url(#arr)"/>
+  <rect class="dg-good" x="180" y="30" width="80" height="26" rx="5"/><text class="dg-t" x="220" y="48" text-anchor="middle">P2</text>
+  <rect class="dg-acc" x="180" y="72" width="80" height="26" rx="5"/><text class="dg-t" x="220" y="90" text-anchor="middle">E(K)</text>
+  <rect class="dg-warn" x="180" y="114" width="80" height="26" rx="5"/><text class="dg-t" x="220" y="132" text-anchor="middle">C2</text>
+  <path class="dg-line" d="M220 56 V70" marker-end="url(#arr)"/><path class="dg-line" d="M220 98 V112" marker-end="url(#arr)"/>
+  <text class="dg-ts" x="160" y="165" text-anchor="middle">blocks independent</text>
+ </g>
+ <text class="dg-ta" x="330" y="20">CBC</text>
+ <g>
+  <rect class="dg-box" x="340" y="72" width="44" height="26" rx="5"/><text class="dg-t" x="362" y="90" text-anchor="middle">IV</text>
+  <rect class="dg-good" x="420" y="22" width="80" height="24" rx="5"/><text class="dg-t" x="460" y="39" text-anchor="middle">P1</text>
+  <circle class="dg-box" cx="460" cy="85" r="11"/><text class="dg-tb" x="460" y="90" text-anchor="middle">⊕</text>
+  <rect class="dg-acc" x="420" y="118" width="80" height="26" rx="5"/><text class="dg-t" x="460" y="136" text-anchor="middle">E(K)</text>
+  <rect class="dg-warn" x="420" y="168" width="80" height="26" rx="5"/><text class="dg-t" x="460" y="186" text-anchor="middle">C1</text>
+  <path class="dg-line" d="M460 46 V72" marker-end="url(#arr)"/><path class="dg-line" d="M384 85 H447" marker-end="url(#arr)"/><path class="dg-line" d="M460 96 V116" marker-end="url(#arr)"/><path class="dg-line" d="M460 144 V166" marker-end="url(#arr)"/>
+  <rect class="dg-good" x="580" y="22" width="80" height="24" rx="5"/><text class="dg-t" x="620" y="39" text-anchor="middle">P2</text>
+  <circle class="dg-box" cx="620" cy="85" r="11"/><text class="dg-tb" x="620" y="90" text-anchor="middle">⊕</text>
+  <rect class="dg-acc" x="580" y="118" width="80" height="26" rx="5"/><text class="dg-t" x="620" y="136" text-anchor="middle">E(K)</text>
+  <rect class="dg-warn" x="580" y="168" width="80" height="26" rx="5"/><text class="dg-t" x="620" y="186" text-anchor="middle">C2</text>
+  <path class="dg-line" d="M620 46 V72" marker-end="url(#arr)"/><path class="dg-line" d="M620 96 V116" marker-end="url(#arr)"/><path class="dg-line" d="M620 144 V166" marker-end="url(#arr)"/>
+  <path class="dg-line" d="M500 181 H540 V85 H607" marker-end="url(#arr)"/>
+  <text class="dg-ts" x="540" y="225" text-anchor="middle">each block chained to the previous ciphertext</text>
+ </g>
+</svg>
+<figcaption>Fig 3.1 — ECB (independent blocks) vs CBC (chained blocks).</figcaption>
+</figure>
+<div class="demo box" data-demo="ecbpenguin" data-title="Interactive demo — why ECB leaks patterns (real AES-128 on an image)"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="stream-modern">
+<h2><span class="num">3.2</span> Modern stream ciphers</h2>
+<p>A modern stream cipher generates a pseudo-random <b>key stream</b> of bits from a short key and XORs it with the data. They are classified by how the key stream is produced.</p>
+<div class="two-col">
+  <div class="box def" data-title="Synchronous stream cipher"><p>Key stream is <b>independent</b> of plaintext and ciphertext (OTP, LFSR-based, RC4, OFB, CTR). Sender and receiver must stay in step; a lost bit desynchronises them, but a flipped bit affects only one bit.</p></div>
+  <div class="box def" data-title="Non-synchronous (self-synchronising)"><p>Each key-stream bit depends on <b>previous ciphertext bits</b> (CFB mode). After an error, the receiver automatically resynchronises after a few units.</p></div>
+</div>
+
+<div class="concept">
+  <h3>Feedback shift registers (FSR) and LFSR</h3>
+  <div class="f-exp">A shift register of m cells (bits b<sub>m−1</sub> … b₀). Each clock tick, the rightmost bit b₀ is output, all bits shift right, and a new leftmost bit is computed by a <b>feedback function</b> of the current cells. In a <b>Linear</b> FSR the feedback is an XOR of selected cells ("taps"), described by a feedback polynomial.</div>
+  <div class="f-use">Key-stream generators in hardware: GSM's A5/1 (three LFSRs), Bluetooth E0, CRC checksums, pseudo-random test patterns.</div>
+  <div class="f-imp"><b>Example:</b> 4-bit LFSR with b₄ = b₁ ⊕ b₀ (polynomial x<sup>4</sup> + x + 1), seed 0001. A well-chosen ("primitive") polynomial gives the maximum period 2<sup>m</sup> − 1 = 15 bits before repeating. Try it in the demo.</div>
+  <div class="f-lim">LFSRs are linear: from 2m output bits an attacker can recover the whole register with the Berlekamp–Massey algorithm. They must be combined non-linearly (irregular clocking, non-linear filters).</div>
+</div>
+<div class="demo box" data-demo="lfsr" data-title="Interactive demo — linear feedback shift register"></div>
+
+<div class="concept">
+  <h3>RC4</h3>
+  <div class="f-exp">Designed by Ron Rivest (1987). A byte-oriented stream cipher with a variable key of 1–256 bytes. Its state is a <b>permutation S of the 256 byte values</b> plus two indices i, j.</div>
+  <div class="f-use">Once the most widely used stream cipher: SSL/TLS, WEP and WPA-TKIP Wi-Fi, Microsoft Office/PDF encryption.</div>
+  <div class="f-imp">
+    <p><b>1. Key scheduling (KSA):</b> S = [0, 1, …, 255]; T = key repeated to 256 bytes. For i = 0 … 255: j = (j + S[i] + T[i]) mod 256; swap S[i], S[j].</p>
+    <p><b>2. Key-stream generation (PRGA):</b> repeat: i = (i + 1) mod 256; j = (j + S[i]) mod 256; swap S[i], S[j]; output k = S[(S[i] + S[j]) mod 256].</p>
+    <p><b>3.</b> C = P ⊕ k (byte by byte). Test: key "Key", plaintext "Plaintext" → BB F3 16 E8 D9 40 AF 0A D3.</p></div>
+  <div class="f-lim">Biases in the first key-stream bytes; the WEP attack (2001) recovered keys because WEP put the IV next to the key. Prohibited in TLS since 2015 (RFC 7465).</div>
+</div>
+<div class="demo box" data-demo="rc4" data-title="Interactive demo — RC4"></div>
+
+<div class="box oos" data-title="Beyond the syllabus · A5/1 and modern ChaCha20">
+  <p><b>A5/1</b> (GSM phones): three LFSRs of 19, 22 and 23 bits, clocked irregularly by a majority rule; 64-bit key. Broken in real time with precomputed tables. <b>ChaCha20</b> (Bernstein, 2008) uses only additions, rotations and XORs on 32-bit words (ARX) and is the modern replacement for RC4 in TLS 1.3 and WhatsApp.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="primes">
+<h2><span class="num">3.3</span> Prime numbers, Euler's φ, Fermat and Euler theorems</h2>
+<div class="box found">
+  <p>Public-key cryptography is built on facts about primes. You need from Unit I: divisibility, gcd, ℤ<sub>n</sub>*, modular exponentiation. Everything else is developed here.</p>
+</div>
+
+<div class="concept">
+  <h3>Primes and their cardinality</h3>
+  <div class="f-exp">A positive integer p &gt; 1 is <b>prime</b> if its only divisors are 1 and p (2, 3, 5, 7, 11, …). Otherwise it is <b>composite</b>. 1 is neither. Two numbers are <b>coprime</b> if gcd = 1.
+  <br><b>There are infinitely many primes</b> (Euclid's proof): suppose p₁, …, p<sub>n</sub> were all of them; then N = p₁p₂…p<sub>n</sub> + 1 leaves remainder 1 when divided by every p<sub>i</sub>, so N has a prime factor not in the list — contradiction.
+  <br><b>How many?</b> The number of primes ≤ n, π(n), is roughly n / ln n (Prime Number Theorem). Around 2<sup>1024</sup>, about 1 in 710 numbers is prime — so large primes are plentiful.</div>
+  <div class="f-use">RSA needs two random 1024-bit primes; Diffie–Hellman, ElGamal and DSA need a large prime modulus.</div>
+  <div class="f-imp"><b>Checking for primeness (trial division):</b> n is prime if no prime ≤ √n divides it. Is 97 prime? √97 ≈ 9.8; 97 is not divisible by 2, 3, 5 or 7 → prime. <b>Sieve of Eratosthenes</b> lists all primes up to n by crossing out multiples.</div>
+  <div class="f-lim">Trial division needs about √n steps — for a 300-digit n that is 10<sup>150</sup> steps, impossible. Hence probabilistic tests (3.4).</div>
+</div>
+<div class="demo box" data-demo="sieve" data-title="Interactive demo — Sieve of Eratosthenes"></div>
+
+<div class="concept">
+  <h3>Euler's phi (totient) function φ(n)</h3>
+  <div class="f-exp"><b>φ(n)</b> = the number of integers in 1 … n−1 that are <b>coprime to n</b> = the size of ℤ<sub>n</sub>*.</div>
+  <div class="f-use">Choosing RSA keys (e·d ≡ 1 mod φ(n)); Euler's theorem; counting primitive roots.</div>
+  <div class="f-imp">
+    <div class="box formula" data-title="Rules">
+      <span class="eq">φ(1) = 0 &nbsp;&nbsp; φ(p) = p − 1 (p prime) &nbsp;&nbsp; φ(m × n) = φ(m) × φ(n) if gcd(m, n) = 1 &nbsp;&nbsp; φ(p<sup>e</sup>) = p<sup>e</sup> − p<sup>e−1</sup></span>
+      <span class="eq">General: n = p₁<sup>e₁</sup> p₂<sup>e₂</sup> … ⇒ φ(n) = n (1 − 1/p₁)(1 − 1/p₂) …</span>
+    </div>
+    Examples: φ(13) = 12; φ(10) = φ(2)φ(5) = 1 × 4 = 4; φ(49) = 49 − 7 = 42; φ(240): 240 = 2<sup>4</sup> × 3 × 5 → (16 − 8)(2)(4) = <b>64</b>. For RSA: φ(p × q) = (p − 1)(q − 1).</div>
+  <div class="f-lim">Computing φ(n) requires the factorisation of n. Knowing φ(n) for n = pq is equivalent to factoring n — this is exactly why RSA is secure.</div>
+</div>
+
+<div class="concept">
+  <h3>Fermat's little theorem</h3>
+  <div class="f-exp">If p is prime and a is not a multiple of p:
+  <span class="eq">a<sup>p−1</sup> ≡ 1 (mod p) &nbsp;&nbsp;&nbsp;&nbsp; (second form, any a: a<sup>p</sup> ≡ a (mod p))</span></div>
+  <div class="f-use">(1) Fast exponentiation by reducing exponents mod p − 1; (2) <b>multiplicative inverse</b> without Euclid: a<sup>−1</sup> ≡ a<sup>p−2</sup> (mod p); (3) the Fermat primality test; (4) proof of RSA.</div>
+  <div class="f-imp">6<sup>10</sup> mod 11 = 1 (directly). 3<sup>12</sup> mod 11: 3<sup>12</sup> = 3<sup>10</sup> × 3<sup>2</sup> ≡ 1 × 9 = <b>9</b>. Inverse of 8 mod 17: 8<sup>15</sup> mod 17 = <b>15</b> (check 8 × 15 = 120 = 7 × 17 + 1 ✓).</div>
+  <div class="f-lim">The converse is false: some composites (Carmichael numbers, e.g. 561) satisfy a<sup>n−1</sup> ≡ 1 for all coprime a.</div>
+</div>
+<div class="concept">
+  <h3>Euler's theorem</h3>
+  <div class="f-exp">Generalises Fermat to any modulus n: if gcd(a, n) = 1,
+  <span class="eq">a<sup>φ(n)</sup> ≡ 1 (mod n)</span>
+  A useful variant for RSA: if n = p × q and k is an integer, a<sup>k×φ(n)+1</sup> ≡ a (mod n) for every a (even when gcd(a, n) ≠ 1).</div>
+  <div class="f-use">Proves RSA decryption works; computes large powers; a<sup>−1</sup> ≡ a<sup>φ(n)−1</sup> (mod n).</div>
+  <div class="f-imp">20<sup>62</sup> mod 77: φ(77) = φ(7)φ(11) = 6 × 10 = 60 → 20<sup>62</sup> = 20<sup>60</sup> × 20<sup>2</sup> ≡ 400 mod 77 = <b>15</b>.</div>
+  <div class="f-lim">Needs φ(n), i.e. the factorisation of n.</div>
+</div>
+<div class="demo box" data-demo="phi" data-title="Interactive demo — φ(n), Fermat and Euler"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="primality">
+<h2><span class="num">3.4</span> Primality testing</h2>
+<p>To generate a 1024-bit prime we pick random odd numbers and test them until one is prime. Tests are <b>deterministic</b> (always correct, often slow) or <b>probabilistic</b> (very fast, with a tiny, controllable error probability).</p>
+
+<div class="concept">
+  <h3>Divisibility (trial-division) algorithm — deterministic</h3>
+  <div class="f-exp">Divide n by every integer (or prime) from 2 to √n. If none divides n, n is prime.</div>
+  <div class="f-use">Small numbers; first quick filter (divide by small primes) before expensive tests.</div>
+  <div class="f-imp">Bit-operation complexity is exponential in the number of bits: about 2<sup>b/2</sup> divisions for a b-bit number.</div>
+  <div class="f-lim">Useless for cryptographic sizes.</div>
+</div>
+<div class="concept">
+  <h3>Fermat test — probabilistic</h3>
+  <div class="f-exp">Pick a base a. If a<sup>n−1</sup> ≢ 1 (mod n), n is <b>definitely composite</b>. If a<sup>n−1</sup> ≡ 1, n is <b>probably prime</b>.</div>
+  <div class="f-use">Fast first test (e.g. PGP historically).</div>
+  <div class="f-imp">Is 561 prime? 2<sup>560</sup> mod 561 = 1 → "probably prime" — but 561 = 3 × 11 × 17! Is 15 prime? 2<sup>14</sup> mod 15 = 4 ≠ 1 → composite ✓.</div>
+  <div class="f-lim">Fooled by <b>Carmichael numbers</b> (561, 1105, 1729 …) for every base coprime to n.</div>
+</div>
+<div class="concept">
+  <h3>Square-root test</h3>
+  <div class="f-exp">If n is prime, the only square roots of 1 mod n are ±1 (i.e. 1 and n − 1). If we find x with x<sup>2</sup> ≡ 1 but x ≢ ±1, n is composite.</div>
+  <div class="f-use">Combined with Fermat in Miller–Rabin.</div>
+  <div class="f-imp">mod 8: 3² = 9 ≡ 1, but 3 ≢ ±1 → 8 is composite. mod 7: only 1² and 6² give 1 → consistent with 7 prime.</div>
+  <div class="f-lim">On its own you must find such an x, which is hard — so it is used inside Miller–Rabin.</div>
+</div>
+<div class="concept">
+  <h3>Miller–Rabin test — probabilistic (used in practice)</h3>
+  <div class="f-exp">Write n − 1 = m × 2<sup>k</sup> with m odd. Choose a random base a (1 &lt; a &lt; n − 1). Compute T = a<sup>m</sup> mod n, then square it repeatedly k − 1 times. n passes (is "probably prime") if T ≡ ±1 at the start, or T becomes n − 1 at some squaring. If T becomes 1 without passing through n − 1, or never reaches n − 1, n is composite. It combines Fermat with the square-root test.</div>
+  <div class="f-use">OpenSSL, Java BigInteger.isProbablePrime, RSA key generation in every library.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li>Find m, k: n − 1 = m·2<sup>k</sup>.</li>
+      <li>T = a<sup>m</sup> mod n. If T = 1 or T = n − 1 → <b>probably prime</b>.</li>
+      <li>Repeat k − 1 times: T = T² mod n. If T = n − 1 → <b>probably prime</b>; if T = 1 → <b>composite</b>.</li>
+      <li>If the loop ends without n − 1 → <b>composite</b>.</li>
+    </ol>
+    <b>Example n = 561, a = 2:</b> 560 = 35 × 2<sup>4</sup>. T = 2<sup>35</sup> mod 561 = 263 (not ±1). Square: 166 → 67 → 1. We reached 1 without seeing 560 → <b>561 is composite</b> (67 is a non-trivial square root of 1). Fermat was fooled; Miller–Rabin is not.</div>
+  <div class="f-lim">A composite passes for at most 1/4 of bases, so t random bases give error ≤ (1/4)<sup>t</sup> — with t = 40, less than 10<sup>−24</sup>. Still probabilistic.</div>
+</div>
+<div class="demo box" data-demo="millerrabin" data-title="Interactive demo — Fermat vs Miller–Rabin"></div>
+<div class="box oos" data-title="Beyond the syllabus · AKS deterministic test">
+  <p>In 2002 Agrawal, Kayal and Saxena (IIT Kanpur) proved that primality can be tested <b>deterministically in polynomial time</b> — a famous result. It is slower than Miller–Rabin in practice, so libraries still use probabilistic tests.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="factorization">
+<h2><span class="num">3.5</span> Factorization</h2>
+<div class="concept">
+  <h3>Fundamental theorem of arithmetic</h3>
+  <div class="f-exp">Every integer n &gt; 1 can be written <b>uniquely</b> as a product of primes: n = p₁<sup>e₁</sup> × p₂<sup>e₂</sup> × … (e.g. 600 = 2<sup>3</sup> × 3 × 5<sup>2</sup>).</div>
+  <div class="f-use">GCD = product of common primes with the smallest exponents, LCM = largest exponents; φ(n) formula. RSA's security: multiplying p × q is easy, recovering p and q from n is hard — a <b>one-way function</b>.</div>
+  <div class="f-imp">gcd(600, 70): 600 = 2³·3·5², 70 = 2·5·7 → gcd = 2·5 = 10, lcm = 2³·3·5²·7 = 4200.</div>
+  <div class="f-lim">Finding the factorisation of large n is believed to be hard; no polynomial-time classical algorithm is known.</div>
+</div>
+<div class="concept">
+  <h3>Trial division method</h3>
+  <div class="f-exp">Divide n by 2, 3, 5, … up to √n, record each factor found and continue with the quotient.</div>
+  <div class="f-use">Small n, or removing small factors first.</div>
+  <div class="f-imp">1233 → ÷3 = 411 → ÷3 = 137 → 137 prime. So 1233 = 3² × 137.</div>
+  <div class="f-lim">Exponential time: hopeless for a 2048-bit RSA modulus.</div>
+</div>
+<div class="concept">
+  <h3>Fermat's factorization method</h3>
+  <div class="f-exp">If n = p × q with p and q <b>close together</b>, then n = x² − y² = (x − y)(x + y) with x = (p + q)/2, y = (q − p)/2. Search x = ⌈√n⌉, ⌈√n⌉ + 1, … until x² − n is a perfect square y².</div>
+  <div class="f-use">Shows why RSA primes must not be too close to each other.</div>
+  <div class="f-imp"><b>n = 5959:</b> √5959 ≈ 77.2 → start x = 78: 78² − 5959 = 125 (not a square); x = 79: 282 (no); x = 80: 6400 − 5959 = 441 = 21² ✓. So n = (80 − 21)(80 + 21) = <b>59 × 101</b>.</div>
+  <div class="f-lim">Very slow when p and q are far apart.</div>
+</div>
+<div class="demo box" data-demo="fermatfact" data-title="Interactive demo — Fermat's factorization"></div>
+<div class="concept">
+  <h3>Pollard p − 1 method</h3>
+  <div class="f-exp">Works when p − 1 has only small prime factors (is "B-smooth"). Compute a = 2<sup>B!</sup> mod n step by step (a = a<sup>e</sup> mod n for e = 2 … B), then p = gcd(a − 1, n). If p − 1 divides B!, then 2<sup>B!</sup> ≡ 1 (mod p) by Fermat, so p divides a − 1.</div>
+  <div class="f-use">Reason RSA primes are chosen so that p − 1 has a large prime factor ("strong primes").</div>
+  <div class="f-imp"><b>n = 1403, B = 5:</b> a = 2; a = a² = 4; a = a³ = 64; a = a⁴ mod 1403; a = a⁵ mod 1403 → a = 794. gcd(793, 1403) = <b>61</b> → 1403 = 61 × 23. (Works because 61 − 1 = 60 = 2² · 3 · 5 divides 5! = 120.)</div>
+  <div class="f-lim">Fails if neither p − 1 nor q − 1 is smooth; may return 1 or n and need another B.</div>
+</div>
+<div class="box oos" data-title="Beyond the syllabus · the fastest methods">
+  <p><b>Pollard rho</b> (finds small factors in ~√p steps), the <b>quadratic sieve</b> and the <b>general number field sieve (GNFS)</b> — the fastest known, used to factor RSA-250 (829 bits) in 2020 with ~2700 CPU-core-years. That is why RSA keys are now ≥ 2048 bits. A large quantum computer running <b>Shor's algorithm</b> would factor in polynomial time — the motivation for post-quantum cryptography.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="crt">
+<h2><span class="num">3.6</span> Chinese Remainder Theorem (CRT)</h2>
+<div class="concept">
+  <h3>Statement and solution method</h3>
+  <div class="f-exp">The CRT (Sun Tzu, ~3rd century AD) solves a system of congruences with <b>pairwise coprime</b> moduli:
+  <span class="eq">x ≡ a₁ (mod m₁), &nbsp; x ≡ a₂ (mod m₂), &nbsp; …, &nbsp; x ≡ a<sub>k</sub> (mod m<sub>k</sub>)</span>
+  There is exactly <b>one</b> solution modulo M = m₁ × m₂ × … × m<sub>k</sub>.</div>
+  <div class="f-use">Speeds up RSA decryption about 4× (compute mod p and mod q separately, then combine); Rabin decryption; secret sharing; representing big numbers as small residues for parallel arithmetic.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li>M = m₁ × m₂ × … × m<sub>k</sub>.</li>
+      <li>M<sub>i</sub> = M / m<sub>i</sub> for each i.</li>
+      <li>M<sub>i</sub><sup>−1</sup> = inverse of M<sub>i</sub> modulo m<sub>i</sub>.</li>
+      <li>x = (a₁M₁M₁<sup>−1</sup> + a₂M₂M₂<sup>−1</sup> + … + a<sub>k</sub>M<sub>k</sub>M<sub>k</sub><sup>−1</sup>) mod M.</li>
+    </ol></div>
+  <div class="f-lim">Moduli must be pairwise coprime (otherwise there may be no or many solutions).</div>
+</div>
+<div class="box example" data-title="Worked example — x ≡ 2 (mod 3), x ≡ 3 (mod 5), x ≡ 2 (mod 7)">
+  <ol class="steps">
+    <li>M = 3 × 5 × 7 = 105.</li>
+    <li>M₁ = 105/3 = 35, M₂ = 105/5 = 21, M₃ = 105/7 = 15.</li>
+    <li>Inverses: 35 ≡ 2 (mod 3) → 2<sup>−1</sup> = 2; 21 ≡ 1 (mod 5) → 1; 15 ≡ 1 (mod 7) → 1.</li>
+    <li>x = (2·35·2 + 3·21·1 + 2·15·1) mod 105 = (140 + 63 + 30) mod 105 = 233 mod 105 = <b>23</b>.</li>
+    <li>Check: 23 = 7·3 + 2 ✓, 23 = 4·5 + 3 ✓, 23 = 3·7 + 2 ✓</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="crt" data-title="Interactive demo — CRT solver"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Solve x ≡ 3 (mod 7), x ≡ 3 (mod 13), x ≡ 0 (mod 12).
+      <details class="ans"><summary>Show answer</summary><div>M = 1092; M₁ = 156, M₂ = 84, M₃ = 91. Inverses: 156 ≡ 2 (mod 7) → 4; 84 ≡ 6 (mod 13) → 11; 91 ≡ 7 (mod 12) → 7. x = 3·156·4 + 3·84·11 + 0 = 1872 + 2772 = 4644 mod 1092 = <b>276</b>. Check: 276 = 39·7 + 3 ✓, 21·13 + 3 ✓, 23·12 ✓.</div></details></li>
+    <li>Find a number that leaves remainder 1 when divided by 2, 3 and 5 but is divisible by 7.
+      <details class="ans"><summary>Show answer</summary><div>x ≡ 1 (mod 30) and x ≡ 0 (mod 7). Candidates 1, 31, 61, 91 → <b>91</b> (91 = 13·7). Using CRT on mod 2, 3, 5, 7 also gives 91 (mod 210).</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="qr-dlog">
+<h2><span class="num">3.7</span> Quadratic congruence and discrete logarithms</h2>
+<div class="box found">
+  <p>The Rabin cryptosystem needs <b>square roots modulo a prime</b>; ElGamal and ECC need the <b>discrete logarithm problem</b>. These two short topics fill that gap.</p>
+</div>
+<div class="concept">
+  <h3>Quadratic residues and square roots mod p</h3>
+  <div class="f-exp">a is a <b>quadratic residue (QR)</b> mod p if x² ≡ a (mod p) has a solution. For an odd prime p, exactly (p − 1)/2 non-zero numbers are QRs, and each has two roots ±x. <b>Euler's criterion:</b> a is a QR ⇔ a<sup>(p−1)/2</sup> ≡ 1 (mod p).</div>
+  <div class="f-use">Rabin decryption; also used in some primality tests.</div>
+  <div class="f-imp">QRs mod 11 are {1, 3, 4, 5, 9} (squares of 1…10). <b>When p ≡ 3 (mod 4)</b>, roots are easy: <span class="math">x ≡ ±a<sup>(p+1)/4</sup> (mod p)</span>. e.g. x² ≡ 3 (mod 23): 3<sup>6</sup> = 729 ≡ 16 → x = ±16 = 16, 7. Check 16² = 256 = 11·23 + 3 ✓.</div>
+  <div class="f-lim">Square roots modulo a <b>composite</b> n are as hard as factoring n — the basis of Rabin's security.</div>
+</div>
+<div class="concept">
+  <h3>Primitive roots and the discrete logarithm</h3>
+  <div class="f-exp">The <b>order</b> of a in ℤ<sub>n</sub>* is the smallest i with a<sup>i</sup> ≡ 1. If the order equals φ(n), a is a <b>primitive root (generator)</b>: its powers produce every element of ℤ<sub>n</sub>*. The <b>discrete logarithm</b> of y to base g is the exponent x with g<sup>x</sup> ≡ y (mod p).</div>
+  <div class="f-use">Diffie–Hellman, ElGamal, DSA and (on curves) ECC rely on: computing g<sup>x</sup> mod p is easy, but finding x from g<sup>x</sup> is hard for large p.</div>
+  <div class="f-imp">In ℤ₁₁*, g = 2: 2¹…2¹⁰ ≡ 2, 4, 8, 5, 10, 9, 7, 3, 6, 1 — all 10 elements, so 2 is a primitive root. Discrete log: log₂ 9 = 6 (because 2<sup>6</sup> = 64 ≡ 9).</div>
+  <div class="f-lim">For small p a table solves it instantly; security needs p of 2048+ bits (or an elliptic curve of 256 bits).</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="public-key-intro">
+<h2><span class="num">3.8</span> Asymmetric-key cryptography: the idea</h2>
+<div class="concept">
+  <h3>Public and private keys</h3>
+  <div class="f-exp">Proposed by Diffie and Hellman (1976). Each user (Bob) creates a <b>key pair</b>: a <b>public key</b> published to the world and a <b>private key</b> he alone keeps. Alice encrypts with Bob's public key; only Bob's private key decrypts. Think of a padlock: anyone can snap it shut (public key), only the key-holder can open it (private key).</div>
+  <div class="f-use">Solves the key-distribution problem of symmetric crypto: n users need only n key pairs instead of n(n − 1)/2 secret keys. Enables digital signatures (Unit IV).</div>
+  <div class="f-imp">Built on a <b>trapdoor one-way function</b>: y = f(x) is easy to compute, x = f<sup>−1</sup>(y) is infeasible — <i>unless</i> you know a secret "trapdoor". RSA: f(x) = x<sup>e</sup> mod n, trapdoor = factors p, q. ElGamal: f(x) = g<sup>x</sup> mod p (discrete log).</div>
+  <div class="f-lim">Much slower than symmetric ciphers (RSA ≈ 1000× slower than AES), so in practice it encrypts only a symmetric <b>session key</b> (hybrid encryption). Requires authenticating public keys (certificates) to prevent man-in-the-middle.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 720 200" width="700" role="img" aria-label="Asymmetric encryption">
+ <rect class="dg-good" x="10" y="80" width="80" height="40" rx="8"/><text class="dg-tb" x="50" y="105" text-anchor="middle">Alice</text>
+ <rect class="dg-acc" x="140" y="80" width="140" height="40" rx="8"/><text class="dg-tb" x="210" y="105" text-anchor="middle">Encrypt</text>
+ <rect class="dg-acc" x="440" y="80" width="140" height="40" rx="8"/><text class="dg-tb" x="510" y="105" text-anchor="middle">Decrypt</text>
+ <rect class="dg-good" x="630" y="80" width="80" height="40" rx="8"/><text class="dg-tb" x="670" y="105" text-anchor="middle">Bob</text>
+ <path class="dg-line" d="M90 100 H136" marker-end="url(#arr)"/><path class="dg-line" d="M280 100 H436" marker-end="url(#arr)"/><path class="dg-line" d="M580 100 H626" marker-end="url(#arr)"/>
+ <text class="dg-ts" x="358" y="92" text-anchor="middle">ciphertext</text>
+ <rect class="dg-warn" x="130" y="10" width="160" height="34" rx="6"/><text class="dg-t" x="210" y="32" text-anchor="middle">Bob's PUBLIC key</text>
+ <rect class="dg-bad" x="430" y="10" width="160" height="34" rx="6"/><text class="dg-t" x="510" y="32" text-anchor="middle">Bob's PRIVATE key</text>
+ <path class="dg-line" d="M210 44 V76" marker-end="url(#arr)"/><path class="dg-line" d="M510 44 V76" marker-end="url(#arr)"/>
+ <rect class="dg-box" x="245" y="150" width="230" height="36" rx="6"/><text class="dg-ts" x="360" y="172" text-anchor="middle">public directory / certificate (anyone can read)</text>
+ <path class="dg-dash" d="M290 150 L250 46" marker-end="url(#arr)"/>
+</svg>
+<figcaption>Fig 3.2 — Encryption with the receiver's public key; decryption with the receiver's private key.</figcaption>
+</figure>
+<table>
+  <tr><th>Basis</th><th>Symmetric</th><th>Asymmetric</th></tr>
+  <tr><td>Keys</td><td>One shared secret key</td><td>Public + private key pair</td></tr>
+  <tr><td>Based on</td><td>Substitution &amp; permutation of symbols</td><td>Mathematical functions on numbers</td></tr>
+  <tr><td>Speed</td><td>Fast</td><td>Slow</td></tr>
+  <tr><td>Keys for n users</td><td>n(n − 1)/2</td><td>2n</td></tr>
+  <tr><td>Key distribution</td><td>Difficult</td><td>Public key can be published</td></tr>
+  <tr><td>Services</td><td>Confidentiality</td><td>Confidentiality, signatures, key exchange, non-repudiation</td></tr>
+  <tr><td>Examples</td><td>DES, AES, RC4</td><td>RSA, Rabin, ElGamal, ECC</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="rsa">
+<h2><span class="num">3.9</span> The RSA cryptosystem</h2>
+<div class="concept">
+  <h3>RSA: key generation, encryption, decryption</h3>
+  <div class="f-exp">Invented by <b>Rivest, Shamir and Adleman</b> (MIT, 1977), the most widely used public-key algorithm. Plaintext and ciphertext are integers in ℤ<sub>n</sub>. Security rests on the difficulty of <b>factoring n = p × q</b>.</div>
+  <div class="f-use">TLS certificates and key exchange (older versions), digital signatures (software updates, Aadhaar e-sign, DSC for income-tax filing), PGP/S-MIME e-mail, SSH keys, smart cards.</div>
+  <div class="f-imp">
+    <div class="box formula" data-title="RSA in three steps">
+      <p style="text-align:left"><b>Key generation (Bob):</b></p>
+      <ol style="text-align:left">
+        <li>Choose two large distinct primes <b>p</b> and <b>q</b>.</li>
+        <li>n = p × q &nbsp;&nbsp;and&nbsp;&nbsp; φ(n) = (p − 1)(q − 1).</li>
+        <li>Choose <b>e</b> with 1 &lt; e &lt; φ(n) and gcd(e, φ(n)) = 1.</li>
+        <li>Compute <b>d = e<sup>−1</sup> mod φ(n)</b> (extended Euclid).</li>
+        <li>Public key = <b>(e, n)</b>; private key = <b>d</b> (keep p, q, φ(n) secret or destroy them).</li>
+      </ol>
+      <span class="eq">Encryption (Alice): C = P<sup>e</sup> mod n &nbsp;&nbsp;&nbsp;&nbsp; Decryption (Bob): P = C<sup>d</sup> mod n</span>
+      <p style="text-align:left">Requirement: P &lt; n.</p>
+    </div>
+    <p><b>Why it works:</b> C<sup>d</sup> = P<sup>ed</sup>, and ed = 1 + kφ(n), so P<sup>ed</sup> = P<sup>kφ(n)+1</sup> ≡ P (mod n) by Euler's theorem (second version).</p>
+  </div>
+  <div class="f-lim">Slow; deterministic textbook RSA is insecure (same message → same ciphertext); needs padding (OAEP). A 2048-bit key is the current minimum; quantum computers would break it.</div>
+</div>
+
+<div class="box example" data-title="Worked example — p = 17, q = 11, e = 7, P = 88">
+  <ol class="steps">
+    <li>n = 17 × 11 = <b>187</b>; φ(n) = 16 × 10 = <b>160</b>.</li>
+    <li>e = 7: gcd(7, 160) = 1 ✓.</li>
+    <li>d = 7<sup>−1</sup> mod 160. Extended Euclid: 160 = 22·7 + 6; 7 = 1·6 + 1 → t-values 0, 1, −22, 23 → <b>d = 23</b>. Check 7 × 23 = 161 = 160 + 1 ✓.</li>
+    <li>Public key (7, 187), private key 23.</li>
+    <li><b>Encrypt</b> C = 88<sup>7</sup> mod 187. 88<sup>2</sup> = 7744 ≡ 77; 88<sup>4</sup> ≡ 77² = 5929 ≡ 132; 88<sup>7</sup> = 88<sup>4</sup>·88<sup>2</sup>·88 ≡ 132 × 77 × 88 = 894,432 ≡ <b>11</b>.</li>
+    <li><b>Decrypt</b> P = 11<sup>23</sup> mod 187 = <b>88</b> ✓ (use square-and-multiply: 23 = 16 + 4 + 2 + 1).</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="rsa" data-title="Interactive demo — RSA from your own primes"></div>
+
+<h3>Attacks on RSA and how they are prevented</h3>
+<table>
+  <tr><th>Attack</th><th>Idea</th><th>Countermeasure</th></tr>
+  <tr><td><b>Factorization</b></td><td>Factor n → get φ(n) → d</td><td>n ≥ 2048 bits; p, q random, similar size but not too close (Fermat); p − 1, q − 1 with large prime factors (Pollard)</td></tr>
+  <tr><td><b>Chosen-ciphertext</b></td><td>Ask Bob to decrypt C × X<sup>e</sup> (looks random), then divide out X</td><td>Padding (OAEP), never decrypt arbitrary data</td></tr>
+  <tr><td><b>Small encryption exponent</b></td><td>With e = 3 and small P, P<sup>3</sup> &lt; n → take ordinary cube root; same message to 3 users (broadcast attack via CRT)</td><td>e = 65537 = 2<sup>16</sup> + 1 and random padding</td></tr>
+  <tr><td><b>Small decryption exponent</b></td><td>If d &lt; n<sup>1/4</sup>/3, Wiener's attack finds d</td><td>Choose large d (it naturally is when e is small)</td></tr>
+  <tr><td><b>Plaintext attacks</b></td><td>Short message (try all), cycling attack, unconcealed messages (P<sup>e</sup> = P)</td><td>Padding</td></tr>
+  <tr><td><b>Common modulus</b></td><td>Two users sharing n can compute each other's d</td><td>Every user gets their own n</td></tr>
+  <tr><td><b>Implementation (timing, power)</b></td><td>Measure decryption time to learn bits of d</td><td>Constant-time code, blinding</td></tr>
+</table>
+<div class="box oos" data-title="Beyond the syllabus · OAEP">
+  <p><b>Optimal Asymmetric Encryption Padding</b> mixes the message with random bits through two hash-based masks before RSA encryption, so the same message encrypts differently every time and malformed ciphertexts are rejected. Standardised in PKCS#1 v2.</p>
+</div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>p = 3, q = 11, e = 7, M = 5. Find n, φ(n), d, C and verify decryption.
+      <details class="ans"><summary>Show answer</summary><div>n = 33, φ = 20, d = 3 (7·3 = 21 ≡ 1). C = 5<sup>7</sup> mod 33: 5² = 25, 5⁴ = 625 ≡ 31, 5⁷ = 31·25·5 = 3875 ≡ <b>14</b>. P = 14³ = 2744 ≡ <b>5</b> ✓.</div></details></li>
+    <li>p = 7, q = 13, e = 5. Find d and encrypt M = 10.
+      <details class="ans"><summary>Show answer</summary><div>n = 91, φ = 72, d = 29 (5·29 = 145 = 2·72 + 1). C = 10<sup>5</sup> mod 91 = 100000 mod 91 = <b>82</b>. (Check: 82<sup>29</sup> mod 91 = 10.)</div></details></li>
+    <li>Why must e be coprime to φ(n)?
+      <details class="ans"><summary>Show answer</summary><div>Otherwise e has no inverse mod φ(n), so no private key d exists and decryption is impossible.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="rabin">
+<h2><span class="num">3.10</span> The Rabin cryptosystem</h2>
+<div class="concept">
+  <h3>Rabin: a variant of RSA with e = 2</h3>
+  <div class="f-exp">Proposed by Michael Rabin (1979). Encryption is <b>squaring</b> modulo n = p × q: C = P² mod n. Decryption needs square roots mod n, which is easy with p and q (via CRT) and <b>provably as hard as factoring</b> without them — something not proven for RSA.</div>
+  <div class="f-use">Very fast encryption (one multiplication) — attractive for low-power devices that only encrypt (e.g. smart cards sending to a server).</div>
+  <div class="f-imp">
+    <p><b>Key generation:</b> choose primes p, q with <b>p ≡ q ≡ 3 (mod 4)</b>; public key n = pq, private key (p, q).</p>
+    <p><b>Encryption:</b> C = P² mod n.</p>
+    <p><b>Decryption:</b></p>
+    <ol class="steps">
+      <li>a₁ = +C<sup>(p+1)/4</sup> mod p, &nbsp; a₂ = −C<sup>(p+1)/4</sup> mod p</li>
+      <li>b₁ = +C<sup>(q+1)/4</sup> mod q, &nbsp; b₂ = −C<sup>(q+1)/4</sup> mod q</li>
+      <li>Combine with CRT: P₁ = CRT(a₁, b₁), P₂ = CRT(a₁, b₂), P₃ = CRT(a₂, b₁), P₄ = CRT(a₂, b₂).</li>
+      <li>One of the four is the plaintext (redundancy such as a fixed header identifies it).</li>
+    </ol>
+  </div>
+  <div class="f-lim"><b>Four possible plaintexts</b> — the receiver must pick the right one. Vulnerable to a chosen-ciphertext attack (a decryption oracle reveals the factors).</div>
+</div>
+<div class="box example" data-title="Worked example — p = 23, q = 7, P = 24">
+  <ol class="steps">
+    <li>23 ≡ 3 and 7 ≡ 3 (mod 4) ✓. n = 161.</li>
+    <li>C = 24² mod 161 = 576 mod 161 = <b>93</b>.</li>
+    <li>a₁ = 93<sup>6</sup> mod 23 = 1 (since 93 ≡ 1 mod 23), a₂ = 23 − 1 = 22.</li>
+    <li>b₁ = 93<sup>2</sup> mod 7 = 2² = 4 (since 93 ≡ 2 mod 7), b₂ = 7 − 4 = 3.</li>
+    <li>CRT: (1, 4) → 116; (1, 3) → <b>24</b>; (22, 4) → 137; (22, 3) → 45.</li>
+    <li>Candidates 116, 24, 137, 45 — the true plaintext 24 is among them.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="rabin" data-title="Interactive demo — Rabin"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="elgamal">
+<h2><span class="num">3.11</span> The ElGamal cryptosystem</h2>
+<div class="concept">
+  <h3>ElGamal encryption</h3>
+  <div class="f-exp">Proposed by Taher ElGamal (1985), based on the <b>discrete logarithm problem</b> in ℤ<sub>p</sub>*. Encryption is <b>randomised</b>: a fresh random r is used each time, so the same plaintext gives different ciphertexts.</div>
+  <div class="f-use">GnuPG/PGP encryption keys, the basis of the DSA signature standard, and (on elliptic curves) of ECC encryption.</div>
+  <div class="f-imp">
+    <div class="box formula" data-title="ElGamal">
+      <p style="text-align:left"><b>Key generation:</b> large prime p, primitive root e₁ of ℤ<sub>p</sub>*, private d (1 ≤ d ≤ p − 2), e₂ = e₁<sup>d</sup> mod p. Public key (e₁, e₂, p); private key d.</p>
+      <p style="text-align:left"><b>Encryption:</b> random r; &nbsp; C₁ = e₁<sup>r</sup> mod p; &nbsp; C₂ = (P × e₂<sup>r</sup>) mod p. Send (C₁, C₂).</p>
+      <p style="text-align:left"><b>Decryption:</b> P = [C₂ × (C₁<sup>d</sup>)<sup>−1</sup>] mod p.</p>
+    </div>
+    <p><b>Why it works:</b> C₁<sup>d</sup> = e₁<sup>rd</sup> = e₂<sup>r</sup>, so C₂ × (C₁<sup>d</sup>)<sup>−1</sup> = P × e₂<sup>r</sup> × (e₂<sup>r</sup>)<sup>−1</sup> = P.</p>
+  </div>
+  <div class="f-lim">Ciphertext is <b>twice as long</b> as the plaintext. Reusing r for two messages lets an attacker who knows one plaintext compute the other. p must be ≥ 2048 bits.</div>
+</div>
+<div class="box example" data-title="Worked example — p = 11, e₁ = 2, d = 3, r = 4, P = 7">
+  <ol class="steps">
+    <li>e₂ = 2³ mod 11 = <b>8</b>. Public (2, 8, 11), private 3.</li>
+    <li>C₁ = 2⁴ mod 11 = 16 mod 11 = <b>5</b>.</li>
+    <li>C₂ = 7 × 8⁴ mod 11; 8⁴ = 4096 ≡ 4 → 7 × 4 = 28 ≡ <b>6</b>. Ciphertext (5, 6).</li>
+    <li>Decrypt: C₁<sup>d</sup> = 5³ = 125 ≡ 4; 4<sup>−1</sup> mod 11 = 3; P = 6 × 3 = 18 ≡ <b>7</b> ✓.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="elgamal" data-title="Interactive demo — ElGamal"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ecc">
+<h2><span class="num">3.12</span> Elliptic Curve Cryptography (ECC)</h2>
+<div class="concept">
+  <h3>Elliptic curves over real numbers</h3>
+  <div class="f-exp">An <b>elliptic curve</b> is the set of points (x, y) satisfying
+  <span class="eq">y² = x³ + ax + b, &nbsp; with 4a³ + 27b² ≠ 0 (no cusps or self-crossings)</span>
+  plus a special <b>point at infinity O</b>. (It is not an ellipse — the name comes from elliptic integrals.) The curve is symmetric about the x-axis.</div>
+  <div class="f-use">Understanding the geometry makes the formulas over finite fields meaningful.</div>
+  <div class="f-imp"><b>Point addition (geometric rule):</b>
+    <ul>
+      <li><b>P ≠ Q:</b> draw the line through P and Q; it meets the curve at a third point R′. Reflect R′ in the x-axis: <b>P + Q = R</b>.</li>
+      <li><b>P = Q (doubling):</b> use the tangent at P instead.</li>
+      <li><b>Q = −P</b> (mirror image): the line is vertical and meets the curve "at infinity": P + (−P) = O. O acts like zero: P + O = P.</li>
+    </ul>
+    <div class="box formula" data-title="Addition formulas">
+      <span class="eq">λ = (y₂ − y₁)/(x₂ − x₁) &nbsp; if P ≠ Q &nbsp;&nbsp;&nbsp; λ = (3x₁² + a)/(2y₁) &nbsp; if P = Q</span>
+      <span class="eq">x₃ = λ² − x₁ − x₂ &nbsp;&nbsp;&nbsp; y₃ = λ(x₁ − x₃) − y₁</span>
+    </div></div>
+  <div class="f-lim">Real-number curves have rounding errors — cryptography uses curves over finite fields.</div>
+</div>
+<div class="demo box" data-demo="eccreal" data-title="Interactive demo — adding points on y² = x³ + ax + b"></div>
+
+<div class="concept">
+  <h3>Elliptic curves over GF(p)</h3>
+  <div class="f-exp">The same equation, but all arithmetic is <b>mod p</b> (prime): E<sub>p</sub>(a, b). The "curve" becomes a finite scatter of points. Division in λ means multiplying by the modular inverse. Repeated addition gives <b>scalar multiplication</b> k × P = P + P + … + P.</div>
+  <div class="f-use">Real curves: P-256 (NIST), Curve25519 (WhatsApp, Signal, TLS 1.3, SSH), secp256k1 (Bitcoin, Ethereum).</div>
+  <div class="f-imp"><b>E₂₃(1, 1): y² ≡ x³ + x + 1 (mod 23)</b> has 27 affine points + O = 28 points.
+  <br>P = (3, 10), Q = (9, 7): λ = (7 − 10)/(9 − 3) = −3 × 6<sup>−1</sup> = −3 × 4 = −12 ≡ 11. x₃ = 121 − 3 − 9 = 109 ≡ 17; y₃ = 11(3 − 17) − 10 = −164 ≡ 20 → <b>P + Q = (17, 20)</b>.
+  <br>2P: λ = (3·9 + 1)/(2·10) = 28 × 20<sup>−1</sup> ≡ 5 × 15 = 75 ≡ 6. x₃ = 36 − 6 = 30 ≡ 7; y₃ = 6(3 − 7) − 10 = −34 ≡ 12 → <b>2P = (7, 12)</b>.</div>
+  <div class="f-lim">Curves must be chosen carefully (avoid anomalous or small-order curves); implementation bugs (invalid-curve attacks, bad randomness — the Sony PS3 ECDSA failure) are common.</div>
+</div>
+<div class="concept">
+  <h3>ECC cryptosystem (ElGamal on a curve) and its security</h3>
+  <div class="f-exp"><b>ECDLP:</b> given points G and Q = k × G, finding k is infeasible for large curves. This is the trapdoor.</div>
+  <div class="f-use">Same security as RSA with much smaller keys → faster, less bandwidth, less power: ideal for mobiles, smart cards, IoT.</div>
+  <div class="f-imp">
+    <p><b>Keys:</b> curve E<sub>p</sub>(a, b), generator point e₁; private d; public e₂ = d × e₁.</p>
+    <p><b>Encrypt</b> (plaintext encoded as a point P<sub>m</sub>): random r; C₁ = r × e₁; C₂ = P<sub>m</sub> + r × e₂.</p>
+    <p><b>Decrypt:</b> P<sub>m</sub> = C₂ − d × C₁ (because d × C₁ = d·r·e₁ = r × e₂).</p>
+    <p><b>ECDH key exchange:</b> Alice sends a·G, Bob sends b·G; both compute the shared point a·b·G.</p>
+    <table class="num"><tr><th>Symmetric key</th><th>RSA / DH modulus</th><th>ECC key</th></tr>
+    <tr><td>80</td><td>1024</td><td>160</td></tr><tr><td>112</td><td>2048</td><td>224</td></tr><tr><td>128</td><td>3072</td><td>256</td></tr><tr><td>192</td><td>7680</td><td>384</td></tr><tr><td>256</td><td>15360</td><td>512</td></tr></table>
+    <p style="text-align:center"><small>Equivalent security (NIST SP 800-57).</small></p>
+  </div>
+  <div class="f-lim">More complex mathematics; encoding messages as points is awkward (so ECC is used for key exchange and signatures rather than direct encryption); vulnerable to quantum computers like RSA.</div>
+</div>
+<div class="demo box" data-demo="eccfp" data-title="Interactive demo — points and scalar multiplication over GF(p)"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="hash-functions">
+<h2><span class="num">3.13</span> Hash functions</h2>
+<div class="concept">
+  <h3>Cryptographic hash function</h3>
+  <div class="f-exp">A function h that maps a message of <b>any length</b> to a <b>fixed-length</b> digest (fingerprint), e.g. 512 bits for SHA-512. The digest is used to check <b>integrity</b>: if even one bit of the message changes, the digest changes completely (avalanche).</div>
+  <div class="f-use">File/download verification, password storage (with salt), digital signatures (sign the digest), MACs, blockchain proof-of-work, Git commit IDs, deduplication.</div>
+  <div class="f-imp"><b>Three security properties</b> (learn these exactly):
+    <ol>
+      <li><b>Preimage resistance (one-way):</b> given a digest d, it is infeasible to find any M with h(M) = d.</li>
+      <li><b>Second-preimage resistance (weak collision resistance):</b> given M, infeasible to find M′ ≠ M with h(M′) = h(M).</li>
+      <li><b>Collision resistance (strong):</b> infeasible to find <i>any</i> pair M ≠ M′ with h(M) = h(M′).</li>
+    </ol>
+    Also: computing h(M) must be efficient, and the output must look random.</div>
+  <div class="f-lim">A plain hash proves integrity only if the digest itself is protected; an attacker who changes the message can recompute an unkeyed hash. Collisions must exist (infinitely many inputs, finitely many outputs) — the goal is that nobody can <i>find</i> one.</div>
+</div>
+<div class="demo box" data-demo="hashlive" data-title="Interactive demo — live MD5 and SHA-512 with the avalanche effect"></div>
+
+<div class="concept">
+  <h3>The birthday problem — why digests must be long</h3>
+  <div class="f-exp">In a room of only <b>23</b> people, the chance that two share a birthday exceeds 50 %. Similarly, for an n-bit hash an attacker expects to find a collision after only about <b>2<sup>n/2</sup></b> random messages (not 2<sup>n</sup>).</div>
+  <div class="f-use">Determines digest length: a 128-bit hash (MD5) gives only 2<sup>64</sup> collision security; SHA-512 gives 2<sup>256</sup>.</div>
+  <div class="f-imp">P(no match among k people) = 365/365 × 364/365 × … × (365 − k + 1)/365. For k = 23: P(match) ≈ 0.507.</div>
+  <div class="f-lim">Applies to collision resistance; preimage attacks still cost 2<sup>n</sup>.</div>
+</div>
+<div class="demo box" data-demo="birthday" data-title="Interactive demo — birthday paradox"></div>
+
+<div class="concept">
+  <h3>Iterated hash: the Merkle–Damgård construction</h3>
+  <div class="f-exp">Hash functions process arbitrarily long input by repeating a <b>compression function f</b> that takes a fixed-size chaining value and a fixed-size message block. If f is collision-resistant, so is the whole hash (Merkle and Damgård, 1989).</div>
+  <div class="f-use">MD4, MD5, SHA-1, SHA-2 (SHA-256/512), Whirlpool all use it.</div>
+  <div class="f-imp">
+    <ol class="steps"><li>Pad the message (append 1, zeros, then the original length) to a multiple of the block size.</li><li>Split into blocks M₁ … M<sub>t</sub>.</li><li>H₀ = fixed initial value (IV); H<sub>i</sub> = f(H<sub>i−1</sub>, M<sub>i</sub>).</li><li>Digest = H<sub>t</sub>.</li></ol></div>
+  <div class="f-lim">Vulnerable to <b>length-extension attacks</b> (knowing h(M) lets you compute h(M ‖ padding ‖ X)), so h(key ‖ M) is not a safe MAC — use HMAC. SHA-3 uses a different (sponge) design.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 700 140" width="680" role="img" aria-label="Merkle–Damgård">
+ <rect class="dg-box" x="10" y="60" width="60" height="32" rx="6"/><text class="dg-t" x="40" y="81" text-anchor="middle">IV=H0</text>
+ <rect class="dg-acc" x="120" y="56" width="70" height="40" rx="6"/><text class="dg-tb" x="155" y="81" text-anchor="middle">f</text>
+ <rect class="dg-acc" x="280" y="56" width="70" height="40" rx="6"/><text class="dg-tb" x="315" y="81" text-anchor="middle">f</text>
+ <rect class="dg-acc" x="470" y="56" width="70" height="40" rx="6"/><text class="dg-tb" x="505" y="81" text-anchor="middle">f</text>
+ <rect class="dg-warn" x="600" y="60" width="90" height="32" rx="6"/><text class="dg-tb" x="645" y="81" text-anchor="middle">Digest Ht</text>
+ <rect class="dg-good" x="120" y="6" width="70" height="26" rx="5"/><text class="dg-t" x="155" y="24" text-anchor="middle">M1</text>
+ <rect class="dg-good" x="280" y="6" width="70" height="26" rx="5"/><text class="dg-t" x="315" y="24" text-anchor="middle">M2</text>
+ <rect class="dg-good" x="470" y="6" width="70" height="26" rx="5"/><text class="dg-t" x="505" y="24" text-anchor="middle">Mt</text>
+ <path class="dg-line" d="M70 76 H116" marker-end="url(#arr)"/><path class="dg-line" d="M190 76 H276" marker-end="url(#arr)"/><text class="dg-ts" x="233" y="70" text-anchor="middle">H1</text>
+ <path class="dg-line" d="M350 76 H390"/><text class="dg-tb" x="410" y="80" text-anchor="middle">…</text><path class="dg-line" d="M430 76 H466" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M540 76 H596" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M155 32 V54" marker-end="url(#arr)"/><path class="dg-line" d="M315 32 V54" marker-end="url(#arr)"/><path class="dg-line" d="M505 32 V54" marker-end="url(#arr)"/>
+ <text class="dg-ts" x="350" y="125" text-anchor="middle">padded message split into blocks; f = compression function</text>
+</svg>
+<figcaption>Fig 3.3 — Merkle–Damgård iterated hash.</figcaption>
+</figure>
+
+<div class="concept">
+  <h3>Message authentication: MDC, MAC and HMAC</h3>
+  <div class="f-exp">A <b>modification detection code (MDC)</b> is a plain hash — it detects changes but not who made them. A <b>message authentication code (MAC)</b> mixes a <b>shared secret key</b> into the hash, so only key holders can produce a valid tag: integrity + data-origin authentication. <b>HMAC</b> is the standard way to build a MAC from any hash.</div>
+  <div class="f-use">HMAC-SHA256 in TLS, IPSec (AH/ESP), JSON Web Tokens, API request signing (AWS), OTP generators (TOTP in Google Authenticator).</div>
+  <div class="f-imp"><span class="eq">HMAC(K, M) = h[ (K⁺ ⊕ opad) ‖ h[ (K⁺ ⊕ ipad) ‖ M ] ]</span>
+  K⁺ = key padded to the block size; ipad = 0x36 repeated, opad = 0x5C repeated. The double hashing defeats length extension.</div>
+  <div class="f-lim">A MAC uses a shared key, so it cannot provide <b>non-repudiation</b> (either party could have created it) — digital signatures are needed for that (Unit IV).</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="md-family">
+<h2><span class="num">3.14</span> The MD family (MD2, MD4, MD5)</h2>
+<div class="concept">
+  <h3>MD5 (Message Digest 5)</h3>
+  <div class="f-exp">Designed by Ron Rivest (1991) as a strengthened MD4. Produces a <b>128-bit</b> digest from 512-bit blocks. Family: <b>MD2</b> (1989, 8-bit machines, slow), <b>MD4</b> (1990, fast, 3 rounds, broken quickly), <b>MD5</b> (4 rounds).</div>
+  <div class="f-use">Was everywhere: file checksums, password hashing in old systems, X.509 certificates, TLS. Still OK as a non-security checksum (detecting accidental corruption).</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>Padding:</b> append a 1-bit and zeros until length ≡ 448 (mod 512); append the original length as 64 bits → multiple of 512.</li>
+      <li><b>Buffer:</b> four 32-bit words A, B, C, D initialised to 67452301, EFCDAB89, 98BADCFE, 10325476.</li>
+      <li><b>Compression:</b> each 512-bit block (16 words) goes through <b>4 rounds × 16 steps = 64 steps</b>. Each round uses a different non-linear function:
+        F(B,C,D) = (B ∧ C) ∨ (¬B ∧ D); G = (B ∧ D) ∨ (C ∧ ¬D); H = B ⊕ C ⊕ D; I = C ⊕ (B ∨ ¬D).
+        Each step: A = B + ((A + func(B, C, D) + M[k] + T[i]) ⋘ s), then rotate the roles of A, B, C, D. T[i] = ⌊2<sup>32</sup> × |sin i|⌋.</li>
+      <li>Add the result to the chaining buffer; after the last block, A‖B‖C‖D is the 128-bit digest.</li>
+    </ol>
+    MD5("abc") = 900150983cd24fb0d6963f7d28e17f72.</div>
+  <div class="f-lim"><b>Broken:</b> 128 bits gives only 2<sup>64</sup> birthday security; Wang et al. (2004) found collisions in hours, now in seconds. 2008: a rogue CA certificate built from MD5 collisions; 2012: the Flame malware forged a Microsoft code-signing certificate. Never use MD5 for security.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="whirlpool">
+<h2><span class="num">3.15</span> Whirlpool</h2>
+<div class="concept">
+  <h3>Whirlpool: a hash built from an AES-like block cipher</h3>
+  <div class="f-exp">Designed by <b>Vincent Rijmen</b> (co-designer of AES) and <b>Paulo Barreto</b> in 2000; adopted by the European NESSIE project and ISO/IEC 10118-3. Produces a <b>512-bit</b> digest from <b>512-bit blocks</b>. Its compression function is a dedicated block cipher <b>W</b> used in the <b>Miyaguchi–Preneel</b> scheme.</div>
+  <div class="f-use">TrueCrypt/VeraCrypt (key derivation), some file-integrity tools; an alternative to SHA-2 built on well-understood AES principles.</div>
+  <div class="f-imp">
+    <p><b>Message preparation:</b> pad with a 1-bit and zeros so that length ≡ 256 (mod 512), then append the length as a <b>256-bit</b> number.</p>
+    <span class="eq">Miyaguchi–Preneel: &nbsp; H<sub>i</sub> = E<sub>H<sub>i−1</sub></sub>(M<sub>i</sub>) ⊕ H<sub>i−1</sub> ⊕ M<sub>i</sub>, &nbsp; H₀ = 0</span>
+    <p>(the previous hash is used as the <b>key</b> of cipher W, the message block as the <b>plaintext</b>).</p>
+    <p><b>The cipher W</b> works on an <b>8 × 8 byte state</b> (64 bytes = 512 bits) for <b>10 rounds</b>. Each round has four AES-like steps:</p>
+    <table><tr><th>Whirlpool step</th><th>What it does</th><th>AES analogue</th></tr>
+      <tr><td>SubBytes</td><td>Each byte through an 8-bit S-box (built from small 4-bit mini-boxes E, E<sup>−1</sup>, R)</td><td>SubBytes</td></tr>
+      <tr><td>ShiftColumns</td><td>Column j shifted <b>down</b> by j positions</td><td>ShiftRows</td></tr>
+      <tr><td>MixRows</td><td>Each row multiplied by an 8 × 8 circulant matrix in GF(2<sup>8</sup>) (modulus x<sup>8</sup>+x<sup>4</sup>+x<sup>3</sup>+x<sup>2</sup>+1)</td><td>MixColumns</td></tr>
+      <tr><td>AddRoundKey</td><td>XOR with the round key</td><td>AddRoundKey</td></tr></table>
+    <p><b>Key expansion:</b> the round keys are produced by running the <i>same</i> round function on the key, using round constants (rows of S-box values) as the "keys".</p>
+  </div>
+  <div class="f-lim">Slower than SHA-512 on 64-bit CPUs; less widely deployed and supported by libraries. No practical attack on full Whirlpool is known.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 560 200" width="520" role="img" aria-label="Miyaguchi-Preneel">
+ <rect class="dg-good" x="220" y="8" width="120" height="30" rx="6"/><text class="dg-tb" x="280" y="28" text-anchor="middle">Mi (512 bits)</text>
+ <rect class="dg-acc" x="210" y="78" width="140" height="44" rx="6"/><text class="dg-tb" x="280" y="98" text-anchor="middle">Cipher W</text><text class="dg-ts" x="280" y="114" text-anchor="middle">(10 rounds)</text>
+ <rect class="dg-box" x="20" y="85" width="90" height="30" rx="6"/><text class="dg-t" x="65" y="105" text-anchor="middle">H(i−1)</text>
+ <path class="dg-line" d="M110 100 H206" marker-end="url(#arr)"/><text class="dg-ts" x="158" y="93" text-anchor="middle">key</text>
+ <path class="dg-line" d="M280 38 V74" marker-end="url(#arr)"/>
+ <circle class="dg-box" cx="280" cy="160" r="13"/><text class="dg-tb" x="280" y="165" text-anchor="middle">⊕</text>
+ <path class="dg-line" d="M280 122 V145" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M340 23 H420 V160 H295" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M65 115 V160 H265" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M280 173 V190 H470" marker-end="url(#arr)"/><text class="dg-tb" x="510" y="194" text-anchor="middle">Hi</text>
+</svg>
+<figcaption>Fig 3.4 — Whirlpool compression: H<sub>i</sub> = W<sub>H(i−1)</sub>(M<sub>i</sub>) ⊕ H<sub>i−1</sub> ⊕ M<sub>i</sub>.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="sha512">
+<h2><span class="num">3.16</span> SHA-512</h2>
+<div class="concept">
+  <h3>Secure Hash Algorithm 512</h3>
+  <div class="f-exp">Part of the <b>SHA-2</b> family published by NIST (FIPS 180-2, 2002), designed by the NSA. SHA-1 (160-bit) had weaknesses, so SHA-2 offers 224/256/384/512-bit digests. SHA-512 produces a <b>512-bit</b> digest using 64-bit words — fast on 64-bit CPUs.</div>
+  <div class="f-use">Digital signatures and certificates, Linux password hashing (sha512crypt), Ed25519 signatures, file integrity, HMAC-SHA512, Bitcoin-style key derivation (BIP32).</div>
+  <div class="f-imp">
+    <table><tr><th>Parameter</th><th>SHA-512</th></tr>
+      <tr><td>Max message length</td><td>&lt; 2<sup>128</sup> bits</td></tr><tr><td>Block size</td><td>1024 bits (16 words of 64 bits)</td></tr>
+      <tr><td>Digest</td><td>512 bits (8 words)</td></tr><tr><td>Rounds per block</td><td>80</td></tr><tr><td>Word size</td><td>64 bits</td></tr></table>
+  </div>
+  <div class="f-lim">Merkle–Damgård based (length-extension issue → use HMAC); slower than SHA-256 on 32-bit/embedded hardware.</div>
+</div>
+
+<h3>Step 1 — Message preparation (padding)</h3>
+<p>Append a single <b>1</b> bit, then enough <b>0</b> bits, then a <b>128-bit</b> field holding the original message length, so the total is a multiple of 1024.</p>
+<div class="box formula" data-title="Number of zero bits"><span class="eq">|P| = (−|M| − 129) mod 1024 &nbsp;&nbsp; (1 one-bit + |P| zeros + 128 length bits)</span></div>
+<div class="box example" data-title="Worked example — padding">
+  <p><b>(a) M = "abc"</b> = 24 bits → zeros = (−24 − 129) mod 1024 = −153 mod 1024 = <b>871</b>. Total = 24 + 1 + 871 + 128 = 1024 → one block. Padded block (hex): 61 62 63 <b>80</b> 00 … 00 00 00 … <b>18</b> (0x18 = 24).</p>
+  <p><b>(b) |M| = 5000 bits</b> → zeros = (−5000 − 129) mod 1024 = −5129 + 6144 = <b>1015</b>. Total = 5000 + 1 + 1015 + 128 = 6144 = <b>6 blocks</b>.</p>
+  <p>Why is padding needed even when the message is already a multiple of 1024? The length field is always added, so an extra block is created — this prevents some collision tricks.</p>
+</div>
+
+<h3>Step 2 — Initial hash values and constants</h3>
+<p>Eight 64-bit words A…H start at fixed values: the first 64 bits of the <b>fractional parts of the square roots</b> of the first eight primes (2, 3, 5, …, 19). E.g. A = 6A09E667F3BCC908 (from √2). The 80 round constants K₀…K₇₉ come from the fractional parts of the <b>cube roots</b> of the first 80 primes ("nothing-up-my-sleeve" numbers).</p>
+
+<h3>Step 3 — Word expansion (message schedule)</h3>
+<p>Each 1024-bit block gives 16 words W₀…W₁₅; 64 more are generated:</p>
+<span class="eq">W<sub>t</sub> = σ₁(W<sub>t−2</sub>) + W<sub>t−7</sub> + σ₀(W<sub>t−15</sub>) + W<sub>t−16</sub> &nbsp; (mod 2<sup>64</sup>), &nbsp; t = 16…79</span>
+<p>σ₀(x) = ROTR¹(x) ⊕ ROTR⁸(x) ⊕ SHR⁷(x); &nbsp; σ₁(x) = ROTR¹⁹(x) ⊕ ROTR⁶¹(x) ⊕ SHR⁶(x). (ROTR = rotate right, SHR = shift right.)</p>
+
+<h3>Step 4 — The round function (80 rounds)</h3>
+<figure class="fig">
+<svg viewBox="0 0 640 260" width="620" role="img" aria-label="SHA-512 round">
+ <g>
+ <rect class="dg-acc" x="20" y="10" width="64" height="30" rx="5"/><text class="dg-tb" x="52" y="30" text-anchor="middle">A</text>
+ <rect class="dg-acc" x="94" y="10" width="64" height="30" rx="5"/><text class="dg-tb" x="126" y="30" text-anchor="middle">B</text>
+ <rect class="dg-acc" x="168" y="10" width="64" height="30" rx="5"/><text class="dg-tb" x="200" y="30" text-anchor="middle">C</text>
+ <rect class="dg-acc" x="242" y="10" width="64" height="30" rx="5"/><text class="dg-tb" x="274" y="30" text-anchor="middle">D</text>
+ <rect class="dg-acc" x="334" y="10" width="64" height="30" rx="5"/><text class="dg-tb" x="366" y="30" text-anchor="middle">E</text>
+ <rect class="dg-acc" x="408" y="10" width="64" height="30" rx="5"/><text class="dg-tb" x="440" y="30" text-anchor="middle">F</text>
+ <rect class="dg-acc" x="482" y="10" width="64" height="30" rx="5"/><text class="dg-tb" x="514" y="30" text-anchor="middle">G</text>
+ <rect class="dg-acc" x="556" y="10" width="64" height="30" rx="5"/><text class="dg-tb" x="588" y="30" text-anchor="middle">H</text>
+ </g>
+ <rect class="dg-warn" x="330" y="70" width="290" height="50" rx="6"/><text class="dg-t" x="475" y="90" text-anchor="middle">T1 = H + Σ1(E) + Ch(E,F,G) + Kt + Wt</text><text class="dg-ts" x="475" y="108" text-anchor="middle">Ch(E,F,G) = (E∧F) ⊕ (¬E∧G)</text>
+ <rect class="dg-warn" x="20" y="70" width="290" height="50" rx="6"/><text class="dg-t" x="165" y="90" text-anchor="middle">T2 = Σ0(A) + Maj(A,B,C)</text><text class="dg-ts" x="165" y="108" text-anchor="middle">Maj = (A∧B) ⊕ (A∧C) ⊕ (B∧C)</text>
+ <rect class="dg-good" x="20" y="150" width="290" height="34" rx="6"/><text class="dg-tb" x="165" y="172" text-anchor="middle">new A = T1 + T2</text>
+ <rect class="dg-good" x="330" y="150" width="290" height="34" rx="6"/><text class="dg-tb" x="475" y="172" text-anchor="middle">new E = D + T1</text>
+ <text class="dg-ts" x="320" y="214" text-anchor="middle">Other words shift: B←A, C←B, D←C, F←E, G←F, H←G</text>
+ <text class="dg-ts" x="320" y="236" text-anchor="middle">Σ0(A) = ROTR²⁸ ⊕ ROTR³⁴ ⊕ ROTR³⁹ · Σ1(E) = ROTR¹⁴ ⊕ ROTR¹⁸ ⊕ ROTR⁴¹ · all additions mod 2⁶⁴</text>
+</svg>
+<figcaption>Fig 3.5 — One SHA-512 round. After 80 rounds the eight words are added to the previous hash values.</figcaption>
+</figure>
+<p>After round 79, each of A…H is <b>added (mod 2<sup>64</sup>)</b> to the corresponding hash word from the previous block. After the last block the eight words, concatenated, form the 512-bit digest.</p>
+<div class="box example" data-title="Result">
+  <p>SHA-512("abc") = <code style="word-break:break-all">ddaf35a193617aba cc417349ae204131 12e6fa4e89a97ea2 0a9eeee64b55d39a 2192992a274fc1a8 36ba3c23a3feebbd 454d4423643ce80e 2a9ac94fa54ca49f</code></p>
+</div>
+<div class="demo box" data-demo="sha512" data-title="Interactive demo — SHA-512 inside out (padding, schedule, rounds)"></div>
+
+<table>
+  <tr><th>Feature</th><th>MD5</th><th>SHA-512</th><th>Whirlpool</th></tr>
+  <tr><td>Designer / year</td><td>Rivest, 1991</td><td>NSA/NIST, 2002</td><td>Rijmen &amp; Barreto, 2000</td></tr>
+  <tr><td>Digest</td><td>128 bits</td><td>512 bits</td><td>512 bits</td></tr>
+  <tr><td>Block size</td><td>512 bits</td><td>1024 bits</td><td>512 bits</td></tr>
+  <tr><td>Length field</td><td>64 bits</td><td>128 bits</td><td>256 bits</td></tr>
+  <tr><td>Rounds/steps</td><td>4 rounds × 16 = 64 steps</td><td>80 rounds</td><td>10 rounds (cipher W)</td></tr>
+  <tr><td>Word size</td><td>32 bits</td><td>64 bits</td><td>bytes (8×8 state)</td></tr>
+  <tr><td>Construction</td><td>Merkle–Damgård</td><td>Merkle–Damgård</td><td>Miyaguchi–Preneel with AES-like cipher</td></tr>
+  <tr><td>Status</td><td>Broken (collisions)</td><td>Secure</td><td>Secure</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="unit3-review">
+<h2><span class="num">3.17</span> Unit III review and self-test</h2>
+<div class="box summary">
+<ul>
+  <li><b>Modes:</b> ECB (leaks patterns), CBC (chained, IV), CFB (self-sync stream), OFB (output feedback), CTR (counter, parallel).</li>
+  <li><b>Stream:</b> LFSR (period 2<sup>m</sup> − 1, linear → weak alone), RC4 (KSA + PRGA, now deprecated).</li>
+  <li><b>φ(n):</b> φ(p) = p − 1, φ(pq) = (p − 1)(q − 1). Fermat a<sup>p−1</sup> ≡ 1; Euler a<sup>φ(n)</sup> ≡ 1.</li>
+  <li><b>Primality:</b> trial division, Fermat (fooled by Carmichael), Miller–Rabin (n − 1 = m·2<sup>k</sup>). <b>Factorisation:</b> trial, Fermat (x² − n = y²), Pollard p − 1.</li>
+  <li><b>CRT:</b> x = Σ a<sub>i</sub>M<sub>i</sub>M<sub>i</sub><sup>−1</sup> mod M.</li>
+  <li><b>RSA:</b> n = pq, ed ≡ 1 mod φ(n), C = P<sup>e</sup>, P = C<sup>d</sup>. <b>Rabin:</b> C = P² mod n, 4 roots. <b>ElGamal:</b> C₁ = e₁<sup>r</sup>, C₂ = P·e₂<sup>r</sup>. <b>ECC:</b> point addition, ECDLP, small keys.</li>
+  <li><b>Hash:</b> preimage, second preimage, collision resistance; birthday 2<sup>n/2</sup>; MD5 (128, broken), Whirlpool (512, AES-like W), SHA-512 (1024-bit blocks, 80 rounds, padding (−|M| − 129) mod 1024).</li>
+</ul>
+</div>
+<div class="quiz">
+  <div class="mcq" data-ans="a"><p class="q">1. Which mode reveals repeated plaintext blocks?</p><ol><li>ECB</li><li>CBC</li><li>CTR</li><li>OFB</li></ol><p class="why">ECB encrypts each block independently.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">2. φ(35) =</p><ol><li>34</li><li>12</li><li>24</li><li>30</li></ol><p class="why">φ(5)φ(7) = 4 × 6.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">3. In RSA with p = 5, q = 11, e = 3, d =</p><ol><li>7</li><li>27</li><li>13</li><li>37</li></ol><p class="why">φ = 40; 3 × 27 = 81 = 2·40 + 1.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">4. 561 is a:</p><ol><li>prime</li><li>Mersenne prime</li><li>perfect square</li><li>Carmichael number</li></ol><p class="why">561 = 3 × 11 × 17 and fools the Fermat test.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">5. The Rabin cryptosystem decryption gives how many candidate plaintexts?</p><ol><li>1</li><li>4</li><li>2</li><li>8</li></ol><p class="why">Two square roots mod p × two mod q, combined by CRT.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">6. ElGamal's ciphertext is:</p><ol><li>twice as long as the plaintext</li><li>same length</li><li>half the length</li><li>fixed 128 bits</li></ol><p class="why">It is a pair (C₁, C₂).</p></div>
+  <div class="mcq" data-ans="c"><p class="q">7. ECC with a 256-bit key gives security comparable to RSA with:</p><ol><li>512 bits</li><li>1024 bits</li><li>3072 bits</li><li>15360 bits</li></ol><p class="why">NIST equivalence table.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">8. The block size of SHA-512 is:</p><ol><li>512 bits</li><li>1024 bits</li><li>128 bits</li><li>2048 bits</li></ol><p class="why">16 words × 64 bits.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">9. Whirlpool uses which construction around its block cipher W?</p><ol><li>Davies–Meyer</li><li>Sponge</li><li>Feistel</li><li>Miyaguchi–Preneel</li></ol><p class="why">H<sub>i</sub> = E<sub>H(i−1)</sub>(M<sub>i</sub>) ⊕ H<sub>i−1</sub> ⊕ M<sub>i</sub>.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">10. Finding any two messages with the same digest violates:</p><ol><li>collision resistance</li><li>preimage resistance</li><li>second-preimage resistance</li><li>confidentiality</li></ol><p class="why">The attacker chooses both messages freely.</p></div>
+</div>
+<h3>Likely exam questions</h3>
+<table>
+  <tr><th>Marks</th><th>Question</th></tr>
+  <tr><td>2</td><td>State Fermat's little theorem / Euler's theorem. · Find φ(n). · What is a primitive root? · Define collision resistance. · What is the birthday attack? · List the modes of operation.</td></tr>
+  <tr><td>5</td><td>Solve using CRT. · Explain Miller–Rabin with an example. · Explain Fermat factorization. · Explain CBC/CTR mode with diagram. · Explain RC4. · Explain ElGamal with an example. · Explain SHA-512 padding.</td></tr>
+  <tr><td>10</td><td>Explain RSA with key generation, encryption, decryption and an example; discuss attacks. · Explain ECC (point addition, cryptosystem, advantages). · Explain the Rabin cryptosystem. · Explain SHA-512 in detail. · Explain Whirlpool. · Compare MD5, SHA-512 and Whirlpool.</td></tr>
+</table>
+</section>
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="crypto-core.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>
