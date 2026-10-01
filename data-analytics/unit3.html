@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit III · Probability, Distributions &amp; Hypothesis Testing — Data Analytics</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="da" data-page="unit3.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Unit III · 14 hours · CO3</div>
+  <h1>Probability, Distributions &amp; Hypothesis Testing</h1>
+  <p class="lead">Probability is the language of uncertainty. We start from sets and counting, build up the rules of probability and Bayes' theorem, model data with the Binomial, Poisson and Normal distributions, and finish with the three tests in your syllabus: <b>t-test, ANOVA and Chi-square</b>.</p>
+  <div class="meta"><span class="chip acc">Sample space &amp; events</span><span class="chip acc">Conditional probability</span><span class="chip acc">Bayes' theorem</span><span class="chip acc">Random variables</span><span class="chip acc">Binomial · Poisson · Normal</span><span class="chip acc">Estimation</span><span class="chip acc">t · ANOVA · χ²</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="sets-counting">
+<h2><span class="num">3.0</span> Foundation: sets and counting</h2>
+<div class="box found">
+  <p>Probability problems are counting problems in disguise. You need set operations (to combine events) and nCr (to count outcomes).</p>
+</div>
+<div class="concept">
+  <h3>Sets and Venn diagrams</h3>
+  <div class="f-exp">A <b>set</b> is a collection of distinct objects. For events A and B: <b>A ∪ B</b> (union) = A or B or both; <b>A ∩ B</b> (intersection) = both A and B; <b>A′</b> or <b>Ā</b> (complement) = not A. A Venn diagram shows them as overlapping circles inside the sample space S.</div>
+  <div class="f-use">"A king or a heart" is a union; "a red king" is an intersection; "not a six" is a complement.</div>
+  <div class="f-imp">n(A ∪ B) = n(A) + n(B) − n(A ∩ B) — the overlap is subtracted because it was counted twice. This becomes the addition theorem of probability.</div>
+  <div class="f-lim">With three or more sets the inclusion–exclusion formula grows more terms.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 420 200" width="380" role="img" aria-label="Venn diagram">
+ <rect class="dg-box" x="10" y="10" width="400" height="180" rx="10"/><text class="dg-ts" x="22" y="30">S</text>
+ <circle cx="165" cy="100" r="70" style="fill:var(--acc);opacity:.25;stroke:var(--acc);stroke-width:1.5"/>
+ <circle cx="255" cy="100" r="70" style="fill:var(--warn);opacity:.25;stroke:var(--warn);stroke-width:1.5"/>
+ <text class="dg-tb" x="125" y="105">A only</text><text class="dg-tb" x="262" y="105">B only</text><text class="dg-tb" x="210" y="105" text-anchor="middle">A∩B</text>
+</svg>
+<figcaption>Fig 3.1 — Venn diagram: A ∪ B is everything inside either circle.</figcaption>
+</figure>
+<div class="concept">
+  <h3>Counting: factorial, permutations, combinations</h3>
+  <div class="f-exp"><b>n!</b> = n × (n − 1) × … × 1 (0! = 1). The number of ways to <b>choose</b> r items from n when order does not matter: <span class="math">nCr = n! / [r!(n − r)!]</span>. When order matters: nPr = n!/(n − r)!</div>
+  <div class="f-use">Counting favourable outcomes: "2 cards from 52" = 52C2 = 1326; Binomial formula uses nCr.</div>
+  <div class="f-imp">5C2 = 5!/(2! 3!) = 10; 52C2 = 52 × 51 / 2 = 1326; 10C3 = 120.</div>
+  <div class="f-lim">See the Quantitative Techniques notes (P&amp;C) for a full treatment.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="sample-space">
+<h2><span class="num">3.1</span> Sample space and basic terms</h2>
+<table>
+  <tr><th>Term</th><th>Meaning</th><th>Example</th></tr>
+  <tr><td><b>Random experiment</b></td><td>An action whose outcome cannot be predicted with certainty, though all possible outcomes are known</td><td>Tossing a coin, rolling a die, drawing a card</td></tr>
+  <tr><td><b>Trial</b></td><td>One performance of the experiment</td><td>One toss</td></tr>
+  <tr><td><b>Outcome</b></td><td>A single possible result</td><td>Getting a 4</td></tr>
+  <tr><td><b>Sample space (S)</b></td><td>The set of <b>all</b> possible outcomes</td><td>Die: S = {1, 2, 3, 4, 5, 6}; two coins: S = {HH, HT, TH, TT}</td></tr>
+  <tr><td><b>Event</b></td><td>Any subset of S</td><td>"Even number" = {2, 4, 6}</td></tr>
+</table>
+<div class="two-col">
+  <div class="box def" data-title="Two dice: 36 outcomes"><p>Each die has 6 faces, so S has 6 × 6 = 36 equally likely ordered pairs (1,1), (1,2), …, (6,6). Sum = 7 occurs in 6 ways: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1).</p></div>
+  <div class="box def" data-title="A pack of 52 cards"><p>4 suits (♠ spades, ♣ clubs — black; ♥ hearts, ♦ diamonds — red) × 13 ranks (A, 2–10, J, Q, K). 26 red, 26 black; 4 of each rank; 12 face cards (J, Q, K).</p></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="events">
+<h2><span class="num">3.2</span> Types of events</h2>
+<table>
+  <tr><th>Type</th><th>Meaning</th><th>Example</th></tr>
+  <tr><td><b>Simple (elementary)</b></td><td>Exactly one outcome</td><td>Getting 3 on a die</td></tr>
+  <tr><td><b>Compound</b></td><td>Two or more outcomes</td><td>Getting an odd number {1, 3, 5}</td></tr>
+  <tr><td><b>Sure (certain)</b></td><td>Always happens, P = 1</td><td>Getting a number ≤ 6</td></tr>
+  <tr><td><b>Impossible</b></td><td>Never happens, P = 0</td><td>Getting 7 on a die</td></tr>
+  <tr><td><b>Equally likely</b></td><td>Each has the same chance</td><td>Head and tail of a fair coin</td></tr>
+  <tr><td><b>Mutually exclusive</b></td><td>Cannot occur together: A ∩ B = ∅</td><td>Head and tail on one toss; drawing a king and a queen in one card</td></tr>
+  <tr><td><b>Exhaustive</b></td><td>Together cover the whole sample space</td><td>{1,2,3} and {4,5,6} for a die</td></tr>
+  <tr><td><b>Complementary</b></td><td>A and A′: mutually exclusive and exhaustive</td><td>"Six" and "not six"</td></tr>
+  <tr><td><b>Independent</b></td><td>Occurrence of one does not affect the other: P(A ∩ B) = P(A)P(B)</td><td>Toss a coin and roll a die</td></tr>
+  <tr><td><b>Dependent</b></td><td>Occurrence of one changes the probability of the other</td><td>Drawing two cards without replacement</td></tr>
+</table>
+<div class="box warn">Mutually exclusive ≠ independent. If A and B are mutually exclusive (and both possible), knowing A happened tells you B did <b>not</b> happen — so they are strongly <b>dependent</b>.</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="measures">
+<h2><span class="num">3.3</span> Measures (approaches) of probability</h2>
+<div class="concept">
+  <h3>1. Classical (a priori) approach</h3>
+  <div class="f-exp">If an experiment has n <b>equally likely, mutually exclusive and exhaustive</b> outcomes and m of them are favourable to A:
+  <span class="eq">P(A) = <span class="fr"><span>m</span><span>n</span></span> = <span class="fr"><span>number of favourable outcomes</span><span>total number of outcomes</span></span></span></div>
+  <div class="f-use">Games of chance — coins, dice, cards, lotteries.</div>
+  <div class="f-imp">P(even on a die) = 3/6 = 1/2. P(sum 8 with two dice) = 5/36 [(2,6),(3,5),(4,4),(5,3),(6,2)]. P(a king) = 4/52 = 1/13. Two balls from a bag of 5 red + 3 green, P(both red) = 5C2/8C2 = 10/28 = <b>5/14</b>.</div>
+  <div class="f-lim">Needs equally likely outcomes and a finite sample space — fails for "probability that a machine fails" or "a person aged 30 dies this year".</div>
+</div>
+<div class="concept">
+  <h3>2. Relative frequency (empirical, a posteriori) approach</h3>
+  <div class="f-exp">Probability is the limit of the relative frequency when the experiment is repeated a very large number of times: <span class="math">P(A) = lim (m/n) as n → ∞</span>.</div>
+  <div class="f-use">Insurance (mortality tables), quality control (defect rates), weather forecasting, cricket statistics.</div>
+  <div class="f-imp">If 18 out of 600 bulbs were defective, P(defective) ≈ 18/600 = 0.03. (Try the dice simulator below: the relative frequency approaches 1/6.)</div>
+  <div class="f-lim">Requires many repetitions under identical conditions; gives only an estimate.</div>
+</div>
+<div class="concept">
+  <h3>3. Subjective approach</h3>
+  <div class="f-exp">Probability is a person's <b>degree of belief</b>, based on experience and judgement.</div>
+  <div class="f-use">"There is a 70 % chance this product launch succeeds"; venture capital and management decisions where no data exist.</div>
+  <div class="f-imp">Experts may combine available evidence informally; Bayes' theorem (3.6) updates such beliefs with data.</div>
+  <div class="f-lim">Different people give different probabilities; can be biased.</div>
+</div>
+<div class="concept">
+  <h3>4. Axiomatic approach (Kolmogorov, 1933)</h3>
+  <div class="f-exp">Defines probability by three axioms that every approach above satisfies: (1) 0 ≤ P(A) ≤ 1; (2) P(S) = 1; (3) for mutually exclusive events, P(A ∪ B) = P(A) + P(B).</div>
+  <div class="f-use">The mathematical foundation for all probability theory.</div>
+  <div class="f-imp">From the axioms: P(∅) = 0; P(A′) = 1 − P(A); if A ⊆ B then P(A) ≤ P(B).</div>
+  <div class="f-lim">Says how probabilities behave, not how to find their values.</div>
+</div>
+
+<h3>Theorems of probability</h3>
+<div class="box formula" data-title="Key rules">
+  <span class="eq">Addition: P(A ∪ B) = P(A) + P(B) − P(A ∩ B) &nbsp;&nbsp; (mutually exclusive: P(A) + P(B))</span>
+  <span class="eq">Complement: P(A′) = 1 − P(A) &nbsp;&nbsp;&nbsp; Multiplication: P(A ∩ B) = P(A) × P(B | A) &nbsp; (independent: P(A) × P(B))</span>
+</div>
+<div class="box example" data-title="Worked examples">
+  <ol class="steps">
+    <li><b>King or heart</b> from a pack: P(K) = 4/52, P(H) = 13/52, P(K ∩ H) = 1/52 → P = (4 + 13 − 1)/52 = 16/52 = <b>4/13</b>.</li>
+    <li><b>At least one head in 3 tosses:</b> P = 1 − P(no head) = 1 − (1/2)³ = <b>7/8</b> (complement trick — "at least one" problems).</li>
+    <li><b>Independent:</b> A hits a target with P = 0.6, B with 0.5. P(target is hit) = 1 − P(both miss) = 1 − 0.4 × 0.5 = <b>0.8</b>.</li>
+    <li><b>Dependent:</b> two cards without replacement, both aces: (4/52) × (3/51) = 12/2652 = <b>1/221</b>.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="dicesim" data-title="Interactive demo — relative frequency approaches probability"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="conditional">
+<h2><span class="num">3.4</span> Conditional probability</h2>
+<div class="concept">
+  <h3>Conditional probability P(A | B)</h3>
+  <div class="f-exp">The probability of A <b>given that</b> B has already occurred. Knowing B shrinks the sample space to B:
+  <span class="eq">P(A | B) = <span class="fr"><span>P(A ∩ B)</span><span>P(B)</span></span>, &nbsp; P(B) &gt; 0</span>
+  A and B are independent exactly when P(A | B) = P(A).</div>
+  <div class="f-use">P(customer buys | clicked the ad); P(disease | positive test); P(default | low credit score) — the core of predictive analytics.</div>
+  <div class="f-imp">Two dice: P(sum = 8 | first die shows 3) — only outcome (3,5) out of 6 → <b>1/6</b>. Formula: P(sum 8 ∩ first 3) = 1/36, P(first 3) = 6/36 → (1/36)/(6/36) = 1/6 ✓.<br>
+  P(A) = 0.5, P(B) = 0.4, P(A ∩ B) = 0.2: P(A | B) = 0.2/0.4 = 0.5 = P(A) → A and B are independent.</div>
+  <div class="f-lim">P(A | B) ≠ P(B | A) in general — confusing them is the "prosecutor's fallacy".</div>
+</div>
+<div class="concept">
+  <h3>Total probability theorem</h3>
+  <div class="f-exp">If B₁, B₂, …, B<sub>n</sub> are mutually exclusive and exhaustive (they split S), then for any event A:
+  <span class="eq">P(A) = P(B₁)P(A | B₁) + P(B₂)P(A | B₂) + … + P(B<sub>n</sub>)P(A | B<sub>n</sub>)</span></div>
+  <div class="f-use">Overall defect rate of a factory with several machines; overall pass rate across sections.</div>
+  <div class="f-imp">Draw a <b>tree diagram</b>: first branches for the B's, then branches for A given each B; multiply along branches and add the ones ending in A.</div>
+  <div class="f-lim">The B's must cover all possibilities without overlap.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="bayes">
+<h2><span class="num">3.5</span> Bayes' theorem</h2>
+<div class="concept">
+  <h3>Bayes' theorem (inverse probability)</h3>
+  <div class="f-exp">Proposed by Rev. Thomas Bayes (1763). It reverses a conditional probability: from P(A | B<sub>i</sub>) (easy to know) it finds P(B<sub>i</sub> | A) (what we want). It <b>updates prior beliefs with new evidence</b>.
+  <div class="box formula" data-title="Bayes' theorem">
+    <span class="eq">P(B<sub>i</sub> | A) = <span class="fr"><span>P(B<sub>i</sub>) · P(A | B<sub>i</sub>)</span><span>Σ<sub>j</sub> P(B<sub>j</sub>) · P(A | B<sub>j</sub>)</span></span></span>
+    <p>P(B<sub>i</sub>) = <b>prior</b> probability · P(A | B<sub>i</sub>) = <b>likelihood</b> · P(B<sub>i</sub> | A) = <b>posterior</b> probability</p>
+  </div></div>
+  <div class="f-use">Medical diagnosis, spam filters (P(spam | words)), fraud detection, which machine produced a defective item, machine learning (Naïve Bayes classifier), updating forecasts.</div>
+  <div class="f-imp">
+    <ol class="steps"><li>List the causes B₁…B<sub>n</sub> with priors P(B<sub>i</sub>).</li><li>Write the likelihoods P(A | B<sub>i</sub>).</li><li>Multiply: joint P(B<sub>i</sub>)P(A | B<sub>i</sub>) for each i.</li><li>Add them: P(A) (total probability).</li><li>Posterior = joint ÷ total. Posteriors add to 1.</li></ol></div>
+  <div class="f-lim">Needs reliable priors; results can be counter-intuitive (rare diseases); assumes the causes are exhaustive and mutually exclusive.</div>
+</div>
+<div class="box example" data-title="Worked example 1 — which machine made the defective bolt?">
+<p>Machines A, B, C produce 25 %, 35 % and 40 % of the bolts. Their defective rates are 5 %, 4 % and 2 %. A bolt is drawn at random and found defective. Find the probability it was made by each machine.</p>
+<table class="num"><tr><th>Machine</th><th>Prior P(B<sub>i</sub>)</th><th>P(D | B<sub>i</sub>)</th><th>Joint P(B<sub>i</sub>)P(D | B<sub>i</sub>)</th><th>Posterior P(B<sub>i</sub> | D)</th></tr>
+<tr><td>A</td><td>0.25</td><td>0.05</td><td>0.0125</td><td>0.0125/0.0345 = <b>0.362</b></td></tr>
+<tr><td>B</td><td>0.35</td><td>0.04</td><td>0.0140</td><td>0.0140/0.0345 = <b>0.406</b></td></tr>
+<tr><td>C</td><td>0.40</td><td>0.02</td><td>0.0080</td><td>0.0080/0.0345 = <b>0.232</b></td></tr>
+<tr class="total"><td>Total</td><td>1.00</td><td></td><td>P(D) = 0.0345</td><td>1.000</td></tr></table>
+<p>Although C makes the most bolts, a defective bolt most likely came from B.</p>
+</div>
+<div class="box example" data-title="Worked example 2 — medical test">
+<p>1 % of a population has a disease. A test detects it 99 % of the time (sensitivity) but also gives a positive result for 5 % of healthy people. If a person tests positive, what is the probability they have the disease?</p>
+<p>P(D | +) = (0.01 × 0.99) / (0.01 × 0.99 + 0.99 × 0.05) = 0.0099 / (0.0099 + 0.0495) = 0.0099/0.0594 = <b>0.1667</b>.</p>
+<p>Only about 1 in 6 positives is truly ill — because healthy people vastly outnumber sick people. Out of 10,000 people: 100 sick → 99 test positive; 9,900 healthy → 495 test positive. 99/(99 + 495) = 1/6.</p>
+</div>
+<div class="demo box" data-demo="bayes" data-title="Interactive demo — Bayes' theorem with a population picture"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Bag I has 3 red and 4 black balls; Bag II has 5 red and 6 black. A bag is chosen at random and a ball drawn is red. Find P(it came from Bag I).
+      <details class="ans"><summary>Show answer</summary><div>Priors ½, ½. Likelihoods 3/7 and 5/11. P = (½ × 3/7) / (½ × 3/7 + ½ × 5/11) = (3/7)/(3/7 + 5/11) = (33/77)/(33/77 + 35/77) = <b>33/68 ≈ 0.485</b>.</div></details></li>
+    <li>In a college 60 % of students are boys. 30 % of boys and 20 % of girls play cricket. A cricket player is chosen. P(it is a girl)?
+      <details class="ans"><summary>Show answer</summary><div>Joint: boys 0.6 × 0.3 = 0.18, girls 0.4 × 0.2 = 0.08. P(girl | cricket) = 0.08/0.26 = <b>0.308</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="random-variable">
+<h2><span class="num">3.6</span> Random variables, expectation and variance</h2>
+<div class="concept">
+  <h3>Random variable</h3>
+  <div class="f-exp">A <b>random variable</b> X assigns a number to each outcome of a random experiment. <b>Discrete</b> random variables take countable values (number of heads, defective items, customers per hour); <b>continuous</b> ones take any value in an interval (height, time, weight).</div>
+  <div class="f-use">Turning business uncertainty into numbers: demand next week, number of claims, time to failure.</div>
+  <div class="f-imp">The <b>probability distribution</b> lists each value with its probability. For discrete X this is the <b>probability mass function</b> p(x) with Σp(x) = 1; for continuous X it is a <b>probability density function</b> f(x) with total area 1 (probabilities are areas).
+  <div class="box formula" data-title="Expectation and variance (discrete)">
+    <span class="eq">E(X) = μ = Σ x·p(x) &nbsp;&nbsp;&nbsp;&nbsp; Var(X) = σ² = Σ x²·p(x) − μ²</span>
+  </div>
+  <b>Example:</b> X = number on a die: E(X) = (1 + 2 + … + 6)/6 = <b>3.5</b>; E(X²) = 91/6; Var = 91/6 − 12.25 = <b>2.917</b>.<br>
+  <b>Business example:</b> a deal earns ₹100 with probability 0.2, ₹20 with 0.5, and loses ₹30 with 0.3. E = 100(0.2) + 20(0.5) − 30(0.3) = 20 + 10 − 9 = <b>₹21</b> per deal.</div>
+  <div class="f-lim">The expected value is a long-run average — a single outcome can be very different.</div>
+</div>
+<div class="concept">
+  <h3>Probability distributions — overview</h3>
+  <div class="f-exp">A theoretical distribution is a formula that describes how probabilities are spread over the values of X. Three are in the syllabus:</div>
+  <div class="f-use">Choosing the right model: count of successes in n trials → Binomial; count of rare events in an interval → Poisson; continuous measurements → Normal.</div>
+  <div class="f-imp"><table class="compact"><tr><th></th><th>Binomial</th><th>Poisson</th><th>Normal</th></tr><tr><td>Type</td><td>Discrete</td><td>Discrete</td><td>Continuous</td></tr><tr><td>Parameters</td><td>n, p</td><td>m (= λ)</td><td>μ, σ</td></tr><tr><td>Mean</td><td>np</td><td>m</td><td>μ</td></tr><tr><td>Variance</td><td>npq</td><td>m</td><td>σ²</td></tr><tr><td>Shape</td><td>Symmetric if p = ½</td><td>Right-skewed</td><td>Bell, symmetric</td></tr></table></div>
+  <div class="f-lim">Real data only approximately follow these models.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="binomial">
+<h2><span class="num">3.7</span> Binomial distribution</h2>
+<div class="concept">
+  <h3>Definition and conditions</h3>
+  <div class="f-exp">Developed by James Bernoulli. Gives the probability of exactly r <b>successes</b> in n independent <b>Bernoulli trials</b>, each with success probability p (failure q = 1 − p).
+  <div class="box formula" data-title="Binomial">
+    <span class="eq">P(X = r) = nC<sub>r</sub> p<sup>r</sup> q<sup>n−r</sup>, &nbsp; r = 0, 1, …, n &nbsp;&nbsp;&nbsp; Mean = np, &nbsp; Variance = npq, &nbsp; SD = √(npq)</span>
+  </div>
+  <b>Conditions:</b> (1) fixed number of trials n; (2) each trial has only two outcomes; (3) p is constant from trial to trial; (4) trials are independent.</div>
+  <div class="f-use">Number of defective items in a sample of 10; number of customers (out of 20 visitors) who buy; number of heads in coin tosses; number of correct guesses in a multiple-choice test; quality-control sampling.</div>
+  <div class="f-imp"><b>Properties:</b> discrete; mean &gt; variance (since q &lt; 1); symmetric when p = q = ½, positively skewed when p &lt; ½, negatively skewed when p &gt; ½; the probabilities are the terms of (q + p)<sup>n</sup>.</div>
+  <div class="f-lim">Requires constant p and independence — sampling without replacement from a small lot violates this; tedious for large n (use Poisson or Normal approximation).</div>
+</div>
+<div class="box example" data-title="Worked examples">
+  <ol class="steps">
+    <li><b>10 coins tossed. P(exactly 6 heads)?</b> n = 10, p = q = ½. P(6) = 10C6 (½)<sup>10</sup> = 210/1024 = <b>0.2051</b>.</li>
+    <li><b>P(at least 8 heads)?</b> P(8) + P(9) + P(10) = (45 + 10 + 1)/1024 = 56/1024 = <b>0.0547</b>.</li>
+    <li><b>10 % of items are defective. In a sample of 5, P(no defective)?</b> 0.9<sup>5</sup> = <b>0.5905</b>. P(at most 1) = 0.5905 + 5(0.1)(0.9)<sup>4</sup> = 0.5905 + 0.3281 = <b>0.9185</b>. Mean = 0.5, variance = 0.45.</li>
+    <li><b>Mean 4 and variance 3. Find n and p.</b> npq/np = q = 3/4 → p = 1/4; n = 4/(1/4) = <b>16</b>.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="binomial" data-title="Interactive demo — Binomial distribution"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="poisson">
+<h2><span class="num">3.8</span> Poisson distribution</h2>
+<div class="concept">
+  <h3>Definition and conditions</h3>
+  <div class="f-exp">Developed by S.D. Poisson (1837). Models the number of times a <b>rare event</b> occurs in a fixed interval of time, space or volume. It is the limit of the Binomial when n is large, p is small and m = np is moderate.
+  <div class="box formula" data-title="Poisson">
+    <span class="eq">P(X = r) = <span class="fr"><span>e<sup>−m</sup> m<sup>r</sup></span><span>r!</span></span>, &nbsp; r = 0, 1, 2, … &nbsp;&nbsp;&nbsp; Mean = Variance = m &nbsp;&nbsp; (e ≈ 2.71828)</span>
+  </div>
+  Use when n ≥ 20 and p ≤ 0.05 (rule of thumb), or when only the average rate m is known.</div>
+  <div class="f-use">Number of accidents per day on a highway, calls to a call centre per minute, typing errors per page, defects per metre of cloth, customers arriving at an ATM per hour, server requests per second.</div>
+  <div class="f-imp"><b>Properties:</b> discrete; only one parameter m; mean = variance; positively skewed (more symmetric as m grows); recurrence P(r + 1) = P(r) × m/(r + 1) makes calculation fast.
+  <br><b>Values of e<sup>−m</sup>:</b> m = 0.5 → 0.6065; 1 → 0.3679; 1.5 → 0.2231; 2 → 0.1353; 3 → 0.0498; 4 → 0.0183; 5 → 0.0067.</div>
+  <div class="f-lim">Assumes events occur independently at a constant average rate; not suitable when events cluster.</div>
+</div>
+<div class="box example" data-title="Worked examples">
+  <ol class="steps">
+    <li><b>On average 2 accidents per day. P(no accident)?</b> e<sup>−2</sup> = <b>0.1353</b>. P(exactly 2) = 0.1353 × 2²/2! = <b>0.2707</b>. P(at least one) = 1 − 0.1353 = <b>0.8647</b>.</li>
+    <li><b>2 % of fuses are defective. In a box of 100, P(at most 2 defective)?</b> m = np = 100 × 0.02 = 2. P(0) + P(1) + P(2) = e<sup>−2</sup>(1 + 2 + 2) = 5 × 0.1353 = <b>0.6767</b>.</li>
+    <li><b>If P(X = 1) = P(X = 2), find the mean.</b> e<sup>−m</sup>m = e<sup>−m</sup>m²/2 → m = <b>2</b>.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="poisson" data-title="Interactive demo — Poisson, and how it approximates the Binomial"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="normal">
+<h2><span class="num">3.9</span> Normal distribution</h2>
+<div class="concept">
+  <h3>Definition</h3>
+  <div class="f-exp">The most important <b>continuous</b> distribution (de Moivre, Laplace, Gauss) — the familiar <b>bell curve</b>. Many natural and business measurements are approximately normal because they are the sum of many small independent effects (Central Limit Theorem).
+  <div class="box formula" data-title="Normal density and standardisation">
+    <span class="eq">f(x) = <span class="fr"><span>1</span><span>σ√(2π)</span></span> e<sup>−(x − μ)²/(2σ²)</sup> &nbsp;&nbsp;&nbsp;&nbsp; Z = <span class="fr"><span>X − μ</span><span>σ</span></span> ~ N(0, 1)</span>
+  </div>
+  Probabilities are <b>areas</b> under the curve. We convert X to the <b>standard normal variate Z</b> (mean 0, SD 1) and use the Z-table, which gives the area between 0 and z.</div>
+  <div class="f-use">Heights, weights, exam marks, measurement errors, product dimensions in quality control, returns on investments (approx.), IQ scores; basis of confidence intervals and many tests.</div>
+  <div class="f-imp"><b>Properties:</b>
+    <ol><li>Bell-shaped and symmetric about μ; mean = median = mode.</li><li>Total area = 1; area on each side of μ = 0.5.</li><li>Tails approach but never touch the x-axis (asymptotic).</li><li>Determined completely by μ and σ.</li><li><b>Empirical rule:</b> μ ± 1σ covers 68.27 %, μ ± 2σ covers 95.45 %, μ ± 3σ covers 99.73 %.</li><li>Points of inflection at μ ± σ; quartile deviation ≈ 0.6745σ.</li></ol>
+    <b>Steps:</b> (1) compute z = (x − μ)/σ; (2) read area from the table; (3) combine areas using symmetry (area beyond z = 0.5 − table value; between two z of opposite signs = sum; same sign = difference).</div>
+  <div class="f-lim">Real data may be skewed (incomes) or have heavy tails (stock crashes); cannot have negative values for quantities like price, though the model allows them.</div>
+</div>
+<div class="box example" data-title="Worked example — exam marks are N(μ = 60, σ = 10)">
+  <ol class="steps">
+    <li><b>P(X &gt; 75):</b> z = (75 − 60)/10 = 1.5. Area 0 to 1.5 = 0.4332. P = 0.5 − 0.4332 = <b>0.0668</b>. Out of 1000 students, about 67 score above 75.</li>
+    <li><b>P(50 &lt; X &lt; 70):</b> z = −1 and +1. Area = 0.3413 + 0.3413 = <b>0.6826</b>.</li>
+    <li><b>P(X &lt; 45):</b> z = −1.5 → by symmetry 0.5 − 0.4332 = <b>0.0668</b>.</li>
+    <li><b>P(65 &lt; X &lt; 80):</b> z = 0.5 and 2.0 → 0.4772 − 0.1915 = <b>0.2857</b>.</li>
+    <li><b>Top 10 % cut-off:</b> area 0.40 from 0 → z ≈ 1.28 → x = 60 + 1.28 × 10 = <b>72.8</b>.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="normal" data-title="Interactive demo — shade an area under the normal curve"></div>
+<details class="more"><summary>Z-table: area under the standard normal curve from 0 to z</summary><div><table class="num compact"><tr><th>z</th><th>.00</th><th>.01</th><th>.02</th><th>.03</th><th>.04</th><th>.05</th><th>.06</th><th>.07</th><th>.08</th><th>.09</th></tr><tr><th>0.0</th><td>0.0000</td><td>0.0040</td><td>0.0080</td><td>0.0120</td><td>0.0160</td><td>0.0199</td><td>0.0239</td><td>0.0279</td><td>0.0319</td><td>0.0359</td></tr><tr><th>0.1</th><td>0.0398</td><td>0.0438</td><td>0.0478</td><td>0.0517</td><td>0.0557</td><td>0.0596</td><td>0.0636</td><td>0.0675</td><td>0.0714</td><td>0.0753</td></tr><tr><th>0.2</th><td>0.0793</td><td>0.0832</td><td>0.0871</td><td>0.0910</td><td>0.0948</td><td>0.0987</td><td>0.1026</td><td>0.1064</td><td>0.1103</td><td>0.1141</td></tr><tr><th>0.3</th><td>0.1179</td><td>0.1217</td><td>0.1255</td><td>0.1293</td><td>0.1331</td><td>0.1368</td><td>0.1406</td><td>0.1443</td><td>0.1480</td><td>0.1517</td></tr><tr><th>0.4</th><td>0.1554</td><td>0.1591</td><td>0.1628</td><td>0.1664</td><td>0.1700</td><td>0.1736</td><td>0.1772</td><td>0.1808</td><td>0.1844</td><td>0.1879</td></tr><tr><th>0.5</th><td>0.1915</td><td>0.1950</td><td>0.1985</td><td>0.2019</td><td>0.2054</td><td>0.2088</td><td>0.2123</td><td>0.2157</td><td>0.2190</td><td>0.2224</td></tr><tr><th>0.6</th><td>0.2257</td><td>0.2291</td><td>0.2324</td><td>0.2357</td><td>0.2389</td><td>0.2422</td><td>0.2454</td><td>0.2486</td><td>0.2517</td><td>0.2549</td></tr><tr><th>0.7</th><td>0.2580</td><td>0.2611</td><td>0.2642</td><td>0.2673</td><td>0.2704</td><td>0.2734</td><td>0.2764</td><td>0.2794</td><td>0.2823</td><td>0.2852</td></tr><tr><th>0.8</th><td>0.2881</td><td>0.2910</td><td>0.2939</td><td>0.2967</td><td>0.2995</td><td>0.3023</td><td>0.3051</td><td>0.3078</td><td>0.3106</td><td>0.3133</td></tr><tr><th>0.9</th><td>0.3159</td><td>0.3186</td><td>0.3212</td><td>0.3238</td><td>0.3264</td><td>0.3289</td><td>0.3315</td><td>0.3340</td><td>0.3365</td><td>0.3389</td></tr><tr><th>1.0</th><td>0.3413</td><td>0.3438</td><td>0.3461</td><td>0.3485</td><td>0.3508</td><td>0.3531</td><td>0.3554</td><td>0.3577</td><td>0.3599</td><td>0.3621</td></tr><tr><th>1.1</th><td>0.3643</td><td>0.3665</td><td>0.3686</td><td>0.3708</td><td>0.3729</td><td>0.3749</td><td>0.3770</td><td>0.3790</td><td>0.3810</td><td>0.3830</td></tr><tr><th>1.2</th><td>0.3849</td><td>0.3869</td><td>0.3888</td><td>0.3907</td><td>0.3925</td><td>0.3944</td><td>0.3962</td><td>0.3980</td><td>0.3997</td><td>0.4015</td></tr><tr><th>1.3</th><td>0.4032</td><td>0.4049</td><td>0.4066</td><td>0.4082</td><td>0.4099</td><td>0.4115</td><td>0.4131</td><td>0.4147</td><td>0.4162</td><td>0.4177</td></tr><tr><th>1.4</th><td>0.4192</td><td>0.4207</td><td>0.4222</td><td>0.4236</td><td>0.4251</td><td>0.4265</td><td>0.4279</td><td>0.4292</td><td>0.4306</td><td>0.4319</td></tr><tr><th>1.5</th><td>0.4332</td><td>0.4345</td><td>0.4357</td><td>0.4370</td><td>0.4382</td><td>0.4394</td><td>0.4406</td><td>0.4418</td><td>0.4429</td><td>0.4441</td></tr><tr><th>1.6</th><td>0.4452</td><td>0.4463</td><td>0.4474</td><td>0.4484</td><td>0.4495</td><td>0.4505</td><td>0.4515</td><td>0.4525</td><td>0.4535</td><td>0.4545</td></tr><tr><th>1.7</th><td>0.4554</td><td>0.4564</td><td>0.4573</td><td>0.4582</td><td>0.4591</td><td>0.4599</td><td>0.4608</td><td>0.4616</td><td>0.4625</td><td>0.4633</td></tr><tr><th>1.8</th><td>0.4641</td><td>0.4649</td><td>0.4656</td><td>0.4664</td><td>0.4671</td><td>0.4678</td><td>0.4686</td><td>0.4693</td><td>0.4699</td><td>0.4706</td></tr><tr><th>1.9</th><td>0.4713</td><td>0.4719</td><td>0.4726</td><td>0.4732</td><td>0.4738</td><td>0.4744</td><td>0.4750</td><td>0.4756</td><td>0.4761</td><td>0.4767</td></tr><tr><th>2.0</th><td>0.4772</td><td>0.4778</td><td>0.4783</td><td>0.4788</td><td>0.4793</td><td>0.4798</td><td>0.4803</td><td>0.4808</td><td>0.4812</td><td>0.4817</td></tr><tr><th>2.2</th><td>0.4861</td><td>0.4864</td><td>0.4868</td><td>0.4871</td><td>0.4875</td><td>0.4878</td><td>0.4881</td><td>0.4884</td><td>0.4887</td><td>0.4890</td></tr><tr><th>2.4</th><td>0.4918</td><td>0.4920</td><td>0.4922</td><td>0.4925</td><td>0.4927</td><td>0.4929</td><td>0.4931</td><td>0.4932</td><td>0.4934</td><td>0.4936</td></tr><tr><th>2.6</th><td>0.4953</td><td>0.4955</td><td>0.4956</td><td>0.4957</td><td>0.4959</td><td>0.4960</td><td>0.4961</td><td>0.4962</td><td>0.4963</td><td>0.4964</td></tr><tr><th>2.8</th><td>0.4974</td><td>0.4975</td><td>0.4976</td><td>0.4977</td><td>0.4977</td><td>0.4978</td><td>0.4979</td><td>0.4979</td><td>0.4980</td><td>0.4981</td></tr><tr><th>3.0</th><td>0.4987</td><td>0.4987</td><td>0.4987</td><td>0.4988</td><td>0.4988</td><td>0.4989</td><td>0.4989</td><td>0.4989</td><td>0.4990</td><td>0.4990</td></tr></table></div></details>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="estimation">
+<h2><span class="num">3.10</span> Estimation and hypothesis testing</h2>
+<div class="concept">
+  <h3>Population, sample, parameter, statistic</h3>
+  <div class="f-exp">A <b>population</b> is the whole group of interest (all customers); a <b>sample</b> is the part we actually observe. A <b>parameter</b> describes the population (μ, σ, p) and is usually unknown; a <b>statistic</b> describes the sample (x̄, s, p̂) and is used to estimate it. The standard deviation of a statistic's sampling distribution is its <b>standard error</b>: S.E.(x̄) = σ/√n.</div>
+  <div class="f-use">A survey of 500 voters estimates the support of millions; testing 50 bulbs estimates the life of the whole production.</div>
+  <div class="f-imp"><b>Point estimate</b>: a single value (x̄ = 52 estimates μ). <b>Interval estimate (confidence interval)</b>: a range likely to contain μ.
+  <span class="eq">Large sample: x̄ ± z<sub>α/2</sub> · σ/√n &nbsp;&nbsp;&nbsp; Small sample (σ unknown): x̄ ± t<sub>α/2, n−1</sub> · s/√n</span>
+  Example: n = 36, x̄ = 50, σ = 6 → 95 % CI = 50 ± 1.96 × 6/6 = <b>48.04 to 51.96</b>.<br>
+  <b>Properties of a good estimator:</b> unbiasedness, consistency, efficiency, sufficiency.</div>
+  <div class="f-lim">A 95 % interval means 95 % of such intervals contain μ — not that μ has a 95 % chance of being in this one.</div>
+</div>
+<div class="concept">
+  <h3>Hypothesis testing: the vocabulary</h3>
+  <div class="f-exp">A <b>hypothesis</b> is a claim about a population parameter, tested with sample data.
+    <ul>
+      <li><b>Null hypothesis H₀</b>: "no difference / no effect" (μ = 100; the two means are equal; attributes are independent).</li>
+      <li><b>Alternative hypothesis H₁</b>: what we suspect (μ ≠ 100 two-tailed; μ &gt; 100 or μ &lt; 100 one-tailed).</li>
+      <li><b>Level of significance α</b>: the risk of rejecting a true H₀ we accept — usually 5 % (0.05) or 1 %.</li>
+      <li><b>Test statistic</b>: t, F, χ², z computed from the data.</li>
+      <li><b>Critical value / critical region</b>: from the table at α and the degrees of freedom; if the statistic falls in the critical (rejection) region, reject H₀.</li>
+      <li><b>Degrees of freedom (df)</b>: number of values free to vary after constraints (n − 1 for one sample).</li>
+      <li><b>p-value</b>: probability of a result at least this extreme if H₀ were true; reject H₀ if p &lt; α.</li>
+    </ul></div>
+  <div class="f-use">Is a new fertiliser better? Do three shops have the same average sales? Is gender related to product preference?</div>
+  <div class="f-imp"><b>Five steps for every test (write them in the exam):</b>
+    <ol class="steps"><li>State H₀ and H₁.</li><li>Choose α (5 %) and identify df.</li><li>Compute the test statistic.</li><li>Find the table (critical) value.</li><li>Decision: if |calculated| &lt; table → accept (fail to reject) H₀; if greater → reject H₀. Conclude in words.</li></ol></div>
+  <div class="f-lim">Two kinds of errors are always possible: <b>Type I</b> (reject a true H₀, probability α) and <b>Type II</b> (accept a false H₀, probability β). Reducing one increases the other for fixed n.</div>
+</div>
+<table>
+  <tr><th>Decision</th><th>H₀ true</th><th>H₀ false</th></tr>
+  <tr><td>Accept H₀</td><td class="hl2">Correct (1 − α)</td><td>Type II error (β)</td></tr>
+  <tr><td>Reject H₀</td><td>Type I error (α)</td><td class="hl2">Correct (power = 1 − β)</td></tr>
+</table>
+<figure class="fig">
+<svg viewBox="0 0 600 200" width="560" role="img" aria-label="Two-tailed test">
+ <path d="M20 170 C 140 170, 200 30, 300 30 C 400 30, 460 170, 580 170" class="dg-accline"/>
+ <path d="M20 170 C 70 170, 100 166, 125 158 L125 170 Z" style="fill:var(--bad);opacity:.5"/>
+ <path d="M475 158 C 500 166, 530 170, 580 170 L475 170 Z" style="fill:var(--bad);opacity:.5"/>
+ <line x1="20" x2="580" y1="170" y2="170" class="dg-line"/>
+ <text class="dg-tbad" x="70" y="150" text-anchor="middle">reject H₀</text><text class="dg-tbad" x="530" y="150" text-anchor="middle">reject H₀</text>
+ <text class="dg-tgood" x="300" y="120" text-anchor="middle">acceptance region (95 %)</text>
+ <text class="dg-ts" x="125" y="188" text-anchor="middle">−critical</text><text class="dg-ts" x="475" y="188" text-anchor="middle">+critical</text><text class="dg-ts" x="300" y="188" text-anchor="middle">0</text>
+ <text class="dg-ts" x="90" y="130" text-anchor="middle">2.5 %</text><text class="dg-ts" x="510" y="130" text-anchor="middle">2.5 %</text>
+</svg>
+<figcaption>Fig 3.2 — Two-tailed test at α = 5 %: the rejection region is split into both tails.</figcaption>
+</figure>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="t-test">
+<h2><span class="num">3.11</span> The t-test</h2>
+<div class="concept">
+  <h3>Student's t-distribution and when to use it</h3>
+  <div class="f-exp">W.S. Gosset, writing as "Student" (1908, Guinness brewery), showed that when the sample is <b>small (n &lt; 30)</b> and the population <b>σ is unknown</b>, the standardised mean follows a <b>t-distribution</b> with n − 1 degrees of freedom — bell-shaped like the normal but with fatter tails; it approaches the normal as df grows.</div>
+  <div class="f-use">Testing a claimed mean (one-sample), comparing two independent groups (two-sample), comparing before/after measurements (paired).</div>
+  <div class="f-imp">
+    <div class="box formula" data-title="The three t-tests">
+      <p style="text-align:left"><b>1. One sample:</b> t = <span class="fr"><span>x̄ − μ</span><span>S / √n</span></span>, &nbsp; S = √[Σ(X − x̄)²/(n − 1)], &nbsp; df = n − 1</p>
+      <p style="text-align:left"><b>2. Two independent samples:</b> t = <span class="fr"><span>x̄₁ − x̄₂</span><span>S √(1/n₁ + 1/n₂)</span></span>, &nbsp; S = √{[Σ(X₁ − x̄₁)² + Σ(X₂ − x̄₂)²] / (n₁ + n₂ − 2)}, &nbsp; df = n₁ + n₂ − 2</p>
+      <p style="text-align:left"><b>3. Paired:</b> d = after − before; t = <span class="fr"><span>d̄</span><span>S<sub>d</sub> / √n</span></span>, &nbsp; S<sub>d</sub> = √[Σ(d − d̄)²/(n − 1)], &nbsp; df = n − 1</p>
+    </div>
+    <p>Note: some books use the sample SD s computed with n and write t = (x̄ − μ)√(n − 1)/s — it gives the same t.</p>
+    <p><b>Assumptions:</b> random samples, approximately normal population, equal variances (for the pooled two-sample test), interval/ratio data.</p></div>
+  <div class="f-lim">Sensitive to outliers and strong skewness in small samples; only compares one or two means (for three or more use ANOVA).</div>
+</div>
+<div class="box example" data-title="Worked example 1 — one-sample t">
+<p>IQs of 10 students: 70, 120, 110, 101, 88, 83, 95, 98, 107, 100. Does this support the claim that the mean IQ is 100? (α = 5 %)</p>
+<table class="num compact"><tr><th>X</th><td>70</td><td>120</td><td>110</td><td>101</td><td>88</td><td>83</td><td>95</td><td>98</td><td>107</td><td>100</td><th>Σ = 972</th></tr>
+<tr><th>X − x̄</th><td>−27.2</td><td>22.8</td><td>12.8</td><td>3.8</td><td>−9.2</td><td>−14.2</td><td>−2.2</td><td>0.8</td><td>9.8</td><td>2.8</td><th>0</th></tr>
+<tr><th>(X − x̄)²</th><td>739.84</td><td>519.84</td><td>163.84</td><td>14.44</td><td>84.64</td><td>201.64</td><td>4.84</td><td>0.64</td><td>96.04</td><td>7.84</td><th>1833.6</th></tr></table>
+<ol class="steps">
+  <li>H₀: μ = 100; H₁: μ ≠ 100 (two-tailed).</li>
+  <li>x̄ = 972/10 = 97.2; S = √(1833.6/9) = √203.73 = 14.27.</li>
+  <li>t = (97.2 − 100)/(14.27/√10) = −2.8/4.514 = <b>−0.62</b>; |t| = 0.62.</li>
+  <li>df = 9; table t<sub>0.05</sub> = <b>2.262</b>.</li>
+  <li>0.62 &lt; 2.262 → <b>accept H₀</b>: the data are consistent with a mean IQ of 100.</li>
+</ol>
+</div>
+<div class="box example" data-title="Worked example 2 — two independent samples">
+<p>Plant heights (cm) with two fertilisers: A: 49, 53, 51, 52, 47, 50, 52, 53; B: 52, 55, 52, 53, 50, 54, 54, 53. Is there a significant difference?</p>
+<ol class="steps">
+  <li>H₀: μ₁ = μ₂; H₁: μ₁ ≠ μ₂.</li>
+  <li>x̄₁ = 407/8 = 50.875; x̄₂ = 423/8 = 52.875. Σ(X₁ − x̄₁)² = 30.875; Σ(X₂ − x̄₂)² = 16.875.</li>
+  <li>S = √[(30.875 + 16.875)/14] = √3.411 = 1.847.</li>
+  <li>t = (50.875 − 52.875)/(1.847 × √(1/8 + 1/8)) = −2/0.9234 = <b>−2.166</b>.</li>
+  <li>df = 14, t<sub>0.05</sub> = <b>2.145</b>. |t| = 2.166 &gt; 2.145 → <b>reject H₀</b>: fertiliser B gives significantly taller plants (only just, at 5 %).</li>
+</ol>
+</div>
+<div class="box example" data-title="Worked example 3 — paired t">
+<p>Weights (kg) of 5 people before and after a diet: before 110, 120, 123, 132, 125; after 120, 118, 125, 136, 121. Did weight change?</p>
+<ol class="steps">
+  <li>d = after − before = 10, −2, 2, 4, −4; d̄ = 10/5 = 2.</li>
+  <li>Σ(d − d̄)² = 64 + 16 + 0 + 4 + 36 = 120; S<sub>d</sub> = √(120/4) = 5.477.</li>
+  <li>t = 2/(5.477/√5) = 2/2.449 = <b>0.816</b>; df = 4; t<sub>0.05</sub> = <b>2.776</b>.</li>
+  <li>0.816 &lt; 2.776 → <b>accept H₀</b>: no significant change.</li>
+</ol>
+</div>
+<div class="demo box" data-demo="ttest" data-title="Interactive calculator — t-tests with working"></div>
+<details class="more"><summary>t-table: critical values for two-tailed tests (one-tailed α = half the column heading)</summary><div><table class="num compact"><tr><th>df</th><th>0.10</th><th>0.05</th><th>0.02</th><th>0.01</th></tr><tr><td>1</td><td>6.314</td><td>12.706</td><td>31.821</td><td>63.657</td></tr><tr><td>2</td><td>2.920</td><td>4.303</td><td>6.965</td><td>9.925</td></tr><tr><td>3</td><td>2.353</td><td>3.182</td><td>4.541</td><td>5.841</td></tr><tr><td>4</td><td>2.132</td><td>2.776</td><td>3.747</td><td>4.604</td></tr><tr><td>5</td><td>2.015</td><td>2.571</td><td>3.365</td><td>4.032</td></tr><tr><td>6</td><td>1.943</td><td>2.447</td><td>3.143</td><td>3.707</td></tr><tr><td>7</td><td>1.895</td><td>2.365</td><td>2.998</td><td>3.499</td></tr><tr><td>8</td><td>1.860</td><td>2.306</td><td>2.896</td><td>3.355</td></tr><tr><td>9</td><td>1.833</td><td>2.262</td><td>2.821</td><td>3.250</td></tr><tr><td>10</td><td>1.812</td><td>2.228</td><td>2.764</td><td>3.169</td></tr><tr><td>11</td><td>1.796</td><td>2.201</td><td>2.718</td><td>3.106</td></tr><tr><td>12</td><td>1.782</td><td>2.179</td><td>2.681</td><td>3.055</td></tr><tr><td>13</td><td>1.771</td><td>2.160</td><td>2.650</td><td>3.012</td></tr><tr><td>14</td><td>1.761</td><td>2.145</td><td>2.624</td><td>2.977</td></tr><tr><td>15</td><td>1.753</td><td>2.131</td><td>2.602</td><td>2.947</td></tr><tr><td>16</td><td>1.746</td><td>2.120</td><td>2.583</td><td>2.921</td></tr><tr><td>18</td><td>1.734</td><td>2.101</td><td>2.552</td><td>2.878</td></tr><tr><td>20</td><td>1.725</td><td>2.086</td><td>2.528</td><td>2.845</td></tr><tr><td>24</td><td>1.711</td><td>2.064</td><td>2.492</td><td>2.797</td></tr><tr><td>30</td><td>1.697</td><td>2.042</td><td>2.457</td><td>2.750</td></tr><tr><td>40</td><td>1.684</td><td>2.021</td><td>2.423</td><td>2.704</td></tr><tr><td>60</td><td>1.671</td><td>2.000</td><td>2.390</td><td>2.660</td></tr><tr><td>120</td><td>1.658</td><td>1.980</td><td>2.358</td><td>2.617</td></tr><tr><td>∞</td><td>1.645</td><td>1.960</td><td>2.326</td><td>2.576</td></tr></table></div></details>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="anova">
+<h2><span class="num">3.12</span> Analysis of variance (ANOVA)</h2>
+<div class="concept">
+  <h3>One-way ANOVA</h3>
+  <div class="f-exp">Developed by R.A. Fisher. Tests whether <b>three or more</b> population means are equal. Instead of many t-tests (which inflates the Type I error), it splits the total variation into variation <b>between</b> groups (due to the factor) and <b>within</b> groups (random error), and compares them with the <b>F-ratio</b>:
+  <span class="eq">F = <span class="fr"><span>variance between samples (MSC)</span><span>variance within samples (MSE)</span></span></span>
+  If the group means are equal, both estimate the same variance and F ≈ 1; a large F means the means differ.</div>
+  <div class="f-use">Comparing average sales of 4 stores, yields of 3 wheat varieties, scores of students taught by 3 methods, customer satisfaction across 5 branches.</div>
+  <div class="f-imp">
+    <p><b>Assumptions:</b> samples are random and independent; populations are normal; variances are equal (homoscedasticity).</p>
+    <ol class="steps">
+      <li><b>H₀:</b> μ₁ = μ₂ = … = μ<sub>k</sub>; <b>H₁:</b> not all means are equal.</li>
+      <li>T = grand total of all N observations; <b>correction factor CF = T²/N</b>.</li>
+      <li><b>SST</b> (total) = ΣX² − CF.</li>
+      <li><b>SSC</b> (between columns/groups) = Σ(T<sub>j</sub>²/n<sub>j</sub>) − CF, where T<sub>j</sub> is the total of group j.</li>
+      <li><b>SSE</b> (within/error) = SST − SSC.</li>
+      <li>Degrees of freedom: between = k − 1; within = N − k; total = N − 1.</li>
+      <li>Mean squares: MSC = SSC/(k − 1); MSE = SSE/(N − k); <b>F = MSC/MSE</b>.</li>
+      <li>Compare with F-table at (k − 1, N − k) df; F calculated &gt; F table → reject H₀.</li>
+    </ol></div>
+  <div class="f-lim">Tells you that some means differ, not <i>which</i> ones (post-hoc tests such as Tukey's are needed); sensitive to unequal variances.</div>
+</div>
+<div class="box example" data-title="Worked example — three varieties of wheat (yield per plot)">
+<table class="num compact"><tr><th>Plot</th><th>A</th><th>B</th><th>C</th></tr><tr><td>1</td><td>6</td><td>5</td><td>5</td></tr><tr><td>2</td><td>7</td><td>5</td><td>4</td></tr><tr><td>3</td><td>3</td><td>3</td><td>3</td></tr><tr><td>4</td><td>8</td><td>7</td><td>4</td></tr><tr class="total"><td>Total T<sub>j</sub></td><td>24</td><td>20</td><td>16</td></tr></table>
+<ol class="steps">
+  <li>H₀: the three varieties have equal mean yield.</li>
+  <li>T = 60, N = 12, CF = 60²/12 = <b>300</b>.</li>
+  <li>ΣX² = 36 + 49 + 9 + 64 + 25 + 25 + 9 + 49 + 25 + 16 + 9 + 16 = 332 → SST = 332 − 300 = <b>32</b>.</li>
+  <li>SSC = (24² + 20² + 16²)/4 − 300 = (576 + 400 + 256)/4 − 300 = 308 − 300 = <b>8</b>.</li>
+  <li>SSE = 32 − 8 = <b>24</b>.</li>
+</ol>
+<table class="num"><tr><th>Source of variation</th><th>SS</th><th>df</th><th>MS</th><th>F</th></tr>
+<tr><td>Between varieties</td><td>8</td><td>2</td><td>4</td><td rowspan="2">4/2.667 = <b>1.5</b></td></tr>
+<tr><td>Within (error)</td><td>24</td><td>9</td><td>2.667</td></tr>
+<tr class="total"><td>Total</td><td>32</td><td>11</td><td></td><td></td></tr></table>
+<p>F<sub>0.05</sub>(2, 9) = <b>4.26</b>. Since 1.5 &lt; 4.26 → <b>accept H₀</b>: no significant difference among the varieties.</p>
+</div>
+<div class="box oos" data-title="Beyond the syllabus · two-way ANOVA">
+  <p>Studies two factors at once (e.g. variety <i>and</i> fertiliser) by also computing SSR (between rows); then SSE = SST − SSC − SSR with (c − 1)(r − 1) df, giving two F-ratios.</p>
+</div>
+<div class="demo box" data-demo="anova" data-title="Interactive calculator — one-way ANOVA table"></div>
+<details class="more"><summary>F-table: 5 % critical values (df₁ = between, df₂ = within)</summary><div><table class="num compact"><tr><th>df₂ \ df₁</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr><tr><th>5</th><td>6.61</td><td>5.79</td><td>5.41</td><td>5.19</td><td>5.05</td><td>4.95</td></tr><tr><th>6</th><td>5.99</td><td>5.14</td><td>4.76</td><td>4.53</td><td>4.39</td><td>4.28</td></tr><tr><th>7</th><td>5.59</td><td>4.74</td><td>4.35</td><td>4.12</td><td>3.97</td><td>3.87</td></tr><tr><th>8</th><td>5.32</td><td>4.46</td><td>4.07</td><td>3.84</td><td>3.69</td><td>3.58</td></tr><tr><th>9</th><td>5.12</td><td>4.26</td><td>3.86</td><td>3.63</td><td>3.48</td><td>3.37</td></tr><tr><th>10</th><td>4.96</td><td>4.10</td><td>3.71</td><td>3.48</td><td>3.33</td><td>3.22</td></tr><tr><th>12</th><td>4.75</td><td>3.89</td><td>3.49</td><td>3.26</td><td>3.11</td><td>3.00</td></tr><tr><th>15</th><td>4.54</td><td>3.68</td><td>3.29</td><td>3.06</td><td>2.90</td><td>2.79</td></tr><tr><th>20</th><td>4.35</td><td>3.49</td><td>3.10</td><td>2.87</td><td>2.71</td><td>2.60</td></tr><tr><th>24</th><td>4.26</td><td>3.40</td><td>3.01</td><td>2.78</td><td>2.62</td><td>2.51</td></tr><tr><th>30</th><td>4.17</td><td>3.32</td><td>2.92</td><td>2.69</td><td>2.53</td><td>2.42</td></tr></table></div></details>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="chi-square">
+<h2><span class="num">3.13</span> Chi-square (χ²) test</h2>
+<div class="concept">
+  <h3>The χ² statistic</h3>
+  <div class="f-exp">Developed by Karl Pearson (1900). Compares <b>observed frequencies (O)</b> with <b>expected frequencies (E)</b> under a hypothesis:
+  <span class="eq">χ² = Σ <span class="fr"><span>(O − E)²</span><span>E</span></span></span>
+  χ² = 0 means perfect agreement; the larger χ², the bigger the discrepancy. It is a <b>non-parametric</b> test (makes no assumption about the population distribution) used for <b>counts / categorical data</b>.</div>
+  <div class="f-use"><b>Goodness of fit</b> (does data follow a given distribution — is a die fair?); <b>test of independence</b> (is gender related to product preference? is vaccination related to infection?); test of homogeneity.</div>
+  <div class="f-imp">
+    <p><b>Test of independence (contingency table):</b></p>
+    <ol class="steps">
+      <li>H₀: the two attributes are independent.</li>
+      <li>Expected frequency of each cell: <b>E = (Row total × Column total) / Grand total</b>.</li>
+      <li>Compute (O − E)²/E for each cell and add → χ².</li>
+      <li>df = (r − 1)(c − 1).</li>
+      <li>Compare with table χ² at α; calculated &gt; table → reject H₀ (attributes are associated).</li>
+    </ol>
+    <p><b>Goodness of fit:</b> E from the hypothesised distribution; df = (number of classes − 1 − number of estimated parameters).</p>
+    <p><b>Conditions:</b> random sample; observations independent; total N ≥ 50; every expected frequency ≥ 5 (pool small classes); data are frequencies, not percentages.</p></div>
+  <div class="f-lim">Only tells whether an association exists, not its strength or direction; unreliable when expected frequencies are small (for 2 × 2 tables use <b>Yates' correction</b>: replace |O − E| by |O − E| − 0.5).</div>
+</div>
+<div class="box example" data-title="Worked example 1 — test of independence">
+<p>200 customers: is gender related to liking a new product?</p>
+<table class="num compact"><tr><th></th><th>Likes</th><th>Dislikes</th><th>Total</th></tr><tr><th>Male</th><td>60</td><td>40</td><td>100</td></tr><tr><th>Female</th><td>30</td><td>70</td><td>100</td></tr><tr class="total"><td>Total</td><td>90</td><td>110</td><td>200</td></tr></table>
+<ol class="steps">
+  <li>H₀: liking is independent of gender.</li>
+  <li>E(Male, Likes) = 100 × 90/200 = 45; E(Male, Dislikes) = 55; E(Female, Likes) = 45; E(Female, Dislikes) = 55.</li>
+  <li>χ² = (60 − 45)²/45 + (40 − 55)²/55 + (30 − 45)²/45 + (70 − 55)²/55 = 5 + 4.09 + 5 + 4.09 = <b>18.18</b>.</li>
+  <li>df = (2 − 1)(2 − 1) = 1; χ²<sub>0.05</sub> = <b>3.841</b>.</li>
+  <li>18.18 &gt; 3.841 → <b>reject H₀</b>: liking the product is associated with gender (males like it more).</li>
+</ol>
+</div>
+<div class="box example" data-title="Worked example 2 — goodness of fit (is the die fair?)">
+<p>A die is thrown 120 times: faces 1–6 appear 15, 22, 18, 25, 20, 20 times.</p>
+<ol class="steps">
+  <li>H₀: the die is fair → E = 120/6 = 20 for every face.</li>
+  <li>χ² = (25 + 4 + 4 + 25 + 0 + 0)/20 = 58/20 = <b>2.9</b>.</li>
+  <li>df = 6 − 1 = 5; χ²<sub>0.05</sub> = <b>11.07</b>.</li>
+  <li>2.9 &lt; 11.07 → <b>accept H₀</b>: the die is fair.</li>
+</ol>
+</div>
+<div class="demo box" data-demo="chisq" data-title="Interactive calculator — χ² test of independence"></div>
+<details class="more"><summary>χ²-table: critical values</summary><div><table class="num compact"><tr><th>df</th><th>0.10</th><th>0.05</th><th>0.01</th></tr><tr><td>1</td><td>2.706</td><td>3.841</td><td>6.635</td></tr><tr><td>2</td><td>4.605</td><td>5.991</td><td>9.210</td></tr><tr><td>3</td><td>6.251</td><td>7.815</td><td>11.345</td></tr><tr><td>4</td><td>7.779</td><td>9.488</td><td>13.277</td></tr><tr><td>5</td><td>9.236</td><td>11.070</td><td>15.086</td></tr><tr><td>6</td><td>10.645</td><td>12.592</td><td>16.812</td></tr><tr><td>7</td><td>12.017</td><td>14.067</td><td>18.475</td></tr><tr><td>8</td><td>13.362</td><td>15.507</td><td>20.090</td></tr><tr><td>9</td><td>14.684</td><td>16.919</td><td>21.666</td></tr><tr><td>10</td><td>15.987</td><td>18.307</td><td>23.209</td></tr><tr><td>12</td><td>18.549</td><td>21.026</td><td>26.217</td></tr><tr><td>15</td><td>22.307</td><td>24.996</td><td>30.578</td></tr><tr><td>20</td><td>28.412</td><td>31.410</td><td>37.566</td></tr></table></div></details>
+
+<h3>Which test should I use?</h3>
+<table>
+  <tr><th>Situation</th><th>Test</th></tr>
+  <tr><td>One sample mean vs a claimed value, small n, σ unknown</td><td>One-sample t (df = n − 1)</td></tr>
+  <tr><td>Two independent group means</td><td>Two-sample t (df = n₁ + n₂ − 2)</td></tr>
+  <tr><td>Same subjects before/after</td><td>Paired t (df = n − 1)</td></tr>
+  <tr><td>Three or more group means</td><td>ANOVA (F with k − 1, N − k)</td></tr>
+  <tr><td>Association between two categorical variables</td><td>χ² independence ((r−1)(c−1))</td></tr>
+  <tr><td>Observed counts vs a theoretical distribution</td><td>χ² goodness of fit (k − 1 − estimated parameters)</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="unit3-review">
+<h2><span class="num">3.14</span> Unit III review and self-test</h2>
+<div class="box summary"><ul>
+  <li>P(A) = m/n; P(A ∪ B) = P(A) + P(B) − P(A ∩ B); P(A′) = 1 − P(A); P(A ∩ B) = P(A)P(B | A); P(A | B) = P(A ∩ B)/P(B).</li>
+  <li>Bayes: posterior = prior × likelihood / Σ(prior × likelihood).</li>
+  <li>E(X) = Σxp; Var = Σx²p − μ².</li>
+  <li>Binomial nCr p<sup>r</sup>q<sup>n−r</sup>, mean np, var npq. Poisson e<sup>−m</sup>m<sup>r</sup>/r!, mean = var = m. Normal: z = (x − μ)/σ, 68–95–99.7.</li>
+  <li>Tests: H₀/H₁, α, statistic, table value, decision. t (small samples), F (ANOVA: SST = SSC + SSE), χ² = Σ(O − E)²/E with E = RT·CT/N.</li>
+</ul></div>
+<div class="quiz">
+  <div class="mcq" data-ans="c"><p class="q">1. P(sum = 7) with two dice is:</p><ol><li>7/36</li><li>5/36</li><li>1/6</li><li>1/12</li></ol><p class="why">6 favourable out of 36.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">2. If A and B are independent with P(A) = 0.3, P(B) = 0.5, then P(A ∪ B) =</p><ol><li>0.65</li><li>0.8</li><li>0.15</li><li>0.5</li></ol><p class="why">0.3 + 0.5 − 0.15.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">3. For a binomial distribution with n = 20, p = 0.25, the variance is:</p><ol><li>5</li><li>15</li><li>4.5</li><li>3.75</li></ol><p class="why">npq = 20 × 0.25 × 0.75.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">4. In a Poisson distribution:</p><ol><li>mean &gt; variance</li><li>mean = variance</li><li>mean &lt; variance</li><li>variance = mean²</li></ol><p class="why">Both equal m.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">5. Area within μ ± 2σ of a normal curve is about:</p><ol><li>68 %</li><li>99.7 %</li><li>95 %</li><li>50 %</li></ol><p class="why">Empirical rule.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">6. Rejecting a true null hypothesis is a:</p><ol><li>Type I error</li><li>Type II error</li><li>sampling error</li><li>standard error</li></ol><p class="why">Its probability is α.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">7. Degrees of freedom for a 3 × 4 contingency table:</p><ol><li>12</li><li>7</li><li>11</li><li>6</li></ol><p class="why">(3 − 1)(4 − 1).</p></div>
+  <div class="mcq" data-ans="b"><p class="q">8. ANOVA uses which statistic?</p><ol><li>t</li><li>F</li><li>χ²</li><li>z</li></ol><p class="why">F = MSC/MSE.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">9. The t-test is appropriate when:</p><ol><li>n is large and σ known</li><li>data are frequencies</li><li>n is small and σ unknown</li><li>comparing 4 means</li></ol><p class="why">Student's t.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">10. In Bayes' theorem, P(B<sub>i</sub>) is called the:</p><ol><li>prior probability</li><li>posterior probability</li><li>likelihood</li><li>joint probability</li></ol><p class="why">Belief before seeing the evidence.</p></div>
+</div>
+<h3>Likely exam questions</h3>
+<table>
+  <tr><th>Marks</th><th>Question</th></tr>
+  <tr><td>2</td><td>Define sample space / mutually exclusive events / random variable. · State Bayes' theorem. · Mean and variance of binomial/Poisson. · Define Type I and Type II errors. · What is degrees of freedom?</td></tr>
+  <tr><td>5</td><td>Probability problems (cards, dice, balls). · Bayes' theorem problem. · Binomial/Poisson problems. · Properties of the normal distribution. · Normal area problems. · Steps in hypothesis testing. · χ² goodness of fit.</td></tr>
+  <tr><td>10</td><td>Explain Binomial, Poisson and Normal distributions with applications. · One-sample / two-sample t-test problem. · One-way ANOVA problem. · χ² test of independence.</td></tr>
+</table>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="stats-core.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

@@ -260,5 +260,157 @@ Worst experience ever, the package arrived late and damaged.</textarea></label><
     K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
   };
 
-  /*__UNIT3__*/
+  /* ------------------------------------------------------------- Unit III */
+  const segSetup = (host, id, cb) => K.qa(host, `#${id} button`).forEach(b => b.addEventListener("click", () => { K.qa(host, `#${id} button`).forEach(x => x.classList.toggle("on", x === b)); cb(b.dataset.v); }));
+
+  D.dicesim = function (host) {
+    host.innerHTML = `<div class="demo-row"><button class="btn" data-n="1">Roll once</button><button class="btn" data-n="10">Roll 10</button><button class="btn" data-n="100">Roll 100</button><button class="btn" data-n="1000">Roll 1000</button><button class="btn ghost" id="r">Reset</button></div><div id="ch"></div><div class="out" id="o"></div>`;
+    let c = [0, 0, 0, 0, 0, 0], n = 0, hist = [];
+    function draw() {
+      const ch = K.q(host, "#ch"); ch.innerHTML = "";
+      ch.appendChild(K.barChart({ labels: ["1", "2", "3", "4", "5", "6"], values: c.map(v => n ? v / n : 0), yMax: 0.4, h: 200, fmt: v => K.num(v, 3) }));
+      if (hist.length > 1) ch.appendChild(K.lineChart({ labels: hist.map(h => String(h[0])), series: [{ values: hist.map(h => h[1]), name: "relative freq of 6" }, { values: hist.map(() => 1 / 6), name: "1/6", color: "#f08c00" }], yMax: 0.4, h: 180 }));
+      K.q(host, "#o").innerHTML = `Rolls: <b>${n}</b>. Relative frequency of a six = ${c[5]}/${n || 1} = <b>${f(n ? c[5] / n : 0, 3)}</b> (theory 1/6 = 0.167). With more rolls the bars level out at 1/6 — the relative-frequency definition in action.`;
+    }
+    K.qa(host, "[data-n]").forEach(b => b.addEventListener("click", () => { const k = +b.dataset.n; for (let i = 0; i < k; i++) { c[Math.floor(Math.random() * 6)]++; n++; } hist.push([n, c[5] / n]); if (hist.length > 40) hist.shift(); draw(); }));
+    K.q(host, "#r").addEventListener("click", () => { c = [0, 0, 0, 0, 0, 0]; n = 0; hist = []; draw(); });
+    draw();
+  };
+
+  D.bayes = function (host) {
+    host.innerHTML = `<div class="demo-row"><label>Prevalence P(D) %<input type="number" id="p" value="1" step="0.1"></label><label>Sensitivity P(+|D) %<input type="number" id="s" value="99" step="0.5"></label><label>False-positive rate P(+|no D) %<input type="number" id="fp" value="5" step="0.5"></label></div><div id="g"></div><div class="out" id="o"></div>`;
+    function go() {
+      const p = +K.q(host, "#p").value / 100, s = +K.q(host, "#s").value / 100, fp = +K.q(host, "#fp").value / 100;
+      const tp = p * s, fpos = (1 - p) * fp, post = tp / (tp + fpos);
+      // 1000-person grid
+      const N = 1000, sick = Math.round(N * p), tpN = Math.round(sick * s), fpN = Math.round((N - sick) * fp);
+      let h = `<div style="display:grid;grid-template-columns:repeat(50,1fr);gap:1px;max-width:600px">`;
+      for (let i = 0; i < N; i++) {
+        let col = "var(--line)";
+        if (i < tpN) col = "var(--bad)"; else if (i < sick) col = "#f4a3a3"; else if (i < sick + fpN) col = "var(--warn)";
+        h += `<i style="display:block;aspect-ratio:1;background:${col};border-radius:2px"></i>`;
+      }
+      K.q(host, "#g").innerHTML = h + `</div><div class="legend" style="margin-top:6px"><span><i style="background:var(--bad)"></i>sick &amp; test + (${tpN})</span><span><i style="background:#f4a3a3"></i>sick &amp; test − (${sick - tpN})</span><span><i style="background:var(--warn)"></i>healthy but test + (${fpN})</span><span><i style="background:var(--line)"></i>healthy &amp; test −</span></div>`;
+      K.q(host, "#o").innerHTML = `P(D | +) = P(D)P(+|D) / [P(D)P(+|D) + P(D′)P(+|D′)] = ${f(p)}×${f(s)} / (${f(tp)} + ${f(1 - p)}×${f(fp)}) = ${f(tp)} / ${f(tp + fpos)} = <b class="big-out">${f(post, 4)}</b><br>In the picture of 1000 people: ${tpN} true positives out of ${tpN + fpN} positives ≈ ${f(100 * tpN / Math.max(1, tpN + fpN), 1)}%. Try raising the prevalence and watch the posterior jump.`;
+    }
+    K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.binomial = function (host) {
+    host.innerHTML = `<div class="demo-row"><label>n (trials): <b id="nv"></b><input type="range" id="n" min="1" max="40" value="10"></label><label>p (success): <b id="pv"></b><input type="range" id="p" min="0.01" max="0.99" step="0.01" value="0.5"></label><label>r from<input type="number" id="a" value="8"></label><label>to<input type="number" id="b" value="10"></label></div><div id="ch"></div><div class="out" id="o"></div>`;
+    function go() {
+      const n = +K.q(host, "#n").value, p = +K.q(host, "#p").value, a = +K.q(host, "#a").value, b = +K.q(host, "#b").value;
+      K.q(host, "#nv").textContent = n; K.q(host, "#pv").textContent = p;
+      const pr = [...Array(n + 1).keys()].map(r => ST.binom(n, p, r));
+      const ch = K.q(host, "#ch"); ch.innerHTML = "";
+      ch.appendChild(K.barChart({ labels: pr.map((_, r) => String(r)), values: pr, h: 220, fmt: v => K.num(v, 3), active: r => r >= a && r <= b, showValues: n <= 12 }));
+      let sum = 0; for (let r = Math.max(0, a); r <= Math.min(n, b); r++) sum += pr[r];
+      const one = Math.max(0, Math.min(n, a));
+      K.q(host, "#o").innerHTML = `P(X = ${one}) = ${n}C${one} (${p})<sup>${one}</sup> (${f(1 - p, 2)})<sup>${n - one}</sup> = ${ST.nCr(n, one)} × ${f(p ** one, 6)} × ${f((1 - p) ** (n - one), 6)} = <b>${f(pr[one], 4)}</b><br>P(${a} ≤ X ≤ ${b}) = <b>${f(sum, 4)}</b> (highlighted bars)<br>Mean np = ${f(n * p, 3)}, variance npq = ${f(n * p * (1 - p), 3)}, SD = ${f(Math.sqrt(n * p * (1 - p)), 3)}. ${p === 0.5 ? "p = ½ → symmetric." : p < 0.5 ? "p &lt; ½ → positively skewed." : "p &gt; ½ → negatively skewed."}`;
+    }
+    K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.poisson = function (host) {
+    host.innerHTML = `<div class="demo-row"><label>mean m: <b id="mv"></b><input type="range" id="m" min="0.2" max="12" step="0.1" value="2"></label><label>P(X ≤ k), k =<input type="number" id="k" value="2"></label><label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="cmp"> compare with Binomial n = 100, p = m/100</label></div><div id="ch"></div><div class="out" id="o"></div>`;
+    function go() {
+      const m = +K.q(host, "#m").value, k = +K.q(host, "#k").value, cmp = K.q(host, "#cmp").checked; K.q(host, "#mv").textContent = m;
+      const R = Math.max(10, Math.ceil(m + 4 * Math.sqrt(m))), pr = [...Array(R + 1).keys()].map(r => ST.poisson(m, r));
+      const ch = K.q(host, "#ch"); ch.innerHTML = "";
+      const series = [{ values: pr, name: "Poisson" }]; if (cmp) series.push({ values: pr.map((_, r) => ST.binom(100, m / 100, r)), name: "Binomial", color: "#f08c00" });
+      ch.appendChild(cmp ? K.lineChart({ labels: pr.map((_, r) => String(r)), series, h: 220 }) : K.barChart({ labels: pr.map((_, r) => String(r)), values: pr, h: 220, fmt: v => K.num(v, 3), active: r => r <= k, showValues: R <= 12 }));
+      let cum = 0; const steps = []; for (let r = 0; r <= k && r <= R; r++) { cum += pr[r]; steps.push(`P(${r}) = ${f(pr[r], 4)}`); }
+      K.q(host, "#o").innerHTML = `e<sup>−${m}</sup> = ${f(Math.exp(-m), 4)}. ${steps.join("; ")}<br>P(X ≤ ${k}) = <b>${f(cum, 4)}</b>; P(X ≥ ${k + 1}) = ${f(1 - cum, 4)}<br>Mean = variance = ${m}. ${cmp ? "With n large and p small the two curves almost coincide — Poisson approximates Binomial." : ""}`;
+    }
+    K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.normal = function (host) {
+    host.innerHTML = `<div class="demo-row"><label>μ<input type="number" id="mu" value="60"></label><label>σ<input type="number" id="sd" value="10"></label><label>from x₁<input type="number" id="a" value="50"></label><label>to x₂<input type="number" id="b" value="70"></label><button class="btn ghost" id="above">P(X &gt; x₁)</button><button class="btn ghost" id="below">P(X &lt; x₂)</button></div><div id="ch"></div><div class="out" id="o"></div>`;
+    let mode = "between";
+    K.q(host, "#above").addEventListener("click", () => { mode = "above"; go(); });
+    K.q(host, "#below").addEventListener("click", () => { mode = "below"; go(); });
+    K.qa(host, "input").forEach(i => i.addEventListener("input", () => { mode = "between"; go(); }));
+    function go() {
+      const mu = +K.q(host, "#mu").value, sd = Math.max(0.0001, +K.q(host, "#sd").value), a = +K.q(host, "#a").value, b = +K.q(host, "#b").value;
+      const lo = mode === "below" ? mu - 4.5 * sd : a, hi = mode === "above" ? mu + 4.5 * sd : b;
+      const W = 600, H = 240, s = K.svg(W, H), X = x => 20 + (x - (mu - 4 * sd)) / (8 * sd) * (W - 40), Y = y => H - 30 - y / ST.normPdf(mu, mu, sd) * (H - 50);
+      let area = `M${X(Math.max(lo, mu - 4 * sd))},${Y(0)}`;
+      for (let i = 0; i <= 200; i++) { const x = Math.max(lo, mu - 4 * sd) + (Math.min(hi, mu + 4 * sd) - Math.max(lo, mu - 4 * sd)) * i / 200; area += ` L${X(x)},${Y(ST.normPdf(x, mu, sd))}`; }
+      area += ` L${X(Math.min(hi, mu + 4 * sd))},${Y(0)} Z`;
+      K.s(s, "path", { d: area, "class": "area" });
+      let d = ""; for (let i = 0; i <= 300; i++) { const x = mu - 4 * sd + 8 * sd * i / 300; d += (i ? "L" : "M") + X(x) + "," + Y(ST.normPdf(x, mu, sd)); }
+      K.s(s, "path", { d, "class": "ln" });
+      K.s(s, "line", { x1: 20, x2: W - 20, y1: Y(0), y2: Y(0), "class": "axis" });
+      for (let k = -3; k <= 3; k++) { K.s(s, "line", { x1: X(mu + k * sd), x2: X(mu + k * sd), y1: Y(0), y2: Y(0) + 5, "class": "axis" }); K.s(s, "text", { x: X(mu + k * sd), y: Y(0) + 18, "text-anchor": "middle" }, `${K.num(mu + k * sd, 2)}`); }
+      const ch = K.q(host, "#ch"); ch.innerHTML = ""; ch.appendChild(s);
+      const z1 = (a - mu) / sd, z2 = (b - mu) / sd;
+      let txt, p;
+      if (mode === "above") { p = 1 - ST.normCdf(z1); txt = `P(X &gt; ${a}): z = (${a} − ${mu})/${sd} = ${f(z1, 2)}; P = 0.5 ${z1 >= 0 ? "−" : "+"} A(${f(Math.abs(z1), 2)}) = 0.5 ${z1 >= 0 ? "−" : "+"} ${f(Math.abs(ST.normCdf(z1) - 0.5), 4)}`; }
+      else if (mode === "below") { p = ST.normCdf(z2); txt = `P(X &lt; ${b}): z = (${b} − ${mu})/${sd} = ${f(z2, 2)}; P = 0.5 ${z2 >= 0 ? "+" : "−"} A(${f(Math.abs(z2), 2)}) = 0.5 ${z2 >= 0 ? "+" : "−"} ${f(Math.abs(ST.normCdf(z2) - 0.5), 4)}`; }
+      else { p = ST.normCdf(z2) - ST.normCdf(z1); txt = `P(${a} &lt; X &lt; ${b}): z₁ = ${f(z1, 2)}, z₂ = ${f(z2, 2)}; areas from 0: ${f(Math.abs(ST.normCdf(z1) - 0.5), 4)} and ${f(Math.abs(ST.normCdf(z2) - 0.5), 4)} → ${z1 * z2 < 0 ? "opposite sides: add" : "same side: subtract"}`; }
+      K.q(host, "#o").innerHTML = `${txt}<br>Probability = <b class="big-out">${f(p, 4)}</b> (shaded area)`;
+    }
+    go();
+  };
+
+  D.ttest = function (host) {
+    host.innerHTML = `<div class="demo-row"><div class="seg" id="ty"><button class="on" data-v="one">One sample</button><button data-v="two">Two samples</button><button data-v="pair">Paired</button></div><label>α<select id="al"><option>0.05</option><option>0.01</option><option>0.10</option></select></label></div>
+      <div class="demo-row"><label class="grow" id="l1">Sample<input type="text" id="a" class="wide" value="70, 120, 110, 101, 88, 83, 95, 98, 107, 100"></label></div>
+      <div class="demo-row"><label class="grow" id="l2">Hypothesised mean μ₀<input type="text" id="b" class="wide" value="100"></label></div><div id="o"></div>`;
+    let ty = "one";
+    const presets = { one: ["70, 120, 110, 101, 88, 83, 95, 98, 107, 100", "100", "Sample", "Hypothesised mean μ₀"], two: ["49, 53, 51, 52, 47, 50, 52, 53", "52, 55, 52, 53, 50, 54, 54, 53", "Sample 1", "Sample 2"], pair: ["110, 120, 123, 132, 125", "120, 118, 125, 136, 121", "Before", "After"] };
+    segSetup(host, "ty", v => { ty = v; const p = presets[v]; K.q(host, "#a").value = p[0]; K.q(host, "#b").value = p[1]; K.q(host, "#l1").firstChild.textContent = p[2]; K.q(host, "#l2").firstChild.textContent = p[3]; go(); });
+    function go() {
+      const al = +K.q(host, "#al").value, A = nums(K.q(host, "#a").value), B = nums(K.q(host, "#b").value), o = K.q(host, "#o");
+      let r, steps;
+      if (ty === "one") {
+        if (A.length < 2 || !B.length) return; r = ST.tOne(A, B[0]);
+        steps = `H₀: μ = ${B[0]}; H₁: μ ≠ ${B[0]}<br>n = ${r.n}, x̄ = ${f(r.m)}, S = √[Σ(X − x̄)²/(n − 1)] = ${f(r.s)}<br>t = (x̄ − μ)/(S/√n) = (${f(r.m)} − ${B[0]})/(${f(r.s)}/√${r.n}) = <b>${f(r.t)}</b>`;
+      } else if (ty === "two") {
+        if (A.length < 2 || B.length < 2) return; r = ST.tTwo(A, B);
+        steps = `H₀: μ₁ = μ₂; H₁: μ₁ ≠ μ₂<br>x̄₁ = ${f(r.m1)}, x̄₂ = ${f(r.m2)}; Σ(X₁ − x̄₁)² = ${f(r.ss1)}, Σ(X₂ − x̄₂)² = ${f(r.ss2)}<br>S = √[(${f(r.ss1)} + ${f(r.ss2)})/(${r.n1} + ${r.n2} − 2)] = ${f(r.sp)}<br>t = (x̄₁ − x̄₂)/(S√(1/n₁ + 1/n₂)) = <b>${f(r.t)}</b>`;
+      } else {
+        if (A.length !== B.length || A.length < 2) { o.innerHTML = `<div class="out no">Paired data need equal numbers of before/after values.</div>`; return; }
+        r = ST.tPaired(A, B);
+        steps = `H₀: mean difference = 0<br>d = after − before = ${r.d.join(", ")}; d̄ = ${f(r.m)}; S<sub>d</sub> = ${f(r.s)}<br>t = d̄/(S<sub>d</sub>/√n) = ${f(r.m)}/(${f(r.s)}/√${r.n}) = <b>${f(r.t)}</b>`;
+      }
+      const crit = ST.tCrit(al, r.df), pv = 2 * (1 - ST.tCdf(Math.abs(r.t), r.df)), rej = Math.abs(r.t) > crit;
+      o.innerHTML = `<div class="out">${steps}<br>df = ${r.df}; table t<sub>${al}</sub> (two-tailed) = <b>${f(crit, 3)}</b>; p-value = ${f(pv, 4)}<br>Decision: |t| = ${f(Math.abs(r.t), 3)} ${rej ? "&gt;" : "&lt;"} ${f(crit, 3)} → ${rej ? '<span class="no">reject H₀ — the difference is significant.</span>' : '<span class="ok">accept H₀ — the difference is not significant.</span>'}</div>`;
+    }
+    K.qa(host, "input,select").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.anova = function (host) {
+    host.innerHTML = `<p class="hint">One group per line (values separated by commas).</p><textarea id="t" rows="4" style="width:100%">6, 7, 3, 8
+5, 5, 3, 7
+5, 4, 3, 4</textarea><div class="demo-row"><label>α<select id="al"><option>0.05</option><option>0.01</option></select></label></div><div id="o"></div>`;
+    function go() {
+      const groups = K.q(host, "#t").value.split(/\n+/).map(nums).filter(g => g.length), al = +K.q(host, "#al").value, o = K.q(host, "#o");
+      if (groups.length < 2 || groups.some(g => g.length < 2)) { o.innerHTML = `<div class="out no">Enter at least two groups with two or more values each.</div>`; return; }
+      const r = ST.anova1(groups), SX2 = [].concat(...groups).reduce((a, x) => a + x * x, 0), crit = ST.fCrit(al, r.df1, r.df2), rej = r.F > crit;
+      o.innerHTML = `<div class="out">T = ${r.T}, N = ${r.N}, CF = T²/N = ${f(r.CF)}<br>SST = ΣX² − CF = ${SX2} − ${f(r.CF)} = <b>${f(r.SST)}</b><br>SSC = Σ(Tⱼ²/nⱼ) − CF = ${groups.map(g => `${g.reduce((a, b) => a + b, 0)}²/${g.length}`).join(" + ")} − ${f(r.CF)} = <b>${f(r.SSC)}</b><br>SSE = SST − SSC = <b>${f(r.SSE)}</b></div>` +
+        tbl(["Source", "SS", "df", "MS", "F"], [["Between groups", f(r.SSC), r.df1, f(r.MSC), `<b>${f(r.F)}</b>`], ["Within groups (error)", f(r.SSE), r.df2, f(r.MSE), ""], { cls: "total", cells: ["Total", f(r.SST), r.N - 1, "", ""] }]) +
+        `<div class="out">F<sub>${al}</sub>(${r.df1}, ${r.df2}) = <b>${f(crit, 3)}</b>; p-value = ${f(1 - ST.fCdf(r.F, r.df1, r.df2), 4)}. ${rej ? '<span class="no">F &gt; table → reject H₀: the group means differ.</span>' : '<span class="ok">F &lt; table → accept H₀: no significant difference among means.</span>'}</div>`;
+    }
+    K.qa(host, "textarea,select").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.chisq = function (host) {
+    host.innerHTML = `<p class="hint">Observed frequencies — one row per line.</p><textarea id="t" rows="3" style="width:100%">60, 40
+30, 70</textarea><div class="demo-row"><label>α<select id="al"><option>0.05</option><option>0.01</option></select></label></div><div id="o"></div>`;
+    function go() {
+      const obs = K.q(host, "#t").value.split(/\n+/).map(nums).filter(r => r.length), al = +K.q(host, "#al").value, o = K.q(host, "#o");
+      if (obs.length < 2 || obs.some(r => r.length !== obs[0].length) || obs[0].length < 2) { o.innerHTML = `<div class="out no">Enter a rectangular table with at least 2 rows and 2 columns.</div>`; return; }
+      const r = ST.chiTable(obs), rows = [];
+      obs.forEach((row, i) => row.forEach((O, j) => { const E = r.E[i][j]; rows.push([`(${i + 1}, ${j + 1})`, O, `${r.rowT[i]}×${r.colT[j]}/${r.N} = ${f(E, 2)}`, f(O - E, 2), f((O - E) ** 2, 2), f((O - E) ** 2 / E, 4)]); }));
+      rows.push({ cls: "total", cells: ["", "", "", "", "χ² =", `<b>${f(r.chi, 4)}</b>`] });
+      const crit = ST.chiCrit(al, r.df), small = r.E.flat().some(e => e < 5);
+      o.innerHTML = tbl(["Cell", "O", "E = RT×CT/N", "O − E", "(O − E)²", "(O − E)²/E"], rows) +
+        `<div class="out">df = (${obs.length} − 1)(${obs[0].length} − 1) = ${r.df}; χ²<sub>${al}</sub> = <b>${f(crit, 3)}</b>; p-value = ${f(1 - ST.chiCdf(r.chi, r.df), 4)}<br>${r.chi > crit ? '<span class="no">χ² &gt; table → reject H₀: the attributes are associated.</span>' : '<span class="ok">χ² &lt; table → accept H₀: the attributes are independent.</span>'}${small ? '<br><span class="no">Warning: some expected frequencies are below 5 — pool classes or use Yates\' correction.</span>' : ""}</div>`;
+    }
+    K.qa(host, "textarea,select").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  /*__UNIT4__*/
 })();
