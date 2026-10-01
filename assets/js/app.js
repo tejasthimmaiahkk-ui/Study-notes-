@@ -78,7 +78,7 @@
     var body = document.body;
     var subjKey = body.getAttribute("data-subject");
     var pageFile = body.getAttribute("data-page");
-    var root = body.getAttribute("data-root") || "../";
+    var root = body.hasAttribute("data-root") ? body.getAttribute("data-root") : "../";
     var subj = SITE[subjKey];
 
     buildTopbar(subj, subjKey, pageFile, root);

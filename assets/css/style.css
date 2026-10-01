@@ -42,7 +42,7 @@ body[data-subject="da"]     { --acc: #0c8a6c; --acc-2: #08725a; --acc-soft: #e2f
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #15171c; --bg-2: #1b1e24; --card: #1e2128; --ink: #e8e6e3; --ink-2: #b6bcc6; --ink-3: #8a919c;
+    --bg: #15171c; --bg-2: #1b1e24; --card: #1e2128; --ink: #e8e6e3; --ink-2: #b6bcc6; --ink-3: #8a919c; --acc: #748ffc; --acc-2: #91a7ff;
     --line: #2f333c; --acc-soft: #23284a; --good: #51cf66; --good-soft: #17301f; --bad: #ff6b6b; --bad-soft: #3a1d1d;
     --warn: #fcc419; --warn-soft: #3a3016; --oos: #b197fc; --oos-soft: #2a2342; --found: #3bc9db; --found-soft: #15303a;
     --code-bg: #252932; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
@@ -53,7 +53,7 @@ body[data-subject="da"]     { --acc: #0c8a6c; --acc-2: #08725a; --acc-soft: #e2f
   :root:not([data-theme="light"]) body[data-subject="da"]     { --acc: #38d9a9; --acc-2: #63e6be; --acc-soft: #153a30; }
 }
 :root[data-theme="dark"] {
-  --bg: #15171c; --bg-2: #1b1e24; --card: #1e2128; --ink: #e8e6e3; --ink-2: #b6bcc6; --ink-3: #8a919c;
+  --bg: #15171c; --bg-2: #1b1e24; --card: #1e2128; --ink: #e8e6e3; --ink-2: #b6bcc6; --ink-3: #8a919c; --acc: #748ffc; --acc-2: #91a7ff;
   --line: #2f333c; --acc-soft: #23284a; --good: #51cf66; --good-soft: #17301f; --bad: #ff6b6b; --bad-soft: #3a1d1d;
   --warn: #fcc419; --warn-soft: #3a3016; --oos: #b197fc; --oos-soft: #2a2342; --found: #3bc9db; --found-soft: #15303a;
   --code-bg: #252932; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
@@ -473,3 +473,15 @@ footer.site-foot { text-align: center; color: var(--ink-3); font-size: .8rem; pa
 .mat.c2 { grid-template-columns: repeat(2, auto); }
 .mat.c3 { grid-template-columns: repeat(3, auto); }
 .mat.c4 { grid-template-columns: repeat(4, auto); }
+
+/* Let grid children shrink on narrow screens; wide content scrolls inside its own box */
+.demo-body { grid-template-columns: minmax(0, 1fr); }
+.demo-body > *, .two-col > *, .three-col > *, .kpis > *, .grid-cards > *, .legend-boxes > * { min-width: 0; }
+.cells { max-width: 100%; overflow-x: auto; }
+.out, .box, .concept, .mcq, td { overflow-wrap: break-word; }
+@media (max-width: 900px) {
+  .math { white-space: normal; }
+  .demo input[type="number"] { width: 88px; }
+}
+.layout.no-side .content { width: 100%; min-width: 0; }
+.demo select, .demo label { max-width: 100%; }
