@@ -942,5 +942,177 @@
     K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
   };
 
-  /*__UNIT4__*/
+  /* --------------------------------------------------------------- Unit IV */
+
+  /* Generic protocol stepper: actors across the top, messages as arrows. */
+  function seqDemo(host, cfg) {
+    host.innerHTML = `<div class="demo-row"><button class="btn ghost" id="pv">◀ Back</button><button class="btn" id="nx">Next message ▶</button><button class="btn ghost" id="al">Show all</button><span id="ct" style="padding-bottom:8px"></span></div><div id="sv"></div><div class="out" id="ex"></div>`;
+    let i = 0, all = false;
+    const A = cfg.actors, n = cfg.steps.length, W = 680, colW = W / A.length, rowH = 44, H = 60 + n * rowH;
+    const X = name => colW * A.indexOf(name) + colW / 2;
+    function draw() {
+      const s = K.svg(W, H);
+      A.forEach(a => {
+        const r = K.s(s, "rect", { x: X(a) - 62, y: 6, width: 124, height: 30, rx: 7, "class": "dg-acc" }); void r;
+        K.s(s, "text", { x: X(a), y: 26, "text-anchor": "middle", "class": "dg-tb" }, a);
+        K.s(s, "line", { x1: X(a), x2: X(a), y1: 36, y2: H - 4, "class": "dg-dash" });
+      });
+      cfg.steps.forEach((st, k) => {
+        if (!all && k > i) return;
+        const y = 64 + k * rowH, x1 = X(st.from), x2 = X(st.to), cur = k === i && !all;
+        const ln = K.s(s, "line", { x1, x2: x2 + (x2 > x1 ? -6 : 6), y1: y, y2: y, "marker-end": cur ? "url(#arrA)" : "url(#arr)" });
+        ln.setAttribute("class", cur ? "dg-accline" : "dg-line");
+        const t = K.s(s, "text", { x: (x1 + x2) / 2, y: y - 7, "text-anchor": "middle", "class": cur ? "dg-ta" : "dg-ts" }, `${k + 1}. ${st.label}`);
+        void t;
+      });
+      const sv = K.q(host, "#sv"); sv.innerHTML = ""; sv.appendChild(s);
+      K.q(host, "#ct").textContent = all ? `all ${n} messages` : `message ${i + 1} / ${n}`;
+      const st = cfg.steps[all ? n - 1 : i];
+      K.q(host, "#ex").innerHTML = all ? (cfg.summary || "") : `<b>${i + 1}. ${st.from} → ${st.to}:</b> ${st.text}`;
+    }
+    K.q(host, "#nx").addEventListener("click", () => { all = false; if (i < n - 1) i++; draw(); });
+    K.q(host, "#pv").addEventListener("click", () => { all = false; if (i > 0) i--; draw(); });
+    K.q(host, "#al").addEventListener("click", () => { all = !all; draw(); });
+    draw();
+  }
+
+  D.rsasign = function (host) {
+    host.innerHTML = `<div class="demo-row"><label>p<input type="number" id="p" value="61"></label><label>q<input type="number" id="q" value="53"></label><label>e<input type="number" id="e" value="17"></label></div>
+      <div class="demo-row"><label class="grow">Message Alice signs<input type="text" id="m" value="Transfer 500 to Bob" class="wide"></label></div>
+      <div class="demo-row"><label class="grow">Message Bob receives (edit to tamper)<input type="text" id="m2" value="Transfer 500 to Bob" class="wide"></label></div><div id="o"></div>`;
+    const h = (txt, n) => { const hx = CC.sha512(CC.utf8(txt)); return BigInt("0x" + hx.slice(0, 12)) % n; }; // toy: hash reduced mod n
+    function go() {
+      const p = BigInt(+K.q(host, "#p").value), q = BigInt(+K.q(host, "#q").value), e = BigInt(+K.q(host, "#e").value), o = K.q(host, "#o");
+      if (!K.isPrime(Number(p)) || !K.isPrime(Number(q)) || p === q) { o.innerHTML = `<div class="out no">p and q must be distinct primes.</div>`; return; }
+      const n = p * q, phi = (p - 1n) * (q - 1n);
+      if (K.bgcd(e, phi) !== 1n) { o.innerHTML = `<div class="out no">e must be coprime to φ(n) = ${phi}.</div>`; return; }
+      const d = K.binv(e, phi), hm = h(K.q(host, "#m").value, n), S = K.bpow(hm, d, n), hm2 = h(K.q(host, "#m2").value, n), V = K.bpow(S, e, n);
+      o.innerHTML = `<div class="out">Keys: n = ${n}, public e = ${e}, private d = ${d}.<br>
+        <b>Alice:</b> h(M) mod n = ${hm} → S = h(M)<sup>d</sup> mod n = <b>${S}</b><br>
+        <b>Bob:</b> recomputes h(M′) mod n = ${hm2}; verifies S<sup>e</sup> mod n = ${V}<br>
+        ${V === hm2 ? '<span class="ok">✓ Signature valid — message authentic and unchanged.</span>' : '<span class="no">✗ Signature INVALID — the message was altered (or not signed by Alice).</span>'}</div>
+        <p class="hint">Toy hash: first 48 bits of SHA-512 reduced mod n. Real systems use 2048-bit n and padded full hashes.</p>`;
+    }
+    K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.needham = function (host) {
+    seqDemo(host, {
+      actors: ["Alice", "KDC", "Bob"],
+      steps: [
+        { from: "Alice", to: "KDC", label: "R_A, Alice, Bob", text: "Alice asks the KDC for a session key to talk to Bob, including a fresh nonce R<sub>A</sub>." },
+        { from: "KDC", to: "Alice", label: "K_A[R_A, Bob, K_AB, ticket]", text: "Encrypted with Alice's long-term key. Contains her nonce (proves freshness), the session key K<sub>AB</sub> and a ticket = K<sub>B</sub>[Alice, K<sub>AB</sub>] that only Bob can open." },
+        { from: "Alice", to: "Bob", label: "ticket = K_B[Alice, K_AB]", text: "Alice forwards the ticket. Bob decrypts it with his key and learns K<sub>AB</sub> and that it is for Alice." },
+        { from: "Bob", to: "Alice", label: "K_AB[R_B]", text: "Bob challenges Alice with a new nonce encrypted under the session key." },
+        { from: "Alice", to: "Bob", label: "K_AB[R_B − 1]", text: "Alice proves she holds K<sub>AB</sub> by returning R<sub>B</sub> − 1. Both now share K<sub>AB</sub>. (Weakness: a replayed old ticket with a stolen old K<sub>AB</sub> fools Bob — Kerberos adds timestamps.)" }
+      ],
+      summary: "Five messages: the KDC delivers a fresh session key to both parties; nonces prevent replay of KDC answers to Alice."
+    });
+  };
+
+  D.kerberos = function (host) {
+    seqDemo(host, {
+      actors: ["Alice", "AS", "TGS", "Bob (server)"],
+      steps: [
+        { from: "Alice", to: "AS", label: "Alice's ID", text: "Alice types her username. Only her identity is sent — <b>never the password</b>." },
+        { from: "AS", to: "Alice", label: "K_A-AS[K_A-TGS, TGS ticket]", text: "AS looks up Alice's password-derived key K<sub>A-AS</sub> and returns a session key for the TGS plus a ticket for the TGS (encrypted with the AS–TGS key). Alice's workstation now asks for her password, derives K<sub>A-AS</sub> and decrypts. Wrong password → cannot decrypt." },
+        { from: "Alice", to: "TGS", label: "TGS ticket, Bob, K_A-TGS[T]", text: "Alice asks for access to Bob, sending the TGS ticket and an authenticator (timestamp T encrypted with K<sub>A-TGS</sub>) — prevents replay." },
+        { from: "TGS", to: "Alice", label: "K_A-TGS[Bob, K_A-B], K_TGS-B[Alice, K_A-B]", text: "TGS issues a session key K<sub>A-B</sub> for Alice and a ticket for Bob containing the same key, encrypted with Bob's key." },
+        { from: "Alice", to: "Bob (server)", label: "Bob's ticket, K_A-B[T]", text: "Alice presents Bob's ticket and a fresh timestamp encrypted with K<sub>A-B</sub>." },
+        { from: "Bob (server)", to: "Alice", label: "K_A-B[T + 1]", text: "Bob proves his identity by returning T + 1 under K<sub>A-B</sub> — mutual authentication. Alice can now use the service; for another server she repeats from message 3 (single sign-on)." }
+      ],
+      summary: "Login once (messages 1–2), then get service tickets from the TGS (3–4) and use them with servers (5–6). Tickets expire, timestamps stop replay."
+    });
+  };
+
+  D.tlshandshake = function (host) {
+    seqDemo(host, {
+      actors: ["Client (browser)", "Server (website)"],
+      steps: [
+        { from: "Client (browser)", to: "Server (website)", label: "ClientHello", text: "<b>Phase I.</b> Highest version supported, client random (32 bytes), session ID, list of cipher suites, compression methods." },
+        { from: "Server (website)", to: "Client (browser)", label: "ServerHello", text: "<b>Phase I.</b> Chosen version and cipher suite (e.g. TLS_RSA_WITH_AES_128_CBC_SHA), server random, session ID." },
+        { from: "Server (website)", to: "Client (browser)", label: "Certificate", text: "<b>Phase II.</b> Server's X.509 certificate chain. The browser checks the CA signature, validity dates and that the name matches the URL." },
+        { from: "Server (website)", to: "Client (browser)", label: "ServerKeyExchange (if DHE)", text: "<b>Phase II.</b> For ephemeral Diffie–Hellman: the server's DH parameters, signed with its private key. (Skipped for plain RSA key exchange.)" },
+        { from: "Server (website)", to: "Client (browser)", label: "ServerHelloDone", text: "<b>Phase II.</b> End of the server's hello messages. (A CertificateRequest may come before it if client authentication is needed.)" },
+        { from: "Client (browser)", to: "Server (website)", label: "ClientKeyExchange", text: "<b>Phase III.</b> RSA: a random 48-byte pre-master secret encrypted with the server's public key. DHE: the client's DH value. Both sides now compute master secret = PRF(pre-master, client random, server random) → key material." },
+        { from: "Client (browser)", to: "Server (website)", label: "ChangeCipherSpec", text: "<b>Phase IV.</b> \"Switch to the new keys now.\"" },
+        { from: "Client (browser)", to: "Server (website)", label: "Finished (encrypted)", text: "<b>Phase IV.</b> First encrypted message: a MAC/hash of all handshake messages. Detects any tampering (e.g. a downgrade of the cipher list)." },
+        { from: "Server (website)", to: "Client (browser)", label: "ChangeCipherSpec", text: "<b>Phase IV.</b> The server switches too." },
+        { from: "Server (website)", to: "Client (browser)", label: "Finished (encrypted)", text: "<b>Phase IV.</b> Server's hash of the handshake. Handshake complete — the padlock appears; application data (HTTP) now flows through the Record protocol." }
+      ],
+      summary: "Phase I hello · Phase II server authentication · Phase III key exchange · Phase IV ChangeCipherSpec + Finished."
+    });
+  };
+
+  D.dh = function (host) {
+    host.innerHTML = `<div class="demo-row"><label>prime p<input type="number" id="p" value="23"></label><label>generator g<input type="number" id="g" value="7"></label><label>Alice's secret x<input type="number" id="x" value="3"></label><label>Bob's secret y<input type="number" id="y" value="6"></label>
+      <label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="mitm"> Eve in the middle (secret z)</label><label>z<input type="number" id="z" value="5"></label></div><div id="o"></div>`;
+    const sw = (c, t) => `<span style="display:inline-block;width:14px;height:14px;border-radius:4px;background:${c};vertical-align:-2px;margin-right:4px"></span>${t}`;
+    function hue(v, p) { return `hsl(${Math.round(360 * Number(v) / Number(p))},70%,55%)`; }
+    function go() {
+      const [p, g, x, y, z] = ["p", "g", "x", "y", "z"].map(k => BigInt(+K.q(host, "#" + k).value || 2)), m = K.q(host, "#mitm").checked, o = K.q(host, "#o");
+      if (!K.isPrime(Number(p))) { o.innerHTML = `<div class="out no">p must be prime.</div>`; return; }
+      const R1 = K.bpow(g, x, p), R2 = K.bpow(g, y, p);
+      if (!m) {
+        const KA = K.bpow(R2, x, p), KB = K.bpow(R1, y, p);
+        o.innerHTML = `<div class="two-col"><div class="out"><b>Alice</b><br>secret x = ${x}<br>sends R₁ = ${g}<sup>${x}</sup> mod ${p} = <b>${R1}</b><br>receives R₂ = ${R2}<br>K = R₂<sup>x</sup> mod p = ${R2}<sup>${x}</sup> mod ${p} = ${sw(hue(KA, p), "<b>" + KA + "</b>")}</div>
+          <div class="out"><b>Bob</b><br>secret y = ${y}<br>sends R₂ = ${g}<sup>${y}</sup> mod ${p} = <b>${R2}</b><br>receives R₁ = ${R1}<br>K = R₁<sup>y</sup> mod p = ${R1}<sup>${y}</sup> mod ${p} = ${sw(hue(KB, p), "<b>" + KB + "</b>")}</div></div>
+          <div class="out" style="margin-top:8px">${KA === KB ? '<span class="ok">Same key on both sides ✓</span>' : ""} Eve sees only p = ${p}, g = ${g}, R₁ = ${R1}, R₂ = ${R2}. To get K she must find x from ${g}<sup>x</sup> ≡ ${R1} (mod ${p}) — the discrete log problem.<br><i>Paint analogy:</i> common yellow + Alice's secret colour → mixture sent; mixing is easy, "un-mixing" is hard.</div>`;
+      } else {
+        const Rz = K.bpow(g, z, p), KA = K.bpow(Rz, x, p), KB = K.bpow(Rz, y, p), KEA = K.bpow(R1, z, p), KEB = K.bpow(R2, z, p);
+        o.innerHTML = `<div class="three-col"><div class="out"><b>Alice</b><br>sends R₁ = ${R1} (intercepted)<br>receives Eve's ${Rz}<br>K = ${sw(hue(KA, p), "<b>" + KA + "</b>")}</div>
+          <div class="out" style="border-color:var(--bad)"><b style="color:var(--bad)">Eve</b><br>sends g<sup>z</sup> = ${Rz} to both<br>key with Alice = R₁<sup>z</sup> = ${sw(hue(KEA, p), "<b>" + KEA + "</b>")}<br>key with Bob = R₂<sup>z</sup> = ${sw(hue(KEB, p), "<b>" + KEB + "</b>")}</div>
+          <div class="out"><b>Bob</b><br>sends R₂ = ${R2} (intercepted)<br>receives Eve's ${Rz}<br>K = ${sw(hue(KB, p), "<b>" + KB + "</b>")}</div></div>
+          <div class="out" style="margin-top:8px"><span class="no">Man-in-the-middle:</span> Alice shares ${KA} with Eve, Bob shares ${KB} with Eve. Eve decrypts, reads and re-encrypts every message; Alice and Bob notice nothing. Defence: sign R₁ and R₂ (station-to-station protocol, authenticated TLS/IKE).</div>`;
+      }
+    }
+    K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.radix64 = function (host) {
+    host.innerHTML = `<div class="demo-row"><label class="grow">Text (or bytes) to convert<input type="text" id="t" value="Man" class="wide"></label></div><div id="o"></div>`;
+    const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    function go() {
+      const b = CC.utf8(K.q(host, "#t").value).slice(0, 12);
+      const bits = b.map(x => K.bin(x, 8)).join("");
+      const groups = []; for (let i = 0; i < bits.length; i += 6) groups.push(bits.slice(i, i + 6).padEnd(6, "0"));
+      let out = groups.map(g => B64[parseInt(g, 2)]).join(""); while (out.length % 4) out += "=";
+      K.q(host, "#o").innerHTML = `<div class="out mono">bytes : ${b.map(x => CC.hx(x)).join("       ")}\nbits  : ${b.map(x => K.bin(x, 8)).join(" ")}\n6-bit : ${groups.join("  ")}\nvalue : ${groups.map(g => String(parseInt(g, 2)).padStart(2)).join("      ")}\nchar  : ${groups.map(g => B64[parseInt(g, 2)]).join("       ")}</div>
+        <div class="out">Radix-64: <b class="big-out">${out}</b> &nbsp; (${b.length} bytes → ${out.length} characters; every 3 bytes become 4 printable characters, "=" pads the last group). Browser check: ${(() => { try { return btoa(String.fromCharCode(...b)); } catch (e) { return "-"; } })()}</div>`;
+    }
+    K.q(host, "#t").addEventListener("input", go); go();
+  };
+
+  D.ipsec = function (host) {
+    host.innerHTML = `<div class="demo-row"><div class="seg" id="mode"><button class="on" data-v="t">Transport mode</button><button data-v="u">Tunnel mode</button></div><div class="seg" id="prot"><button class="on" data-v="esp">ESP</button><button data-v="ah">AH</button></div></div><div id="o"></div>`;
+    let mode = "t", prot = "esp";
+    const seg = (id, setter) => K.qa(host, `#${id} button`).forEach(b => b.addEventListener("click", () => { setter(b.dataset.v); K.qa(host, `#${id} button`).forEach(x => x.classList.toggle("on", x === b)); go(); }));
+    seg("mode", v => mode = v); seg("prot", v => prot = v);
+    function go() {
+      const parts = [];
+      if (mode === "u") parts.push(["New IP header", "acc", "gateway → gateway"]);
+      else parts.push(["IP header", "box", "original addresses"]);
+      parts.push([prot === "esp" ? "ESP header" : "AH header", "warn", "SPI, seq. no."]);
+      if (mode === "u") parts.push(["Original IP header", "good", "real host addresses"]);
+      parts.push(["TCP/UDP + data", "good", ""]);
+      if (prot === "esp") { parts.push(["ESP trailer", "warn", "pad, next hdr"]); parts.push(["ESP auth", "warn", "HMAC"]); }
+      const firstEnc = 2, lastEnc = parts.length - (prot === "esp" ? 2 : 1);
+      const authStart = prot === "esp" ? 1 : 0, authEnd = prot === "esp" ? parts.length - 2 : parts.length - 1;
+      const W = 680, s = K.svg(W, 150); let x = 4; const w = (W - 8) / parts.length;
+      parts.forEach((pt, i) => {
+        K.s(s, "rect", { x: x + 1, y: 40, width: w - 2, height: 44, rx: 5, "class": "dg-" + pt[1] });
+        K.s(s, "text", { x: x + w / 2, y: 60, "text-anchor": "middle", "class": "dg-t" }, pt[0].length > 18 ? pt[0].slice(0, 17) + "…" : pt[0]).style.fontSize = "11px";
+        if (pt[2]) K.s(s, "text", { x: x + w / 2, y: 76, "text-anchor": "middle", "class": "dg-ts" }, pt[2]);
+        x += w;
+      });
+      const bracket = (a, b, y, cls, label) => { const x1 = 4 + a * w + 3, x2 = 4 + (b + 1) * w - 3; const pth = K.s(s, "path", { d: `M${x1} ${y + (y < 40 ? 8 : -8)} V${y} H${x2} V${y + (y < 40 ? 8 : -8)}` }); pth.setAttribute("class", cls); K.s(s, "text", { x: (x1 + x2) / 2, y: y < 40 ? y - 4 : y + 14, "text-anchor": "middle", "class": "dg-ts" }, label); };
+      if (prot === "esp") bracket(firstEnc, lastEnc, 100, "dg-badline", "encrypted");
+      bracket(authStart, authEnd, 22, "dg-goodline", prot === "ah" ? "authenticated (except mutable IP fields)" : "authenticated");
+      const o = K.q(host, "#o"); o.innerHTML = ""; o.appendChild(s);
+      const d = document.createElement("div"); d.className = "out";
+      d.innerHTML = `<b>${mode === "t" ? "Transport" : "Tunnel"} mode + ${prot.toUpperCase()}</b>: ${prot === "esp" ? "confidentiality + integrity + authentication" : "integrity + authentication only (no encryption)"}. ${mode === "u" ? "The real source/destination are hidden inside — typical site-to-site VPN." : "The original IP header is visible — typical host-to-host protection."} ${prot === "ah" && mode === "t" ? "AH covers the IP header too, so it breaks through NAT." : ""}`;
+      o.appendChild(d);
+    }
+    go();
+  };
 })();

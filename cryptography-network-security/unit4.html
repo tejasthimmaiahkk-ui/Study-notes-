@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit IV · Digital Signatures, Key Management &amp; Network Security — Cryptography</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="crypto" data-page="unit4.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Unit IV · 14 hours · CO3, CO4</div>
+  <h1>Digital Signatures, Key Management &amp; Network Security</h1>
+  <p class="lead">Now we put everything together. Digital signatures give authentication and non-repudiation; key management solves "how do two strangers get keys?"; and real protocols — <b>Kerberos, PGP, S/MIME, SSL/TLS, IPSec and IKE</b> — use all of it to secure e-mail, the web and whole networks.</p>
+  <div class="meta"><span class="chip acc">Signature schemes</span><span class="chip acc">KDC &amp; Needham–Schroeder</span><span class="chip acc">Diffie–Hellman</span><span class="chip acc">Certificates &amp; PKI</span><span class="chip acc">Kerberos</span><span class="chip acc">PGP · S/MIME</span><span class="chip acc">SSL/TLS</span><span class="chip acc">IPSec · IKE</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="ds-concepts">
+<h2><span class="num">4.1</span> Digital signature concepts</h2>
+<div class="box found">
+  <p>You need: public/private keys (Unit III), hash functions (Unit III) and the security services of Unit I (authentication, integrity, non-repudiation).</p>
+</div>
+<div class="concept">
+  <h3>What a digital signature is</h3>
+  <div class="f-exp">A digital signature is a value computed from a <b>message</b> and the <b>signer's private key</b>. Anyone with the signer's <b>public key</b> can verify that (1) the message came from the signer and (2) it was not changed. Note the reversal compared with encryption: <b>sign with your own private key, verify with your public key</b>.</div>
+  <div class="f-use">Signed software and OS updates, PDF/e-contracts, income-tax e-filing with a Digital Signature Certificate (DSC), Aadhaar eSign, SSL/TLS certificates, e-mail (PGP/S-MIME), blockchain transactions.</div>
+  <div class="f-imp"><b>Signing the digest:</b> public-key operations are slow, so in practice the signer hashes the message and signs only the digest: S = Sign<sub>private</sub>(h(M)). The verifier recomputes h(M) and checks it against the signature.</div>
+  <div class="f-lim">Proves the <i>key</i> signed, not the <i>person</i> — a stolen private key allows forgery; needs certificates to bind keys to identities; offers no confidentiality on its own.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 760 230" width="740" role="img" aria-label="Signing the digest">
+ <text class="dg-ta" x="10" y="18">Alice (signer)</text>
+ <rect class="dg-good" x="10" y="30" width="80" height="34" rx="6"/><text class="dg-tb" x="50" y="52" text-anchor="middle">M</text>
+ <rect class="dg-acc" x="130" y="30" width="80" height="34" rx="6"/><text class="dg-t" x="170" y="52" text-anchor="middle">Hash h</text>
+ <rect class="dg-acc" x="250" y="30" width="110" height="34" rx="6"/><text class="dg-t" x="305" y="52" text-anchor="middle">Sign (private)</text>
+ <path class="dg-line" d="M90 47 H126" marker-end="url(#arr)"/><path class="dg-line" d="M210 47 H246" marker-end="url(#arr)"/>
+ <rect class="dg-warn" x="250" y="90" width="110" height="28" rx="6"/><text class="dg-ts" x="305" y="108" text-anchor="middle">Alice's private key</text>
+ <path class="dg-line" d="M305 90 V66" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M360 47 H420 V150" /><path class="dg-line" d="M50 64 V150 H405" marker-end="url(#arr)"/>
+ <rect class="dg-box" x="370" y="140" width="110" height="30" rx="6"/><text class="dg-tb" x="425" y="160" text-anchor="middle">M + S</text>
+ <path class="dg-line" d="M480 155 H520" marker-end="url(#arr)"/>
+ <text class="dg-ta" x="530" y="18">Bob (verifier)</text>
+ <rect class="dg-acc" x="530" y="30" width="80" height="34" rx="6"/><text class="dg-t" x="570" y="52" text-anchor="middle">Hash h</text>
+ <rect class="dg-acc" x="530" y="140" width="110" height="34" rx="6"/><text class="dg-t" x="585" y="162" text-anchor="middle">Verify (public)</text>
+ <rect class="dg-warn" x="530" y="190" width="110" height="28" rx="6"/><text class="dg-ts" x="585" y="208" text-anchor="middle">Alice's public key</text>
+ <path class="dg-line" d="M585 190 V176" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M524 150 V47 H528" />
+ <rect class="dg-good" x="660" y="80" width="90" height="44" rx="6"/><text class="dg-tb" x="705" y="100" text-anchor="middle">compare</text><text class="dg-ts" x="705" y="115" text-anchor="middle">equal → valid</text>
+ <path class="dg-line" d="M610 47 H705 V78" marker-end="url(#arr)"/><path class="dg-line" d="M640 157 H705 V126" marker-end="url(#arr)"/>
+</svg>
+<figcaption>Fig 4.1 — Signing the digest: Alice signs h(M) with her private key; Bob hashes M and verifies S with Alice's public key.</figcaption>
+</figure>
+
+<h3>Conventional vs digital signature</h3>
+<table>
+  <tr><th>Basis</th><th>Conventional (handwritten)</th><th>Digital</th></tr>
+  <tr><td>Inclusion</td><td>Part of the document</td><td>A separate value sent with the document</td></tr>
+  <tr><td>Verification</td><td>Compare with a stored signature on file</td><td>Apply a verification algorithm with the public key</td></tr>
+  <tr><td>Relationship</td><td>One-to-many: same signature on all documents</td><td>One-to-one: a different signature for every message</td></tr>
+  <tr><td>Duplicity</td><td>A copy can be distinguished from the original</td><td>Copies are identical — needs timestamps to stop replay</td></tr>
+</table>
+
+<h3>Services provided</h3>
+<div class="three-col">
+  <div class="box def" data-title="Message authentication"><p>Only Alice's private key could produce a signature that verifies with her public key.</p></div>
+  <div class="box def" data-title="Message integrity"><p>Any change to M changes h(M) and verification fails.</p></div>
+  <div class="box def" data-title="Non-repudiation"><p>Alice cannot deny signing. A trusted centre can store signed messages to settle disputes.</p></div>
+</div>
+<div class="box warn" data-title="Confidentiality is NOT provided"><p>A signature does not hide the message. For secrecy, first sign, then encrypt the message and signature (e.g. with a session key, as PGP does).</p></div>
+
+<h3>Attacks on digital signatures</h3>
+<table>
+  <tr><th>Attack type</th><th>What Eve has</th></tr>
+  <tr><td><b>Key-only attack</b></td><td>Only Alice's public key</td></tr>
+  <tr><td><b>Known-message attack</b></td><td>Some message–signature pairs Alice made earlier</td></tr>
+  <tr><td><b>Chosen-message attack</b></td><td>Signatures on messages she chose (tricking Alice into signing)</td></tr>
+</table>
+<p><b>Forgery types:</b> <b>existential forgery</b> — Eve creates a valid (message, signature) pair, but cannot control the message (often meaningless); <b>selective forgery</b> — Eve forges a signature on a message of her choice (much more dangerous, but much harder).</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ds-schemes">
+<h2><span class="num">4.2</span> Signature schemes and their uses</h2>
+
+<div class="concept">
+  <h3>RSA digital signature</h3>
+  <div class="f-exp">RSA run "backwards": Alice uses her private key d to sign and anyone uses (e, n) to verify.
+  <span class="eq">Sign: S = M<sup>d</sup> mod n &nbsp;&nbsp;&nbsp;&nbsp; Verify: M′ = S<sup>e</sup> mod n; accept if M′ = M</span>
+  In practice M is replaced by h(M) (with padding, e.g. PKCS#1 / PSS).</div>
+  <div class="f-use">Most SSL/TLS certificates, code signing (Windows Authenticode), PDF signatures.</div>
+  <div class="f-imp"><b>Example</b> (keys from Unit III): n = 187, e = 7, d = 23. Sign M = 19: S = 19<sup>23</sup> mod 187 = <b>94</b>. Verify: 94<sup>7</sup> mod 187 = <b>19</b> = M ✓.</div>
+  <div class="f-lim">Textbook RSA signatures are vulnerable to existential forgery (pick any S, compute M = S<sup>e</sup>) and to multiplicative attacks (S₁·S₂ signs M₁·M₂) — signing the hash with padding prevents both.</div>
+</div>
+<div class="demo box" data-demo="rsasign" data-title="Interactive demo — RSA sign and verify (try tampering)"></div>
+
+<div class="concept">
+  <h3>ElGamal digital signature</h3>
+  <div class="f-exp">Based on the discrete logarithm. Same keys as ElGamal encryption: public (e₁, e₂, p), private d with e₂ = e₁<sup>d</sup> mod p.
+  <div class="box formula"><p style="text-align:left"><b>Sign:</b> choose random r with gcd(r, p − 1) = 1.<br>S₁ = e₁<sup>r</sup> mod p;&nbsp;&nbsp; S₂ = (M − d·S₁) × r<sup>−1</sup> mod (p − 1).</p>
+  <p style="text-align:left"><b>Verify:</b> V₁ = e₁<sup>M</sup> mod p;&nbsp;&nbsp; V₂ = e₂<sup>S₁</sup> × S₁<sup>S₂</sup> mod p. Accept if V₁ = V₂.</p></div></div>
+  <div class="f-use">Basis of DSA and Schnorr; used in GnuPG.</div>
+  <div class="f-imp"><b>Example:</b> p = 11, e₁ = 2, d = 3 → e₂ = 8. M = 5, r = 3 (r<sup>−1</sup> mod 10 = 7).
+  S₁ = 2³ mod 11 = 8; S₂ = (5 − 3·8) × 7 mod 10 = (−19)(7) = −133 ≡ 7. Signature (8, 7).<br>
+  Verify: V₁ = 2⁵ mod 11 = 10; V₂ = 8⁸ × 8⁷ = 8<sup>15</sup> mod 11 = 10. V₁ = V₂ ✓.</div>
+  <div class="f-lim">r must be secret, random and <b>never reused</b> — reuse reveals the private key d. Signatures are twice the size of p.</div>
+</div>
+<div class="concept">
+  <h3>Schnorr digital signature</h3>
+  <div class="f-exp">A variant of ElGamal (Claus Schnorr, 1989) that works in a <b>small subgroup</b> of order q (≈ 160–256 bits) of ℤ<sub>p</sub>*, making signatures much shorter. Signing: S₁ = h(M ‖ e₁<sup>r</sup> mod p), S₂ = r + d·S₁ mod q.</div>
+  <div class="f-use">Bitcoin Taproot (2021) uses Schnorr signatures; EdDSA is a close relative.</div>
+  <div class="f-imp">Verification recomputes e₁<sup>S₂</sup> × e₂<sup>−S₁</sup> and checks the hash.</div>
+  <div class="f-lim">Was patented until 2008, which delayed its adoption.</div>
+</div>
+<div class="concept">
+  <h3>Digital Signature Standard (DSS / DSA)</h3>
+  <div class="f-exp">Adopted by NIST in 1994 (FIPS 186). Combines ElGamal and Schnorr ideas. Keys: primes q (160–256 bits) and p (1024–3072 bits) with q | (p − 1); e₁ = e₀<sup>(p−1)/q</sup> mod p (element of order q); private d; public e₂ = e₁<sup>d</sup> mod p.
+  <div class="box formula"><p style="text-align:left"><b>Sign (random r, 0 &lt; r &lt; q):</b> S₁ = (e₁<sup>r</sup> mod p) mod q; &nbsp; S₂ = (h(M) + d·S₁) × r<sup>−1</sup> mod q.</p>
+  <p style="text-align:left"><b>Verify:</b> w = S₂<sup>−1</sup> mod q; u₁ = h(M)·w mod q; u₂ = S₁·w mod q; V = (e₁<sup>u₁</sup> × e₂<sup>u₂</sup> mod p) mod q. Accept if V = S₁.</p></div></div>
+  <div class="f-use">US government documents, older SSH and PGP keys; ECDSA (the elliptic-curve version) is used by Bitcoin, Ethereum, TLS certificates and Aadhaar-linked systems.</div>
+  <div class="f-imp"><b>Tiny example:</b> q = 11, p = 23, e₁ = 4 (order 11), d = 3 → e₂ = 4³ mod 23 = 18. h(M) = 7, r = 5 (r<sup>−1</sup> = 9).
+  S₁ = (4⁵ mod 23) mod 11 = 12 mod 11 = <b>1</b>; S₂ = (7 + 3·1)·9 mod 11 = 90 mod 11 = <b>2</b>.<br>
+  Verify: w = 2<sup>−1</sup> mod 11 = 6; u₁ = 7·6 mod 11 = 9; u₂ = 1·6 = 6; V = (4⁹ × 18⁶ mod 23) mod 11 = (13 × 8 mod 23) mod 11 = 12 mod 11 = <b>1</b> = S₁ ✓.</div>
+  <div class="f-lim">Signature only (no encryption); needs a high-quality random r for each signature (the Sony PS3 hack exploited a fixed r in ECDSA). DSA was removed from FIPS 186-5 (2023) in favour of ECDSA/EdDSA.</div>
+</div>
+<div class="box oos" data-title="Beyond the syllabus · signature variations">
+  <p><b>Time-stamped signatures</b> include a trusted timestamp to stop replay. <b>Blind signatures</b> (Chaum) let a bank sign a coin without seeing it — used in e-cash and anonymous voting. <b>Undeniable signatures</b> can only be verified with the signer's cooperation.</p>
+</div>
+
+<h3>RSA vs ElGamal vs DSA signatures</h3>
+<table>
+  <tr><th>Feature</th><th>RSA</th><th>ElGamal</th><th>DSA</th></tr>
+  <tr><td>Hard problem</td><td>Factoring</td><td>Discrete log in ℤ<sub>p</sub>*</td><td>Discrete log in a subgroup of order q</td></tr>
+  <tr><td>Randomness per signature</td><td>No (deterministic)</td><td>Yes (r)</td><td>Yes (r)</td></tr>
+  <tr><td>Signature size</td><td>|n| (2048 bits)</td><td>2|p|</td><td>2|q| (e.g. 2 × 256 bits)</td></tr>
+  <tr><td>Also encrypts?</td><td>Yes</td><td>Yes (separate scheme)</td><td>No</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="key-distribution">
+<h2><span class="num">4.3</span> Key distribution methods (symmetric keys)</h2>
+<div class="concept">
+  <h3>Key Distribution Center (KDC)</h3>
+  <div class="f-exp">With n users, pairwise secret keys need n(n − 1)/2 keys (1 million users → 5 × 10<sup>11</sup> keys). Instead, every user shares <b>one long-term secret key with a trusted KDC</b>. When Alice wants to talk to Bob, the KDC creates a fresh <b>session key</b> K<sub>AB</sub> and delivers it to both, encrypted under their long-term keys.</div>
+  <div class="f-use">Kerberos (Windows Active Directory logins, university/corporate networks), GSM authentication centres.</div>
+  <div class="f-imp">
+    <ul>
+      <li><b>Flat multiple KDCs:</b> the world is divided into domains, each with a KDC; for cross-domain talks the KDCs cooperate.</li>
+      <li><b>Hierarchical multiple KDCs:</b> local KDCs → national → international, like a tree.</li>
+      <li><b>Session keys:</b> valid for one session only — limits damage if one is exposed.</li>
+    </ul></div>
+  <div class="f-lim">The KDC is a single point of failure and a high-value target (it knows everyone's keys); it must be online and trusted.</div>
+</div>
+
+<div class="concept">
+  <h3>Needham–Schroeder protocol</h3>
+  <div class="f-exp">The foundation of many KDC protocols (1978). Uses <b>nonces</b> (random numbers used once) for freshness. Five messages; K<sub>A</sub>, K<sub>B</sub> are the users' keys shared with the KDC.</div>
+  <div class="f-use">Ancestor of Kerberos.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li>Alice → KDC: R<sub>A</sub>, Alice, Bob</li>
+      <li>KDC → Alice: K<sub>A</sub>[ R<sub>A</sub>, Bob, K<sub>AB</sub>, Ticket ], where Ticket = K<sub>B</sub>[ Alice, K<sub>AB</sub> ]</li>
+      <li>Alice → Bob: Ticket</li>
+      <li>Bob → Alice: K<sub>AB</sub>[ R<sub>B</sub> ] (challenge)</li>
+      <li>Alice → Bob: K<sub>AB</sub>[ R<sub>B</sub> − 1 ] (proves she holds K<sub>AB</sub>)</li>
+    </ol></div>
+  <div class="f-lim">If an old session key K<sub>AB</sub> is compromised, Eve can replay the old ticket (step 3) to Bob — fixed in Kerberos by adding <b>timestamps</b>.</div>
+</div>
+<div class="demo box" data-demo="needham" data-title="Interactive demo — step through Needham–Schroeder"></div>
+
+<div class="concept">
+  <h3>Otway–Rees protocol</h3>
+  <div class="f-exp">An alternative with four messages in which <b>Bob</b> contacts the KDC on behalf of both, using a common nonce R plus individual nonces.</div>
+  <div class="f-use">Shows another way to bind session keys to a particular run.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li>Alice → Bob: R, Alice, Bob, K<sub>A</sub>[R<sub>A</sub>, R, Alice, Bob]</li>
+      <li>Bob → KDC: the same plus K<sub>B</sub>[R<sub>B</sub>, R, Alice, Bob]</li>
+      <li>KDC → Bob: R, K<sub>A</sub>[R<sub>A</sub>, K<sub>AB</sub>], K<sub>B</sub>[R<sub>B</sub>, K<sub>AB</sub>]</li>
+      <li>Bob → Alice: R, K<sub>A</sub>[R<sub>A</sub>, K<sub>AB</sub>]</li>
+    </ol></div>
+  <div class="f-lim">Alice does not confirm that Bob actually received the key.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="diffie-hellman">
+<h2><span class="num">4.4</span> Symmetric-key agreement: Diffie–Hellman</h2>
+<div class="concept">
+  <h3>Diffie–Hellman key exchange</h3>
+  <div class="f-exp">Two parties create a shared secret over a public channel <b>without any KDC</b> and without having met. Published by Whitfield Diffie and Martin Hellman in 1976 — the paper that started public-key cryptography. Security relies on the discrete logarithm problem.</div>
+  <div class="f-use">TLS (ECDHE in every HTTPS connection today), SSH, IPSec IKE, Signal/WhatsApp (X3DH), VPNs.</div>
+  <div class="f-imp">
+    <div class="box formula"><p style="text-align:left">Public: a large prime <b>p</b> and a primitive root <b>g</b>.</p>
+    <ol style="text-align:left"><li>Alice picks secret x, sends R₁ = g<sup>x</sup> mod p.</li><li>Bob picks secret y, sends R₂ = g<sup>y</sup> mod p.</li><li>Alice computes K = R₂<sup>x</sup> mod p; Bob computes K = R₁<sup>y</sup> mod p.</li></ol>
+    <span class="eq">K = (g<sup>y</sup>)<sup>x</sup> = (g<sup>x</sup>)<sup>y</sup> = g<sup>xy</sup> mod p</span></div>
+    <p><b>Example:</b> p = 23, g = 7, x = 3, y = 6. R₁ = 7³ mod 23 = <b>21</b>; R₂ = 7⁶ mod 23 = <b>4</b>. Alice: K = 4³ mod 23 = <b>18</b>. Bob: K = 21⁶ mod 23 = <b>18</b> ✓. Eve sees 23, 7, 21, 4 but must solve a discrete log to get x or y.</p></div>
+  <div class="f-lim"><b>No authentication → man-in-the-middle attack:</b> Eve intercepts R₁ and R₂, sends her own g<sup>z</sup> to each side, and ends up sharing one key with Alice and another with Bob, relaying (and reading) everything. Fix: authenticate the exchanged values (signatures/certificates) — the <b>station-to-station protocol</b>.</div>
+</div>
+<div class="demo box" data-demo="dh" data-title="Interactive demo — Diffie–Hellman (with paint analogy and man-in-the-middle)"></div>
+<div class="concept">
+  <h3>Station-to-station (STS) protocol</h3>
+  <div class="f-exp">Diffie–Hellman plus <b>certificates and signatures</b>: each party signs the exchanged values (R₁, R₂) with its private key and sends its certificate, so Eve cannot substitute her own values.</div>
+  <div class="f-use">The idea behind authenticated key exchange in IKE and TLS.</div>
+  <div class="f-imp">Alice → Bob: R₁. Bob → Alice: R₂, Bob's certificate, K[Sign<sub>Bob</sub>(R₁, R₂)]. Alice → Bob: Alice's certificate, K[Sign<sub>Alice</sub>(R₁, R₂)].</div>
+  <div class="f-lim">Requires a PKI to issue and check certificates.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="public-key-distribution">
+<h2><span class="num">4.5</span> Public-key distribution, certificates and PKI</h2>
+<p>Public keys need not be secret, but they must be <b>authentic</b> — otherwise Eve publishes her key under Bob's name. Four approaches, from weakest to strongest:</p>
+<div class="concept">
+  <h3>1. Public announcement</h3>
+  <div class="f-exp">Bob simply publishes his public key (website, e-mail signature, newspaper).</div>
+  <div class="f-use">Early PGP users posting keys on personal pages.</div>
+  <div class="f-imp">No infrastructure needed.</div>
+  <div class="f-lim">Anyone can forge an announcement — no authenticity.</div>
+</div>
+<div class="concept">
+  <h3>2. Trusted centre (public directory)</h3>
+  <div class="f-exp">A trusted authority keeps a directory of public keys; users register in person or securely, and can look up others' keys.</div>
+  <div class="f-use">Corporate address books with keys.</div>
+  <div class="f-imp">Directory is publicly readable; updates are authenticated.</div>
+  <div class="f-lim">The directory responses could be spoofed in transit; the centre is a bottleneck.</div>
+</div>
+<div class="concept">
+  <h3>3. Controlled trusted centre</h3>
+  <div class="f-exp">The centre <b>signs</b> each response (with a timestamp) using its own private key, so the requester knows the answer is genuine and fresh.</div>
+  <div class="f-use">Online key servers.</div>
+  <div class="f-imp">User asks: "Bob's key?" → centre replies Sign<sub>centre</sub>(Bob's key, time).</div>
+  <div class="f-lim">The centre must be online for every request — heavy load.</div>
+</div>
+<div class="concept">
+  <h3>4. Certification Authority (CA) and X.509 certificates</h3>
+  <div class="f-exp">A CA verifies Bob's identity once and issues a <b>certificate</b>: a document binding Bob's identity to his public key, <b>signed by the CA's private key</b>. Bob can distribute the certificate himself; anyone who trusts the CA's public key can verify it offline.</div>
+  <div class="f-use">Every HTTPS website (padlock in the browser), e-mail signing, code signing; in India, licensed CAs under the Controller of Certifying Authorities (CCA) issue DSCs.</div>
+  <div class="f-imp"><b>X.509 v3 certificate fields:</b>
+    <table class="compact"><tr><th>Field</th><th>Meaning</th></tr>
+      <tr><td>Version</td><td>1, 2 or 3</td></tr><tr><td>Serial number</td><td>Unique per CA</td></tr><tr><td>Signature algorithm ID</td><td>e.g. sha256WithRSAEncryption</td></tr>
+      <tr><td>Issuer name</td><td>The CA</td></tr><tr><td>Validity period</td><td>Not before / not after</td></tr><tr><td>Subject name</td><td>The owner (e.g. www.bank.com)</td></tr>
+      <tr><td>Subject public key info</td><td>Algorithm + the public key</td></tr><tr><td>Issuer / subject unique IDs</td><td>Optional (v2)</td></tr>
+      <tr><td>Extensions</td><td>Key usage, alternative names, CRL location… (v3)</td></tr><tr><td>Signature</td><td>CA's signature over all the above</td></tr></table>
+    <p><b>Renewal:</b> before expiry the CA issues a new certificate. <b>Revocation:</b> if a key is stolen or the owner leaves, the CA publishes it in a <b>Certificate Revocation List (CRL)</b> (or a smaller <b>delta CRL</b> of changes); modern browsers also use OCSP to ask about one certificate.</p>
+  </div>
+  <div class="f-lim">Everything depends on trusting CAs; a compromised CA (DigiNotar, 2011) can issue fake certificates for any site. Revocation checking is often slow or skipped.</div>
+</div>
+
+<h3>Public-Key Infrastructure (PKI) and trust models</h3>
+<p>A PKI is the set of CAs, registration authorities, directories, policies and software that create, distribute, revoke and verify certificates. Trust models:</p>
+<figure class="fig">
+<svg viewBox="0 0 700 220" width="680" role="img" aria-label="PKI hierarchy">
+ <rect class="dg-warn" x="290" y="10" width="120" height="36" rx="8"/><text class="dg-tb" x="350" y="33" text-anchor="middle">Root CA</text>
+ <path class="dg-line" d="M350 46 V64 M190 64 H510 M190 64 V80 M510 64 V80"/>
+ <rect class="dg-acc" x="120" y="80" width="140" height="34" rx="8"/><text class="dg-t" x="190" y="102" text-anchor="middle">Intermediate CA 1</text>
+ <rect class="dg-acc" x="440" y="80" width="140" height="34" rx="8"/><text class="dg-t" x="510" y="102" text-anchor="middle">Intermediate CA 2</text>
+ <path class="dg-line" d="M190 114 V130 M110 130 H270 M110 130 V146 M270 130 V146 M510 114 V146"/>
+ <rect class="dg-good" x="50" y="146" width="120" height="32" rx="6"/><text class="dg-t" x="110" y="167" text-anchor="middle">www.bank.com</text>
+ <rect class="dg-good" x="210" y="146" width="120" height="32" rx="6"/><text class="dg-t" x="270" y="167" text-anchor="middle">Alice</text>
+ <rect class="dg-good" x="450" y="146" width="120" height="32" rx="6"/><text class="dg-t" x="510" y="167" text-anchor="middle">Bob</text>
+ <text class="dg-ts" x="350" y="205" text-anchor="middle">Chain of trust: each certificate is signed by the level above; browsers ship with root CA keys.</text>
+</svg>
+<figcaption>Fig 4.2 — Hierarchical PKI model.</figcaption>
+</figure>
+<ul>
+  <li><b>Hierarchical (tree) model:</b> root CA certifies intermediate CAs, which certify users. Used by the web PKI. To verify Bob, follow the chain to a root you trust.</li>
+  <li><b>Mesh model:</b> CAs cross-certify each other (peer-to-peer).</li>
+  <li><b>Web of trust:</b> no CAs; users sign each other's keys (PGP, Section 4.7).</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="kerberos">
+<h2><span class="num">4.6</span> Kerberos</h2>
+<div class="concept">
+  <h3>Kerberos authentication protocol</h3>
+  <div class="f-exp">Kerberos (MIT, Project Athena; named after the three-headed dog guarding Hades) is an <b>authentication protocol and KDC</b> for a network. A user logs in <b>once</b> with a password and then gets <b>tickets</b> to use many services without sending the password again (<b>single sign-on</b>). It uses only <b>symmetric</b> cryptography plus timestamps.</div>
+  <div class="f-use">Microsoft Windows Active Directory domain logins, university campus networks, Hadoop clusters, many UNIX/Linux enterprise systems.</div>
+  <div class="f-imp">
+    <p><b>Three servers:</b></p>
+    <ul>
+      <li><b>Authentication Server (AS)</b> — the KDC; knows every user's password-derived key; verifies the user and issues a ticket for the TGS.</li>
+      <li><b>Ticket-Granting Server (TGS)</b> — issues tickets for specific real servers. (Separating AS and TGS means the password is used only once per login.)</li>
+      <li><b>Real server (Bob)</b> — the service the user wants (file server, printer, mail).</li>
+    </ul>
+    <p><b>Operation (six messages):</b></p>
+    <ol class="steps">
+      <li><b>Alice → AS:</b> her identity (in plaintext).</li>
+      <li><b>AS → Alice:</b> a message encrypted with Alice's permanent key K<sub>A-AS</sub> (derived from her password) containing a session key K<sub>A-TGS</sub> and a <b>ticket for the TGS</b> (encrypted with K<sub>AS-TGS</sub>, which Alice cannot read). Alice's workstation asks for the password only now, to derive K<sub>A-AS</sub> — the password never travels.</li>
+      <li><b>Alice → TGS:</b> the TGS ticket, Bob's name, and a <b>timestamp</b> encrypted with K<sub>A-TGS</sub> (the authenticator — prevents replay).</li>
+      <li><b>TGS → Alice:</b> two items: K<sub>A-TGS</sub>[Bob, K<sub>A-B</sub>] for Alice and a ticket for Bob: K<sub>TGS-B</sub>[Alice, K<sub>A-B</sub>].</li>
+      <li><b>Alice → Bob:</b> Bob's ticket + timestamp encrypted with K<sub>A-B</sub>.</li>
+      <li><b>Bob → Alice:</b> K<sub>A-B</sub>[timestamp + 1] — confirms Bob's identity (mutual authentication).</li>
+    </ol>
+    <p>To use another server, Alice repeats steps 3–6 with the same TGS ticket (valid for e.g. 8 hours).</p>
+  </div>
+  <div class="f-lim">Needs <b>synchronised clocks</b> (timestamps); the KDC is a single point of failure and must be highly secure; vulnerable to offline password-guessing on message 2 if passwords are weak; not designed for the open Internet across organisations.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 720 300" width="700" role="img" aria-label="Kerberos">
+ <rect class="dg-good" x="20" y="120" width="100" height="50" rx="8"/><text class="dg-tb" x="70" y="150" text-anchor="middle">Alice</text>
+ <rect class="dg-warn" x="300" y="10" width="140" height="44" rx="8"/><text class="dg-tb" x="370" y="37" text-anchor="middle">AS</text>
+ <rect class="dg-acc" x="300" y="122" width="140" height="44" rx="8"/><text class="dg-tb" x="370" y="149" text-anchor="middle">TGS</text>
+ <rect class="dg-found" x="300" y="236" width="140" height="44" rx="8"/><text class="dg-tb" x="370" y="263" text-anchor="middle">Bob (server)</text>
+ <rect class="dg-plain" x="280" y="2" width="180" height="176" rx="12" style="stroke-dasharray:5 4"/><text class="dg-ta" x="452" y="172" text-anchor="end">KDC</text>
+ <path class="dg-line" d="M120 128 L298 30" marker-end="url(#arr)"/><text class="dg-ts" x="205" y="70" text-anchor="end">① request</text>
+ <path class="dg-line" d="M300 44 L124 138" marker-end="url(#arr)"/><text class="dg-ts" x="306" y="78">② K(A-TGS), TGS ticket</text>
+ <path class="dg-line" d="M120 142 H296" marker-end="url(#arr)"/><text class="dg-ts" x="250" y="136" text-anchor="middle">③ ticket, Bob, timestamp</text>
+ <path class="dg-line" d="M300 158 H124" marker-end="url(#arr)"/><text class="dg-ts" x="250" y="174" text-anchor="middle">④ K(A-B), ticket for Bob</text>
+ <path class="dg-line" d="M110 170 L298 248" marker-end="url(#arr)"/><text class="dg-ts" x="150" y="226">⑤ ticket, timestamp</text>
+ <path class="dg-line" d="M300 270 L80 172" marker-end="url(#arr)"/><text class="dg-ts" x="140" y="262">⑥ timestamp + 1</text>
+</svg>
+<figcaption>Fig 4.3 — Kerberos: AS and TGS together form the KDC.</figcaption>
+</figure>
+<div class="demo box" data-demo="kerberos" data-title="Interactive demo — follow a Kerberos login"></div>
+<h3>Kerberos version 4 vs version 5 and realms</h3>
+<table>
+  <tr><th>Aspect</th><th>Version 4</th><th>Version 5 (current, RFC 4120)</th></tr>
+  <tr><td>Encryption</td><td>DES only</td><td>Any algorithm (AES)</td></tr>
+  <tr><td>Message encoding</td><td>Ad hoc</td><td>ASN.1</td></tr>
+  <tr><td>Ticket lifetime</td><td>Max ~21 hours (8-bit field)</td><td>Arbitrary start/end time</td></tr>
+  <tr><td>Delegation</td><td>No</td><td>Forwardable/proxiable tickets</td></tr>
+  <tr><td>Inter-realm</td><td>Limited</td><td>Supported hierarchically</td></tr>
+</table>
+<p>A <b>realm</b> is the set of users and servers registered with one KDC. For cross-realm access, the TGSs of two realms share a key, and Alice obtains a ticket for the remote TGS from her local one.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="app-layer">
+<h2><span class="num">4.7</span> Application-layer security: PGP and S/MIME</h2>
+<div class="box found" data-title="Foundation — how e-mail travels">
+  <p>Alice's <b>user agent</b> (UA: Gmail app, Outlook) hands the mail to her <b>message transfer agent</b> (MTA, SMTP server), which sends it to Bob's mail server; Bob's UA fetches it with a <b>message access agent</b> (POP3/IMAP). E-mail is a <b>one-way, store-and-forward</b> activity: Alice and Bob are not online together, so there is no handshake to agree on algorithms or keys. Hence the secure-mail protocol must put the <b>algorithm names, the encrypted session key and the signatures inside the message itself</b>. E-mail also originally carried only 7-bit ASCII, so binary ciphertext must be <b>encoded as text</b>.</p>
+</div>
+
+<div class="concept">
+  <h3>PGP (Pretty Good Privacy)</h3>
+  <div class="f-exp">Created by <b>Phil Zimmermann</b> in 1991 and given away free; standardised as OpenPGP (RFC 4880). Provides <b>privacy, integrity, authentication and compression</b> for e-mail and files, using a <b>web of trust</b> instead of a CA hierarchy.</div>
+  <div class="f-use">Journalists and activists, software release signing (Linux distributions sign packages with GPG), encrypted file storage, Git commit signing.</div>
+  <div class="f-imp">
+    <p><b>Scenarios (how a PGP message is built step by step):</b></p>
+    <ol class="steps">
+      <li><b>Plaintext</b> — no security (just sent as is).</li>
+      <li><b>Message integrity + authentication</b> — Alice hashes the message and signs the digest with her private key; sends message + signature.</li>
+      <li><b>Compression</b> — the message (and signature) are compressed (ZIP) — after signing, before encrypting.</li>
+      <li><b>Confidentiality with a one-time session key</b> — Alice creates a random session key, encrypts the (signed, compressed) message with a symmetric cipher (IDEA/3DES/AES), and encrypts the session key with <b>Bob's public key</b> (RSA/ElGamal). Both are sent.</li>
+      <li><b>Code conversion</b> — the binary result is converted to ASCII text using <b>Radix-64</b> (Base64): every 3 bytes → 4 printable characters.</li>
+      <li><b>Segmentation</b> — long messages are split to fit mail-size limits.</li>
+    </ol>
+    <p>Bob reverses the steps: Radix-64 decode → decrypt session key with his private key → decrypt message → decompress → verify Alice's signature with her public key.</p>
+  </div>
+  <div class="f-lim">Hard for ordinary users (key management, trust decisions); metadata (subject line, sender, receiver) is not encrypted; no forward secrecy — a stolen private key decrypts all old mail.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 760 210" width="740" role="img" aria-label="PGP sender">
+ <rect class="dg-good" x="5" y="80" width="60" height="34" rx="6"/><text class="dg-tb" x="35" y="102" text-anchor="middle">M</text>
+ <rect class="dg-acc" x="95" y="80" width="90" height="34" rx="6"/><text class="dg-t" x="140" y="96" text-anchor="middle">Hash +</text><text class="dg-t" x="140" y="110" text-anchor="middle">Sign (A priv)</text>
+ <rect class="dg-acc" x="215" y="80" width="80" height="34" rx="6"/><text class="dg-t" x="255" y="102" text-anchor="middle">Compress</text>
+ <rect class="dg-acc" x="325" y="80" width="120" height="34" rx="6"/><text class="dg-t" x="385" y="96" text-anchor="middle">Encrypt with</text><text class="dg-t" x="385" y="110" text-anchor="middle">session key K</text>
+ <rect class="dg-warn" x="325" y="150" width="120" height="34" rx="6"/><text class="dg-t" x="385" y="166" text-anchor="middle">Encrypt K with</text><text class="dg-t" x="385" y="180" text-anchor="middle">Bob's public key</text>
+ <rect class="dg-box" x="335" y="10" width="100" height="30" rx="6"/><text class="dg-t" x="385" y="30" text-anchor="middle">random K</text>
+ <rect class="dg-acc" x="490" y="110" width="110" height="34" rx="6"/><text class="dg-t" x="545" y="132" text-anchor="middle">Radix-64</text>
+ <rect class="dg-good" x="640" y="110" width="110" height="34" rx="6"/><text class="dg-t" x="695" y="132" text-anchor="middle">to e-mail</text>
+ <path class="dg-line" d="M65 97 H91" marker-end="url(#arr)"/><path class="dg-line" d="M185 97 H211" marker-end="url(#arr)"/><path class="dg-line" d="M295 97 H321" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M385 40 V76" marker-end="url(#arr)"/><path class="dg-line" d="M435 25 H470 V167 H449" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M445 97 H470 V127 H486" marker-end="url(#arr)"/><path class="dg-line" d="M445 167 H470" /><path class="dg-line" d="M600 127 H636" marker-end="url(#arr)"/>
+ <text class="dg-ts" x="140" y="70" text-anchor="middle">integrity + authentication</text><text class="dg-ts" x="385" y="200" text-anchor="middle">confidentiality</text>
+</svg>
+<figcaption>Fig 4.4 — PGP at the sender: sign → compress → encrypt with a one-time session key → Radix-64.</figcaption>
+</figure>
+<div class="demo box" data-demo="radix64" data-title="Interactive demo — Radix-64 (Base64) conversion"></div>
+
+<div class="concept">
+  <h3>PGP key rings, certificates and the web of trust</h3>
+  <div class="f-exp">Each user keeps two <b>key rings</b>: a <b>private key ring</b> (own key pairs, private keys encrypted with a passphrase) and a <b>public key ring</b> (public keys of correspondents). Each key has a <b>key ID</b> (last 64 bits of the key). Instead of a CA, users <b>sign each other's public keys</b> — a PGP certificate. Trust is computed from these signatures: the <b>web of trust</b>.</div>
+  <div class="f-use">Key-signing parties at conferences; Linux developers vouching for each other's keys.</div>
+  <div class="f-imp">For each introducer Alice assigns <b>owner trust</b>: none, partial or full. A key becomes <b>legitimate</b> (key legitimacy) if it is signed by one fully trusted introducer or by two partially trusted ones (configurable). <b>Key revocation:</b> the owner issues a revocation certificate signed with the key itself.</div>
+  <div class="f-lim">Trust decisions are manual and confusing; no central revocation; does not scale well.</div>
+</div>
+
+<div class="concept">
+  <h3>S/MIME (Secure/Multipurpose Internet Mail Extensions)</h3>
+  <div class="f-exp">S/MIME adds security to <b>MIME</b>, the standard that lets e-mail carry non-ASCII content (attachments, images, other languages). It uses <b>X.509 certificates from CAs</b> (not a web of trust) and the <b>Cryptographic Message Syntax (CMS)</b>.</div>
+  <div class="f-use">Built into Outlook, Apple Mail, Thunderbird; corporate and government e-mail where a CA hierarchy already exists.</div>
+  <div class="f-imp">
+    <p><b>MIME basics:</b> five headers — MIME-Version, Content-Type, Content-Transfer-Encoding, Content-Id, Content-Description. Content types: text, multipart, message, image, video, audio, application. Transfer encodings: 7bit, 8bit, binary, <b>Base64</b>, quoted-printable.</p>
+    <p><b>CMS content types used by S/MIME:</b></p>
+    <ul>
+      <li><b>Data</b> — plain content.</li>
+      <li><b>Signed-data</b> — content + digest signed with the sender's private key (+ certificates).</li>
+      <li><b>Enveloped-data</b> — content encrypted with a random session key; the key is encrypted with each recipient's public key.</li>
+      <li><b>Digested-data</b> — content + digest (integrity only).</li>
+      <li><b>Encrypted-data</b> — encrypted content with a key managed separately.</li>
+      <li><b>Authenticated-data</b> — content + MAC.</li>
+    </ul>
+    <p><b>Algorithms:</b> digests SHA-256 (MD5/SHA-1 historically); signatures RSA/DSA/ECDSA; content encryption AES or 3DES; key encryption RSA or Diffie–Hellman.</p>
+  </div>
+  <div class="f-lim">Needs every user to obtain a CA certificate; like PGP, headers are not protected; interoperability problems between clients.</div>
+</div>
+<h3>PGP vs S/MIME</h3>
+<table>
+  <tr><th>Feature</th><th>PGP</th><th>S/MIME</th></tr>
+  <tr><td>Trust model</td><td>Web of trust (users sign keys)</td><td>Hierarchical CAs (X.509)</td></tr>
+  <tr><td>Certificates</td><td>PGP certificates</td><td>X.509 v3</td></tr>
+  <tr><td>Message format</td><td>OpenPGP packets, Radix-64</td><td>MIME + CMS (PKCS #7), Base64</td></tr>
+  <tr><td>Typical users</td><td>Individuals, open-source projects</td><td>Organisations, governments</td></tr>
+  <tr><td>Built into mail clients</td><td>Usually via plug-ins</td><td>Yes (Outlook, Apple Mail)</td></tr>
+  <tr><td>Also secures files</td><td>Yes</td><td>Mainly e-mail</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="tls">
+<h2><span class="num">4.8</span> Transport Layer Security: SSL and TLS</h2>
+<div class="concept">
+  <h3>SSL / TLS overview</h3>
+  <div class="f-exp"><b>Secure Sockets Layer (SSL)</b> was designed by Netscape (SSL 3.0, 1996). The IETF standardised it as <b>Transport Layer Security (TLS)</b> (TLS 1.0 = SSL 3.1, 1999; TLS 1.2, 2008; TLS 1.3, 2018). It sits <b>between the application layer (HTTP) and TCP</b>, giving a secure channel to any application: HTTPS = HTTP over TLS (port 443).</div>
+  <div class="f-use">Every HTTPS website, secure e-mail transport (SMTPS, IMAPS), VPNs (OpenVPN), messaging apps, banking apps, APIs.</div>
+  <div class="f-imp"><b>Services provided by SSL:</b> fragmentation (blocks of ≤ 2<sup>14</sup> bytes), compression (optional), message integrity (MAC), confidentiality (symmetric encryption), framing (headers).</div>
+  <div class="f-lim">SSL 2.0/3.0 and TLS 1.0/1.1 are broken/deprecated (POODLE, BEAST); misconfigured servers, fake certificates and downgrade attacks remain risks. TLS protects data <b>in transit only</b>.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 620 230" width="580" role="img" aria-label="SSL protocol stack">
+ <rect class="dg-good" x="80" y="10" width="460" height="34" rx="6"/><text class="dg-tb" x="310" y="32" text-anchor="middle">Application layer (HTTP, SMTP, …)</text>
+ <rect class="dg-acc" x="80" y="56" width="110" height="46" rx="6"/><text class="dg-t" x="135" y="77" text-anchor="middle">Handshake</text><text class="dg-ts" x="135" y="92" text-anchor="middle">protocol</text>
+ <rect class="dg-acc" x="196" y="56" width="110" height="46" rx="6"/><text class="dg-t" x="251" y="77" text-anchor="middle">ChangeCipher</text><text class="dg-ts" x="251" y="92" text-anchor="middle">Spec protocol</text>
+ <rect class="dg-acc" x="312" y="56" width="110" height="46" rx="6"/><text class="dg-t" x="367" y="77" text-anchor="middle">Alert</text><text class="dg-ts" x="367" y="92" text-anchor="middle">protocol</text>
+ <rect class="dg-good" x="428" y="56" width="112" height="46" rx="6"/><text class="dg-t" x="484" y="77" text-anchor="middle">Application</text><text class="dg-ts" x="484" y="92" text-anchor="middle">data</text>
+ <rect class="dg-warn" x="80" y="112" width="460" height="38" rx="6"/><text class="dg-tb" x="310" y="136" text-anchor="middle">Record protocol</text>
+ <rect class="dg-box" x="80" y="160" width="460" height="30" rx="6"/><text class="dg-t" x="310" y="180" text-anchor="middle">Transport layer (TCP)</text>
+ <rect class="dg-box" x="80" y="196" width="460" height="28" rx="6"/><text class="dg-t" x="310" y="215" text-anchor="middle">Network layer (IP)</text>
+ <text class="dg-ts" x="40" y="110" text-anchor="middle" transform="rotate(-90 40 110)">SSL / TLS</text>
+</svg>
+<figcaption>Fig 4.5 — The four SSL/TLS protocols sit above TCP.</figcaption>
+</figure>
+
+<h3>SSL architecture</h3>
+<div class="concept">
+  <h3>Algorithms, cipher suites and parameter generation</h3>
+  <div class="f-exp">The two sides negotiate a <b>cipher suite</b> — a combination of a key-exchange method, an encryption algorithm and a hash/MAC algorithm, e.g. <code>SSL_RSA_WITH_3DES_EDE_CBC_SHA</code> or <code>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256</code>.</div>
+  <div class="f-use">Lets old and new clients and servers find a common secure option.</div>
+  <div class="f-imp">
+    <ul>
+      <li><b>Key-exchange algorithms:</b> NULL, RSA (client encrypts the pre-master secret with the server's RSA key), anonymous DH, ephemeral DH (DHE, signed), fixed DH, Fortezza.</li>
+      <li><b>Encryption:</b> NULL, RC4, RC2, DES, 3DES, IDEA, Fortezza (now AES-GCM, ChaCha20).</li>
+      <li><b>Hash for MAC:</b> NULL, MD5, SHA-1 (now SHA-256/384).</li>
+      <li><b>Compression:</b> optional (removed later due to CRIME attack).</li>
+      <li><b>Cryptographic parameter generation:</b> client and server exchange random numbers; a <b>pre-master secret</b> is exchanged (via RSA or DH); both compute the 48-byte <b>master secret</b> = hash(pre-master secret, client random, server random); from it they derive the <b>key material</b>: client &amp; server write MAC secrets, client &amp; server write keys and IVs (six values).</li>
+    </ul></div>
+  <div class="f-lim">Weak suites (export-grade, RC4, NULL) must be disabled on servers or downgrade attacks become possible.</div>
+</div>
+<div class="two-col">
+  <div class="box def" data-title="Session"><p>An association between client and server created by the Handshake, holding the agreed cipher suite and master secret. Expensive to create — can be <b>resumed</b>.</p></div>
+  <div class="box def" data-title="Connection"><p>A transport (TCP) relationship. One session can be shared by <b>many connections</b>, each with its own keys derived from the master secret.</p></div>
+</div>
+
+<h3>The four protocols</h3>
+<div class="concept">
+  <h3>1. Handshake protocol (four phases)</h3>
+  <div class="f-exp">Negotiates the cipher suite, authenticates the server (and optionally the client) and establishes the secrets.</div>
+  <div class="f-use">Runs at the start of every HTTPS connection (the padlock appears after it succeeds).</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>Phase I — establishing security capabilities:</b> ClientHello (highest version, client random, session ID, list of cipher suites, compression methods) → ServerHello (chosen version, server random, chosen suite and compression).</li>
+      <li><b>Phase II — server key exchange and authentication:</b> Certificate (server's X.509 chain), ServerKeyExchange (DH parameters, if needed), CertificateRequest (optional), ServerHelloDone.</li>
+      <li><b>Phase III — client key exchange and authentication:</b> Certificate (if requested), <b>ClientKeyExchange</b> (pre-master secret encrypted with the server's public key, or the client's DH value), CertificateVerify (proves the client owns its certificate).</li>
+      <li><b>Phase IV — finalising:</b> ChangeCipherSpec + Finished from the client, then ChangeCipherSpec + Finished from the server. "Finished" is the first message protected with the new keys and contains a hash of the whole handshake — detects tampering.</li>
+    </ol></div>
+  <div class="f-lim">Two round trips before data can flow (TLS 1.3 reduces it to one).</div>
+</div>
+<div class="demo box" data-demo="tlshandshake" data-title="Interactive demo — the SSL/TLS handshake, message by message"></div>
+<div class="concept">
+  <h3>2. ChangeCipherSpec protocol</h3>
+  <div class="f-exp">A single one-byte message that tells the other side "from now on, use the newly negotiated (pending) parameters". It moves the pending state to the active state.</div>
+  <div class="f-use">Sent by each side in Phase IV.</div>
+  <div class="f-imp">Message value 1; carried by the Record protocol.</div>
+  <div class="f-lim">Removed as a separate step in TLS 1.3.</div>
+</div>
+<div class="concept">
+  <h3>3. Alert protocol</h3>
+  <div class="f-exp">Reports errors and abnormal conditions. Each alert has a <b>level</b> (warning or fatal — fatal closes the connection) and a <b>description</b>.</div>
+  <div class="f-use">close_notify (normal end), unexpected_message, bad_record_mac, decompression_failure, handshake_failure, no_certificate, bad_certificate, certificate_expired, certificate_revoked, illegal_parameter.</div>
+  <div class="f-imp">Two-byte message: level + description code.</div>
+  <div class="f-lim">Detailed alerts can leak information (padding-oracle attacks used error differences).</div>
+</div>
+<div class="concept">
+  <h3>4. Record protocol</h3>
+  <div class="f-exp">Carries messages from the upper layer (handshake, alert, CCS, application data), applying the agreed security.</div>
+  <div class="f-use">Every byte of HTTPS traffic passes through it.</div>
+  <div class="f-imp">
+    <ol class="steps"><li><b>Fragment</b> data into blocks ≤ 2<sup>14</sup> bytes.</li><li><b>Compress</b> (optional).</li><li><b>Add MAC</b> computed with the write MAC secret (and a sequence number).</li><li><b>Encrypt</b> the compressed fragment + MAC with the write key.</li><li><b>Add the SSL header</b>: content type (8 bits), major/minor version (8 + 8), length (16).</li></ol></div>
+  <div class="f-lim">MAC-then-encrypt order in SSL/TLS ≤ 1.2 enabled padding-oracle attacks (Lucky 13); TLS 1.3 uses AEAD (encryption + authentication together).</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 640 200" width="600" role="img" aria-label="Record protocol">
+ <rect class="dg-good" x="20" y="10" width="600" height="28" rx="5"/><text class="dg-t" x="320" y="29" text-anchor="middle">Application data</text>
+ <rect class="dg-acc" x="20" y="54" width="200" height="26" rx="5"/><text class="dg-t" x="120" y="72" text-anchor="middle">Fragment 1</text>
+ <rect class="dg-acc" x="230" y="54" width="200" height="26" rx="5"/><text class="dg-t" x="330" y="72" text-anchor="middle">Fragment 2 …</text>
+ <rect class="dg-acc" x="20" y="96" width="160" height="26" rx="5"/><text class="dg-t" x="100" y="114" text-anchor="middle">Compressed</text>
+ <rect class="dg-warn" x="180" y="96" width="60" height="26" rx="5"/><text class="dg-t" x="210" y="114" text-anchor="middle">MAC</text>
+ <rect class="dg-bad" x="60" y="140" width="220" height="26" rx="5"/><text class="dg-t" x="170" y="158" text-anchor="middle">Encrypted (compressed + MAC)</text>
+ <rect class="dg-box" x="10" y="140" width="50" height="26" rx="5"/><text class="dg-ts" x="35" y="157" text-anchor="middle">Header</text>
+ <text class="dg-ts" x="420" y="114">① fragment → ② compress → ③ add MAC</text>
+ <text class="dg-ts" x="320" y="158">④ encrypt → ⑤ add header (type, version, length)</text>
+</svg>
+<figcaption>Fig 4.6 — Operation of the Record protocol.</figcaption>
+</figure>
+
+<h3>TLS: differences from SSL</h3>
+<table>
+  <tr><th>Aspect</th><th>SSL 3.0</th><th>TLS (1.0–1.2)</th></tr>
+  <tr><td>Version number</td><td>3.0</td><td>3.1 (1.0), 3.2, 3.3</td></tr>
+  <tr><td>Cipher suites</td><td>Includes Fortezza</td><td>Fortezza removed; AES added (1.1+), AEAD (1.2)</td></tr>
+  <tr><td>Key generation</td><td>Ad hoc MD5 + SHA-1 construction</td><td>A pseudo-random function (<b>PRF</b>) built from HMAC (data-expansion function)</td></tr>
+  <tr><td>MAC</td><td>SSL's own MAC (older HMAC draft)</td><td>Standard HMAC</td></tr>
+  <tr><td>Alert</td><td>Some codes</td><td>no_certificate removed; new codes (decryption_failed, record_overflow, unknown_ca, access_denied, decode_error, export_restriction, protocol_version, insufficient_security, internal_error)</td></tr>
+  <tr><td>Handshake</td><td>—</td><td>CertificateVerify and Finished computed with the PRF over handshake messages</td></tr>
+</table>
+<div class="box oos" data-title="Beyond the syllabus · TLS 1.3 (2018)">
+  <p>Only 5 cipher suites, all AEAD (AES-GCM, ChaCha20-Poly1305). RSA key exchange removed — every connection uses ephemeral (EC)DHE, giving <b>forward secrecy</b>. One round-trip handshake (even 0-RTT on resumption). Most handshake messages are encrypted. Compression, renegotiation and ChangeCipherSpec removed.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ipsec">
+<h2><span class="num">4.9</span> Network-layer security: IPSec</h2>
+<div class="concept">
+  <h3>IP Security (IPSec)</h3>
+  <div class="f-exp">A collection of IETF protocols that protect <b>IP packets</b> at the network layer. Because it works below TCP/UDP, it secures <b>all</b> traffic between two hosts or networks, transparently to applications.</div>
+  <div class="f-use"><b>Virtual Private Networks (VPNs)</b> connecting branch offices over the Internet, remote-access VPNs for employees, securing routing protocols; mandatory support in IPv6.</div>
+  <div class="f-imp">Two <b>modes</b> × two <b>security protocols</b>, with keys negotiated by <b>IKE</b>, policies in the <b>SPD</b> and agreed parameters in <b>Security Associations</b>.</div>
+  <div class="f-lim">Complex to configure; problems with NAT (needs NAT-traversal over UDP 4500); per-packet overhead.</div>
+</div>
+
+<h3>Two modes</h3>
+<figure class="fig">
+<svg viewBox="0 0 680 190" width="660" role="img" aria-label="IPSec modes">
+ <text class="dg-ta" x="10" y="20">Transport mode</text>
+ <rect class="dg-box" x="10" y="30" width="110" height="30" rx="4"/><text class="dg-t" x="65" y="50" text-anchor="middle">IP header</text>
+ <rect class="dg-warn" x="120" y="30" width="120" height="30" rx="4"/><text class="dg-t" x="180" y="50" text-anchor="middle">IPSec header</text>
+ <rect class="dg-good" x="240" y="30" width="250" height="30" rx="4"/><text class="dg-t" x="365" y="50" text-anchor="middle">TCP/UDP + data (protected)</text>
+ <rect class="dg-warn" x="490" y="30" width="110" height="30" rx="4"/><text class="dg-t" x="545" y="50" text-anchor="middle">trailer / auth</text>
+ <text class="dg-ts" x="10" y="80">Protects the payload; original IP header stays visible. Host-to-host.</text>
+ <text class="dg-ta" x="10" y="115">Tunnel mode</text>
+ <rect class="dg-acc" x="10" y="125" width="110" height="30" rx="4"/><text class="dg-t" x="65" y="145" text-anchor="middle">New IP header</text>
+ <rect class="dg-warn" x="120" y="125" width="120" height="30" rx="4"/><text class="dg-t" x="180" y="145" text-anchor="middle">IPSec header</text>
+ <rect class="dg-good" x="240" y="125" width="110" height="30" rx="4"/><text class="dg-t" x="295" y="145" text-anchor="middle">Orig IP header</text>
+ <rect class="dg-good" x="350" y="125" width="140" height="30" rx="4"/><text class="dg-t" x="420" y="145" text-anchor="middle">TCP/UDP + data</text>
+ <rect class="dg-warn" x="490" y="125" width="110" height="30" rx="4"/><text class="dg-t" x="545" y="145" text-anchor="middle">trailer / auth</text>
+ <text class="dg-ts" x="10" y="175">Whole original packet protected and wrapped in a new packet. Gateway-to-gateway (VPN).</text>
+</svg>
+<figcaption>Fig 4.7 — IPSec transport mode vs tunnel mode.</figcaption>
+</figure>
+<table>
+  <tr><th>Basis</th><th>Transport mode</th><th>Tunnel mode</th></tr>
+  <tr><td>What is protected</td><td>The payload (TCP/UDP segment) of the IP packet</td><td>The entire original IP packet, including its header</td></tr>
+  <tr><td>IP header</td><td>Original header is kept (visible)</td><td>A new IP header is added (e.g. gateway addresses)</td></tr>
+  <tr><td>Typical use</td><td>End-to-end between two hosts</td><td>Between routers/firewalls (site-to-site VPN), or host to gateway</td></tr>
+  <tr><td>Hides real addresses</td><td>No</td><td>Yes</td></tr>
+</table>
+
+<h3>Two security protocols</h3>
+<div class="concept">
+  <h3>Authentication Header (AH)</h3>
+  <div class="f-exp">Provides <b>source authentication and integrity</b> of the whole packet (payload and the immutable parts of the IP header), but <b>no confidentiality</b>. IP protocol number 51.</div>
+  <div class="f-use">When data may be read but must not be forged (some routing/government networks).</div>
+  <div class="f-imp"><b>Fields:</b> Next header (8 bits), Payload length (8), Reserved (16), <b>Security Parameter Index (SPI)</b> (32, identifies the SA), <b>Sequence number</b> (32, anti-replay), <b>Authentication data</b> (variable — an HMAC over the packet; mutable header fields like TTL are set to zero during calculation).</div>
+  <div class="f-lim">No encryption; breaks with NAT (because NAT changes the authenticated IP addresses).</div>
+</div>
+<div class="concept">
+  <h3>Encapsulating Security Payload (ESP)</h3>
+  <div class="f-exp">Provides <b>confidentiality</b> (encryption) <b>plus</b> source authentication and integrity. IP protocol number 50. Adds a header, a trailer and an authentication field.</div>
+  <div class="f-use">Almost all VPNs use ESP (AH is rarely used now).</div>
+  <div class="f-imp"><b>ESP header:</b> SPI (32), Sequence number (32). <b>ESP trailer:</b> Padding (0–255 bytes), Pad length (8), Next header (8). <b>Authentication data</b> (variable). Encryption covers payload + trailer; authentication covers ESP header + payload + trailer (not the outer IP header).</div>
+  <div class="f-lim">In transport mode the IP header itself is not authenticated.</div>
+</div>
+<table>
+  <tr><th>Service</th><th>AH</th><th>ESP</th></tr>
+  <tr><td>Access control</td><td>✓</td><td>✓</td></tr>
+  <tr><td>Message authentication (integrity)</td><td>✓</td><td>✓</td></tr>
+  <tr><td>Entity (source) authentication</td><td>✓</td><td>✓</td></tr>
+  <tr><td>Confidentiality</td><td>✗</td><td>✓</td></tr>
+  <tr><td>Replay-attack protection</td><td>✓</td><td>✓</td></tr>
+</table>
+<div class="demo box" data-demo="ipsec" data-title="Interactive demo — build an IPSec packet (mode × protocol)"></div>
+
+<div class="concept">
+  <h3>Security Association (SA), SAD and SPD</h3>
+  <div class="f-exp">A <b>Security Association</b> is a <b>one-way</b> contract between two parties specifying the protocol (AH/ESP), algorithms, keys, sequence counters and lifetime. Two-way communication needs two SAs. An SA is identified by (SPI, destination address, protocol).</div>
+  <div class="f-use">Every IPSec packet carries the SPI so the receiver can find the right SA.</div>
+  <div class="f-imp"><b>Security Association Database (SAD):</b> the table of active SAs (SPI, sequence counter, anti-replay window, AH/ESP info, lifetime, mode, path MTU). <b>Security Policy Database (SPD):</b> rules applied to every packet — <i>discard</i>, <i>bypass</i> (send without IPSec) or <i>apply</i> IPSec — selected by addresses, ports and protocol. Outbound: check SPD → find/create SA → process. Inbound: look up SA by SPI → verify → check SPD.</div>
+  <div class="f-lim">SAs must be created and refreshed securely — the job of IKE.</div>
+</div>
+
+<h3>Internet Key Exchange (IKE)</h3>
+<div class="concept">
+  <h3>IKE: creating SAs securely</h3>
+  <div class="f-exp">IKE (RFC 2409; IKEv2 in RFC 7296) creates SAs for IPSec. It is built from three older protocols: <b>Oakley</b> (an improved Diffie–Hellman key exchange), <b>SKEME</b> (key exchange with public-key encryption for authentication and quick refresh) and <b>ISAKMP</b> (the message formats and framework — IKE packets are ISAKMP packets over UDP port 500).</div>
+  <div class="f-use">Every IPSec VPN (Cisco, strongSwan, Windows, phones' built-in VPN clients).</div>
+  <div class="f-imp">
+    <p>Improvements over plain Diffie–Hellman:</p>
+    <ul><li><b>Cookies</b> against <b>clogging (DoS) attacks</b> — the responder does no expensive work until the initiator returns its cookie.</li><li><b>Nonces</b> against <b>replay attacks</b>.</li><li><b>Authentication</b> of the exchanged values against <b>man-in-the-middle</b>.</li></ul>
+    <p><b>Two phases:</b></p>
+    <ol class="steps">
+      <li><b>Phase I</b> — creates an <b>ISAKMP (IKE) SA</b>: a secure, authenticated channel between the two peers. <b>Main mode</b> (6 messages: negotiate SA → DH exchange + nonces → authenticate identities, which are protected) or <b>aggressive mode</b> (3 messages, faster, but identities sent in clear). Authentication methods: <b>pre-shared key</b>, <b>digital signatures</b>, <b>public-key encryption</b> (original and revised).</li>
+      <li><b>Phase II</b> — <b>quick mode</b> (3 messages), protected by the Phase I SA, creates the actual <b>IPSec SAs</b> (for AH/ESP) and can be repeated to refresh keys. Optional <b>Perfect Forward Secrecy</b> adds a fresh DH exchange.</li>
+    </ol></div>
+  <div class="f-lim">IKEv1 is complex with many modes; aggressive mode with pre-shared keys allows offline guessing of the key. IKEv2 simplifies it (4 messages to set up).</div>
+</div>
+<table>
+  <tr><th>Basis</th><th>SSL/TLS</th><th>IPSec</th></tr>
+  <tr><td>Layer</td><td>Between application and transport</td><td>Network layer</td></tr>
+  <tr><td>Protects</td><td>One application connection (TCP)</td><td>All IP traffic between hosts/networks</td></tr>
+  <tr><td>Application changes</td><td>Application must use TLS (https://)</td><td>Transparent to applications</td></tr>
+  <tr><td>Key management</td><td>Handshake protocol</td><td>IKE</td></tr>
+  <tr><td>Typical use</td><td>Web, e-mail transport, APIs</td><td>VPNs</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="unit4-review">
+<h2><span class="num">4.10</span> Unit IV review and self-test</h2>
+<div class="box summary">
+<ul>
+  <li>Signature = sign with private key, verify with public key; signs the digest; gives authentication, integrity, non-repudiation (not confidentiality).</li>
+  <li>RSA: S = M<sup>d</sup>, verify S<sup>e</sup>. ElGamal: S₁ = e₁<sup>r</sup>, S₂ = (M − dS₁)r<sup>−1</sup> mod (p−1). DSA: S₁ = (e₁<sup>r</sup> mod p) mod q, S₂ = (h + dS₁)r<sup>−1</sup> mod q.</li>
+  <li>KDC + session keys; Needham–Schroeder (5 msgs, nonces); Otway–Rees (4 msgs).</li>
+  <li>Diffie–Hellman K = g<sup>xy</sup> mod p; MITM unless authenticated (STS).</li>
+  <li>Public-key distribution: announcement → directory → controlled centre → CA certificates (X.509, CRL); PKI trust models.</li>
+  <li>Kerberos: AS, TGS, server; 6 messages; tickets + timestamps; single sign-on.</li>
+  <li>PGP: sign → compress → encrypt with session key (key encrypted with receiver's public key) → Radix-64; web of trust. S/MIME: MIME + CMS + X.509.</li>
+  <li>SSL: Handshake (4 phases), ChangeCipherSpec, Alert, Record (fragment → compress → MAC → encrypt → header). TLS: PRF, HMAC.</li>
+  <li>IPSec: transport vs tunnel; AH (integrity, no secrecy) vs ESP (both); SA/SAD/SPD; IKE Phase I (main/aggressive) and Phase II (quick).</li>
+</ul>
+</div>
+<div class="quiz">
+  <div class="mcq" data-ans="b"><p class="q">1. To sign a document Alice uses:</p><ol><li>Bob's public key</li><li>her own private key</li><li>her own public key</li><li>a session key</li></ol><p class="why">Only she has it; anyone can verify with her public key.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">2. A digital signature does NOT provide:</p><ol><li>integrity</li><li>authentication</li><li>non-repudiation</li><li>confidentiality</li></ol><p class="why">The message is not hidden.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">3. The Diffie–Hellman protocol is vulnerable to:</p><ol><li>man-in-the-middle attack</li><li>birthday attack</li><li>frequency analysis</li><li>meet-in-the-middle attack</li></ol><p class="why">The exchanged values are not authenticated.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">4. In Kerberos, which server issues tickets for the real server?</p><ol><li>AS</li><li>CA</li><li>TGS</li><li>KDC root</li></ol><p class="why">AS issues the TGS ticket; the TGS issues service tickets.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">5. PGP converts binary output into printable characters using:</p><ol><li>Quoted-printable</li><li>Radix-64</li><li>ASN.1</li><li>Hex</li></ol><p class="why">3 bytes → 4 characters.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">6. Which SSL protocol fragments, compresses, MACs and encrypts data?</p><ol><li>Handshake</li><li>Alert</li><li>Record</li><li>ChangeCipherSpec</li></ol><p class="why">The Record protocol carries all others.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">7. Which IPSec protocol provides confidentiality?</p><ol><li>ESP</li><li>AH</li><li>IKE</li><li>ISAKMP</li></ol><p class="why">AH only authenticates.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">8. In tunnel mode, IPSec protects:</p><ol><li>only the payload</li><li>only the header</li><li>only the MAC</li><li>the entire original IP packet</li></ol><p class="why">It is wrapped in a new IP header.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">9. IKE Phase II uses:</p><ol><li>main mode</li><li>quick mode</li><li>aggressive mode</li><li>tunnel mode</li></ol><p class="why">Quick mode creates the IPSec SAs.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">10. X.509 certificates are signed by:</p><ol><li>the subject</li><li>the browser</li><li>the issuing CA</li><li>the KDC</li></ol><p class="why">The CA's signature binds the subject to the public key.</p></div>
+</div>
+<h3>Likely exam questions</h3>
+<table>
+  <tr><th>Marks</th><th>Question</th></tr>
+  <tr><td>2</td><td>Define digital signature. · What is a KDC? · What is a ticket in Kerberos? · Expand PGP, S/MIME, SSL, TLS, ESP, AH, IKE, SA, SPD. · What is a CRL? · What is a session key?</td></tr>
+  <tr><td>5</td><td>Compare conventional and digital signatures. · Explain the Diffie–Hellman key exchange with an example and its MITM attack. · Explain Needham–Schroeder. · Explain X.509 certificate format. · Explain PGP scenarios. · Explain the SSL Record protocol. · Compare transport and tunnel modes. · Compare AH and ESP.</td></tr>
+  <tr><td>10</td><td>Explain digital signature schemes (RSA, ElGamal, DSS). · Explain Kerberos with a neat diagram. · Explain PGP and S/MIME. · Explain the SSL architecture and its four protocols. · Explain IPSec (modes, AH, ESP, SA) and IKE.</td></tr>
+</table>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="crypto-core.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>
