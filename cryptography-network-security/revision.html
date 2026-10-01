@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revision &amp; Exam Kit — Cryptography</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="crypto" data-page="revision.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Exam kit · all units</div>
+  <h1>Revision &amp; Exam Kit</h1>
+  <p class="lead">Use this page in the last week. Everything here is a compressed pointer back to the full explanation in the units — if a line does not make sense, click through and re-read that section.</p>
+</div>
+
+<section class="topic" id="formula-sheet">
+<h2>Formula sheet</h2>
+<table>
+  <tr><th>Topic</th><th>Formula / rule</th></tr>
+  <tr><td>Division algorithm</td><td>a = q·n + r, 0 ≤ r &lt; n</td></tr>
+  <tr><td>Euclid</td><td>gcd(a, b) = gcd(b, a mod b); gcd(a, 0) = a</td></tr>
+  <tr><td>Extended Euclid</td><td>r = r1 − q·r2, s = s1 − q·s2, t = t1 − q·t2; start s(1,0), t(0,1); s·a + t·b = gcd</td></tr>
+  <tr><td>Inverse</td><td>a⁻¹ mod n exists ⇔ gcd(a, n) = 1; = t from extended Euclid on (n, a)</td></tr>
+  <tr><td>Linear congruence</td><td>ax ≡ b (mod n): d = gcd(a, n); d ∤ b → none; else d solutions x₀ + k(n/d)</td></tr>
+  <tr><td>2×2 inverse</td><td>[[a,b],[c,d]]⁻¹ = (ad − bc)⁻¹ [[d,−b],[−c,a]] mod n</td></tr>
+  <tr><td>Additive / multiplicative / affine</td><td>C = P + k; C = P·k; C = P·k₁ + k₂ (mod 26); decrypt with inverses</td></tr>
+  <tr><td>Vigenère</td><td>Cᵢ = Pᵢ + K<sub>i mod m</sub> (mod 26)</td></tr>
+  <tr><td>Hill</td><td>C = P × K, P = C × K⁻¹ (mod 26)</td></tr>
+  <tr><td>DES</td><td>Lᵢ = Rᵢ₋₁, Rᵢ = Lᵢ₋₁ ⊕ f(Rᵢ₋₁, Kᵢ); S-box row = b₁b₆, column = b₂b₃b₄b₅</td></tr>
+  <tr><td>3DES</td><td>C = E<sub>K3</sub>(D<sub>K2</sub>(E<sub>K1</sub>(P)))</td></tr>
+  <tr><td>AES key expansion</td><td>w<sub>i</sub> = w<sub>i−4</sub> ⊕ (i mod 4 = 0 ? SubWord(RotWord(w<sub>i−1</sub>)) ⊕ RCon : w<sub>i−1</sub>)</td></tr>
+  <tr><td>GF(2⁸)</td><td>add = XOR; ×02 = shift left, ⊕ 1B if MSB was 1; ×03 = ×02 ⊕ ×01</td></tr>
+  <tr><td>Modes</td><td>CBC: Cᵢ = E(Pᵢ ⊕ Cᵢ₋₁); OFB: Oᵢ = E(Oᵢ₋₁), Cᵢ = Pᵢ ⊕ Oᵢ; CTR: Cᵢ = Pᵢ ⊕ E(ctr + i)</td></tr>
+  <tr><td>Euler φ</td><td>φ(p) = p − 1; φ(pq) = (p−1)(q−1); φ(pᵉ) = pᵉ − pᵉ⁻¹; φ(n) = n∏(1 − 1/p)</td></tr>
+  <tr><td>Fermat / Euler</td><td>a<sup>p−1</sup> ≡ 1 (mod p); a<sup>φ(n)</sup> ≡ 1 (mod n); a⁻¹ ≡ a<sup>p−2</sup></td></tr>
+  <tr><td>Miller–Rabin</td><td>n − 1 = m·2<sup>k</sup>; T = a<sup>m</sup>; ±1 → prime?; square k−1 times; n−1 → prime?; 1 → composite</td></tr>
+  <tr><td>Fermat factorisation</td><td>find x ≥ √n with x² − n = y² → n = (x − y)(x + y)</td></tr>
+  <tr><td>CRT</td><td>M = ∏mᵢ, Mᵢ = M/mᵢ, x = Σ aᵢMᵢ(Mᵢ⁻¹ mod mᵢ) mod M</td></tr>
+  <tr><td>RSA</td><td>n = pq, ed ≡ 1 (mod φ(n)), C = P<sup>e</sup> mod n, P = C<sup>d</sup> mod n</td></tr>
+  <tr><td>Rabin</td><td>C = P² mod n; roots ±C<sup>(p+1)/4</sup> mod p, ±C<sup>(q+1)/4</sup> mod q; CRT → 4 answers</td></tr>
+  <tr><td>ElGamal</td><td>e₂ = e₁<sup>d</sup>; C₁ = e₁<sup>r</sup>, C₂ = P·e₂<sup>r</sup>; P = C₂·(C₁<sup>d</sup>)⁻¹ mod p</td></tr>
+  <tr><td>ECC</td><td>λ = (y₂−y₁)/(x₂−x₁) or (3x₁²+a)/(2y₁); x₃ = λ² − x₁ − x₂; y₃ = λ(x₁ − x₃) − y₁</td></tr>
+  <tr><td>SHA-512 padding</td><td>zeros = (−|M| − 129) mod 1024; length field 128 bits; blocks of 1024</td></tr>
+  <tr><td>Birthday bound</td><td>collision after ≈ 2<sup>n/2</sup> hashes</td></tr>
+  <tr><td>RSA signature</td><td>S = M<sup>d</sup> mod n; verify S<sup>e</sup> mod n = M</td></tr>
+  <tr><td>ElGamal signature</td><td>S₁ = e₁<sup>r</sup>; S₂ = (M − dS₁)r⁻¹ mod (p−1); V₁ = e₁<sup>M</sup>, V₂ = e₂<sup>S₁</sup>S₁<sup>S₂</sup></td></tr>
+  <tr><td>DSA</td><td>S₁ = (e₁<sup>r</sup> mod p) mod q; S₂ = (h + dS₁)r⁻¹ mod q; V = (e₁<sup>hw</sup>e₂<sup>S₁w</sup> mod p) mod q</td></tr>
+  <tr><td>Diffie–Hellman</td><td>R₁ = g<sup>x</sup>, R₂ = g<sup>y</sup>, K = g<sup>xy</sup> mod p</td></tr>
+  <tr><td>HMAC</td><td>H[(K⁺ ⊕ opad) ‖ H[(K⁺ ⊕ ipad) ‖ M]]</td></tr>
+</table>
+</section>
+
+<section class="topic" id="numbers-to-remember">
+<h2>Numbers to remember</h2>
+<table class="num">
+  <tr><th>Item</th><th>Value</th><th>Item</th><th>Value</th></tr>
+  <tr><td>DES block / key / rounds</td><td>64 / 56 / 16</td><td>AES block</td><td>128</td></tr>
+  <tr><td>DES round key</td><td>48 bits</td><td>AES rounds (128/192/256)</td><td>10 / 12 / 14</td></tr>
+  <tr><td>DES S-boxes</td><td>8 × (6 → 4)</td><td>AES-128 key words</td><td>44</td></tr>
+  <tr><td>DES 1-bit shift rounds</td><td>1, 2, 9, 16</td><td>AES RCon</td><td>01 02 04 08 10 20 40 80 1B 36</td></tr>
+  <tr><td>Affine keys</td><td>312</td><td>MD5 digest / block</td><td>128 / 512</td></tr>
+  <tr><td>ℤ₂₆* size</td><td>12</td><td>SHA-512 digest / block / rounds</td><td>512 / 1024 / 80</td></tr>
+  <tr><td>Monoalphabetic keys</td><td>26! ≈ 4×10²⁶</td><td>Whirlpool digest / rounds</td><td>512 / 10</td></tr>
+  <tr><td>Double DES (MITM)</td><td>2⁵⁷</td><td>AH / ESP protocol numbers</td><td>51 / 50</td></tr>
+  <tr><td>Kerberos messages</td><td>6</td><td>Needham–Schroeder messages</td><td>5</td></tr>
+  <tr><td>IKE main / aggressive / quick</td><td>6 / 3 / 3 msgs</td><td>SSL handshake phases</td><td>4</td></tr>
+</table>
+</section>
+
+<section class="topic" id="comparisons">
+<h2>Master comparison tables (links)</h2>
+<ul>
+  <li><a href="unit1.html#attacks">Passive vs active attacks</a> · <a href="unit1.html#crypto-methods">Cryptography vs steganography</a></li>
+  <li><a href="unit2.html#stream-block">Stream vs block ciphers</a> · <a href="unit2.html#aes-analysis">DES vs AES</a></li>
+  <li><a href="unit3.html#modes">Modes of operation</a> · <a href="unit3.html#public-key-intro">Symmetric vs asymmetric</a> · <a href="unit3.html#sha512">MD5 vs SHA-512 vs Whirlpool</a></li>
+  <li><a href="unit4.html#ds-concepts">Conventional vs digital signature</a> · <a href="unit4.html#ds-schemes">RSA vs ElGamal vs DSA</a> · <a href="unit4.html#app-layer">PGP vs S/MIME</a> · <a href="unit4.html#tls">SSL vs TLS</a> · <a href="unit4.html#ipsec">Transport vs tunnel, AH vs ESP, SSL vs IPSec</a></li>
+</ul>
+<div class="box tip" data-title="Diagrams you must be able to draw from memory">
+  <p>CIA triangle · attack taxonomy · symmetric model · Feistel round · DES general structure · DES f-function · AES round structure · ECB/CBC · Merkle–Damgård · SHA-512 round · signing the digest · Kerberos · PGP sender · SSL stack and Record protocol · IPSec transport vs tunnel packets.</p>
+</div>
+</section>
+
+<section class="topic" id="drill">
+<h2>Numerical drill — unlimited practice</h2>
+<p>Every click generates a fresh exam-style numerical. Solve it on paper, then reveal the worked answer.</p>
+<div class="demo box" data-demo="drill" data-title="Random problem generator"></div>
+</section>
+
+<section class="topic" id="mixed-test">
+<h2>Mixed self-test (20 questions)</h2>
+<div class="quiz">
+  <div class="mcq" data-ans="c"><p class="q">1. Which attack threatens availability?</p><ol><li>Snooping</li><li>Replaying</li><li>Denial of service</li><li>Traffic analysis</li></ol><p class="why">DoS blocks access to the service.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">2. Notarization is a mechanism for:</p><ol><li>non-repudiation</li><li>confidentiality</li><li>availability</li><li>routing</li></ol><p class="why">A trusted third party records the exchange.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">3. gcd(161, 28) =</p><ol><li>14</li><li>7</li><li>1</li><li>28</li></ol><p class="why">161 = 5·28 + 21; 28 = 21 + 7; 21 = 3·7.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">4. 3⁻¹ mod 26 =</p><ol><li>3</li><li>7</li><li>17</li><li>9</li></ol><p class="why">3 × 9 = 27 ≡ 1.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">5. The Vigenère cipher is broken using:</p><ol><li>meet-in-the-middle</li><li>birthday attack</li><li>Kasiski test</li><li>timing attack</li></ol><p class="why">Find the key length from repeated fragments.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">6. In DES, the expansion P-box converts:</p><ol><li>32 → 48 bits</li><li>48 → 32 bits</li><li>64 → 56 bits</li><li>56 → 48 bits</li></ol><p class="why">To match the 48-bit round key.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">7. 02 × 87 in GF(2⁸) =</p><ol><li>0E</li><li>15</li><li>87</li><li>1B</li></ol><p class="why">87 = 1000 0111 → shift = 0000 1110 = 0E; MSB was 1 → 0E ⊕ 1B = 15.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">8. Which mode turns a block cipher into a counter-based stream cipher?</p><ol><li>ECB</li><li>CBC</li><li>CFB</li><li>CTR</li></ol><p class="why">CTR encrypts successive counter values.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">9. φ(100) =</p><ol><li>50</li><li>60</li><li>40</li><li>99</li></ol><p class="why">100 = 2²·5² → (4−2)(25−5) = 2·20 = 40.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">10. In RSA, if φ(n) = 40 and e = 7, d =</p><ol><li>23</li><li>17</li><li>3</li><li>33</li></ol><p class="why">7 × 23 = 161 = 4·40 + 1.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">11. The Rabin cryptosystem requires p ≡ q ≡</p><ol><li>1 (mod 4)</li><li>3 (mod 4)</li><li>0 (mod 2)</li><li>1 (mod 3)</li></ol><p class="why">So square roots are C<sup>(p+1)/4</sup>.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">12. The point at infinity O in ECC acts as:</p><ol><li>a generator</li><li>the inverse of every point</li><li>the identity (zero)</li><li>a private key</li></ol><p class="why">P + O = P.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">13. SHA-512 padding for a 896-bit message adds how many zero bits?</p><ol><li>0</li><li>127</li><li>895</li><li>1023</li></ol><p class="why">(−1025) mod 1024 = 1023 → total 896 + 1 + 1023 + 128 = 2048 (2 blocks).</p></div>
+  <div class="mcq" data-ans="a"><p class="q">14. MD5 produces a digest of:</p><ol><li>128 bits</li><li>160 bits</li><li>256 bits</li><li>512 bits</li></ol><p class="why">Four 32-bit words.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">15. A MAC cannot provide:</p><ol><li>integrity</li><li>non-repudiation</li><li>data-origin authentication</li><li>tamper detection</li></ol><p class="why">Both parties share the key, so either could have made it.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">16. Diffie–Hellman with p = 23, g = 5, x = 6, y = 15 gives K =</p><ol><li>8</li><li>19</li><li>2</li><li>16</li></ol><p class="why">R₁ = 5⁶ mod 23 = 8; R₂ = 5¹⁵ mod 23 = 19; K = 19⁶ mod 23 = 2 = 8¹⁵ mod 23.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">17. Kerberos prevents replay mainly with:</p><ol><li>timestamps</li><li>certificates</li><li>compression</li><li>Radix-64</li></ol><p class="why">Authenticators contain timestamps; clocks must be synchronised.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">18. In PGP the message is compressed:</p><ol><li>before signing</li><li>after encryption</li><li>never</li><li>after signing, before encryption</li></ol><p class="why">So the signature does not depend on the compression algorithm, and encryption works on less redundant data.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">19. The SSL message that tells the peer to start using the negotiated keys is:</p><ol><li>Finished</li><li>ChangeCipherSpec</li><li>ServerHelloDone</li><li>Alert</li></ol><p class="why">A one-byte message in Phase IV.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">20. IKE uses cookies to defend against:</p><ol><li>replay</li><li>man-in-the-middle</li><li>clogging (DoS)</li><li>birthday attacks</li></ol><p class="why">No heavy work until the cookie returns. Nonces → replay; authentication → MITM.</p></div>
+</div>
+</section>
+
+<section class="topic" id="model-paper">
+<h2>Model question paper (80 marks, 3 hours)</h2>
+<div class="box tip"><p>Pattern varies by university; this paper follows the common "short answers + long answers with internal choice" style. Time yourself.</p></div>
+<h3>Part A — answer any 6 (6 × 2 = 12)</h3>
+<ol>
+  <li>Differentiate passive and active attacks.</li>
+  <li>Find the multiplicative inverse of 15 in ℤ₂₆.</li>
+  <li>What is the avalanche effect?</li>
+  <li>List the AES transformations used in a round.</li>
+  <li>State Fermat's little theorem.</li>
+  <li>Define collision resistance.</li>
+  <li>What is a session key?</li>
+  <li>Differentiate AH and ESP.</li>
+</ol>
+<h3>Part B — answer any 4 (4 × 5 = 20)</h3>
+<ol start="9">
+  <li>Explain the X.800 security services.</li>
+  <li>Encrypt "MEET ME" using Playfair with keyword "CRYPTO".</li>
+  <li>Solve x ≡ 1 (mod 5), x ≡ 2 (mod 7), x ≡ 3 (mod 9) using CRT.</li>
+  <li>Explain the Diffie–Hellman protocol and the man-in-the-middle attack.</li>
+  <li>Explain CBC mode with a diagram.</li>
+  <li>Explain the X.509 certificate format.</li>
+</ol>
+<h3>Part C — answer any 4 (4 × 12 = 48)</h3>
+<ol start="15">
+  <li>(a) Explain the extended Euclidean algorithm and find gcd(84, 320), s and t. (b) Solve 14x ≡ 12 (mod 18).</li>
+  <li>Explain the structure of DES with the round function and key generation.</li>
+  <li>Explain AES: state, four transformations and key expansion.</li>
+  <li>Explain RSA with an example (p = 7, q = 11, e = 13, M = 9) and discuss attacks.</li>
+  <li>Explain SHA-512 in detail.</li>
+  <li>Explain Kerberos with a neat diagram.</li>
+  <li>Explain SSL architecture and the Handshake protocol.</li>
+</ol>
+<details class="ans"><summary>Show answers to the numericals</summary><div>
+  <p><b>Q2</b> 15⁻¹ mod 26 = 7 (105 = 4·26 + 1).</p>
+  <p><b>Q10</b> Matrix for CRYPTO: C R Y P T / O A B D E / F G H I K / L M N Q S / U V W X Z. Pairs ME ET ME → M(4,2) E(2,5) rectangle → row 4 col 5 = S, row 2 col 2 = A → <b>SA</b>; E(2,5) T(1,5) same column → down: E→K, T→E → <b>KE</b>; ME → <b>SA</b>. Ciphertext <b>SAKESA</b>.</p>
+  <p><b>Q11</b> M = 315; M₁ = 63 (≡ 3 mod 5, inv 2), M₂ = 45 (≡ 3 mod 7, inv 5), M₃ = 35 (≡ 8 mod 9, inv 8). x = 1·63·2 + 2·45·5 + 3·35·8 = 126 + 450 + 840 = 1416 mod 315 = <b>156</b>. Check: 156 mod 5 = 1, mod 7 = 2, mod 9 = 3 ✓.</p>
+  <p><b>Q15</b> gcd = 4, s = −19, t = 5; 14x ≡ 12 (mod 18) → x = 6, 15.</p>
+  <p><b>Q18</b> n = 77, φ = 60, d = 37 (13·37 = 481 = 8·60 + 1). C = 9¹³ mod 77 = 58; decrypt 58³⁷ mod 77 = 9.</p>
+</div></details>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="crypto-core.js"></script>
+<script src="demos.js"></script>
+<script>
+DEMOS.drill = function (host) {
+  const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const primes = [3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+  const pick = a => a[R(0, a.length - 1)];
+  const L = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const gen = {
+    "Multiplicative inverse": () => { const n = pick([26, 29, 31, 37, 40, 100]); let a; do { a = R(2, n - 1); } while (K.gcd(a, n) !== 1); return [`Find ${a}⁻¹ mod ${n} using the extended Euclidean algorithm.`, `${a}⁻¹ ≡ <b>${K.modInv(a, n)}</b> (mod ${n}). Check: ${a} × ${K.modInv(a, n)} = ${a * K.modInv(a, n)} ≡ 1.`]; },
+    "GCD": () => { const g = R(2, 15), a = g * R(5, 60), b = g * R(5, 60); return [`Find gcd(${a}, ${b}) using Euclid's algorithm.`, `gcd = <b>${K.gcd(a, b)}</b>`]; },
+    "Linear congruence": () => { const n = R(8, 30), a = R(2, n - 1), x = R(0, n - 1), b = (a * x) % n; const d = K.gcd(a, n), sols = []; for (let i = 0; i < n; i++) if ((a * i) % n === b) sols.push(i); return [`Solve ${a}x ≡ ${b} (mod ${n}).`, `d = gcd(${a}, ${n}) = ${d}; ${d} | ${b} → ${d} solution(s): <b>x ∈ {${sols.join(", ")}}</b>`]; },
+    "Affine cipher": () => { const k1 = pick([3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25]), k2 = R(1, 25), w = pick(["HELLO", "CIPHER", "EXAM", "SECRET", "MODULO", "INDIA"]); return [`Encrypt "${w}" with the affine cipher, keys (${k1}, ${k2}).`, `C = (${k1}P + ${k2}) mod 26 → <b>${CC.affineEnc(w, k1, k2)}</b>. Decryption key k₁⁻¹ = ${K.modInv(k1, 26)}.`]; },
+    "Euler phi": () => { const n = R(20, 400); const f = K.factorize(n); let phi = n; f.forEach(([p]) => phi = phi / p * (p - 1)); return [`Find φ(${n}).`, `${n} = ${K.factStr(f)} → φ = <b>${phi}</b>`]; },
+    "Modular exponent": () => { const n = pick(primes.slice(4)), a = R(2, n - 1), e = R(20, 200); return [`Compute ${a}<sup>${e}</sup> mod ${n} (hint: Fermat).`, `${e} mod ${n - 1} = ${e % (n - 1)} → ${a}<sup>${e % (n - 1)}</sup> mod ${n} = <b>${K.bpow(BigInt(a), BigInt(e), BigInt(n))}</b>`]; },
+    "CRT": () => { const ms = [pick([3, 4, 5]), pick([7, 11]), pick([13, 17])]; const x = R(1, ms[0] * ms[1] * ms[2] - 1); return [`Solve x ≡ ${x % ms[0]} (mod ${ms[0]}), x ≡ ${x % ms[1]} (mod ${ms[1]}), x ≡ ${x % ms[2]} (mod ${ms[2]}).`, `M = ${ms[0] * ms[1] * ms[2]}; x = <b>${x}</b>`]; },
+    "RSA": () => { let p, q; do { p = pick(primes); q = pick(primes); } while (p === q); const phi = (p - 1) * (q - 1), n = p * q; let e; do { e = pick([3, 5, 7, 11, 13, 17]); } while (K.gcd(e, phi) !== 1 || e >= phi); const d = K.modInv(e, phi), m = R(2, n - 1), c = K.bpow(BigInt(m), BigInt(e), BigInt(n)); return [`RSA: p = ${p}, q = ${q}, e = ${e}. Find n, φ(n), d and encrypt M = ${m}.`, `n = ${n}, φ = ${phi}, d = <b>${d}</b>, C = ${m}<sup>${e}</sup> mod ${n} = <b>${c}</b>. Check: ${c}<sup>${d}</sup> mod ${n} = ${K.bpow(c, BigInt(d), BigInt(n))}`]; },
+    "Diffie–Hellman": () => { const p = pick([23, 29, 31, 37, 41, 43, 47]), g = pick([2, 3, 5]), x = R(2, 15), y = R(2, 15); const R1 = K.bpow(BigInt(g), BigInt(x), BigInt(p)), R2 = K.bpow(BigInt(g), BigInt(y), BigInt(p)); return [`Diffie–Hellman with p = ${p}, g = ${g}, x = ${x}, y = ${y}. Find R₁, R₂ and K.`, `R₁ = ${R1}, R₂ = ${R2}, K = <b>${K.bpow(R2, BigInt(x), BigInt(p))}</b>`]; },
+    "ElGamal": () => { const p = pick([11, 13, 17, 19, 23]), e1 = 2, d = R(2, p - 3), r = R(2, p - 3), P = R(2, p - 1); const e2 = K.bpow(2n, BigInt(d), BigInt(p)), C1 = K.bpow(2n, BigInt(r), BigInt(p)), C2 = BigInt(P) * K.bpow(e2, BigInt(r), BigInt(p)) % BigInt(p); return [`ElGamal: p = ${p}, e₁ = ${e1}, d = ${d}, r = ${r}. Encrypt P = ${P}.`, `e₂ = ${e2}; C₁ = <b>${C1}</b>, C₂ = <b>${C2}</b>`]; }
+  };
+  host.innerHTML = `<div class="demo-row"><label>Type<select id="t"><option>Any</option>${Object.keys(gen).map(k => `<option>${k}</option>`).join("")}</select></label><button class="btn" id="g">New question</button></div><div id="o"></div>`;
+  function go() {
+    let t = host.querySelector("#t").value; if (t === "Any") t = pick(Object.keys(gen));
+    const [q, a] = gen[t]();
+    host.querySelector("#o").innerHTML = `<div class="out"><b>${t}:</b> ${q}</div><details class="ans"><summary>Show answer</summary><div>${a}</div></details>`;
+  }
+  host.querySelector("#g").addEventListener("click", go); go();
+};
+</script>
+</body>
+</html>
