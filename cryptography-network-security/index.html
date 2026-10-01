@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cryptography &amp; Network Security · 24BCA54</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="crypto">
+<div class="layout no-side">
+<main class="content">
+  <div class="hero">
+    <div class="eyebrow">24BCA54 · Theory · 4 hours/week · 3 credits</div>
+    <h1>Cryptography &amp; Network Security</h1>
+    <p class="lead">From “what is a secret?” to how your browser sets up a secure HTTPS connection. The mathematics is taught from scratch, every cipher is worked out by hand, and most algorithms have a live demo you can experiment with.</p>
+    <div class="meta"><span class="chip acc">Exam: 3 hours</span><span class="chip acc">Max marks 100 (Exam 80 + IA 20)</span><span class="chip">56 teaching hours</span></div>
+  </div>
+
+  <h2>Units</h2>
+  <div class="grid-cards">
+    <a class="card" href="unit1.html">
+      <div class="code">Unit I · 14 hours</div>
+      <h3>Fundamentals &amp; Mathematical Foundations</h3>
+      <p>Security goals (CIA), attacks, X.800 services and mechanisms, cryptographic methods, integer arithmetic, GCD &amp; extended Euclid, modular arithmetic, inverses, matrices, linear congruence.</p>
+      <div class="progress" data-prog="crypto/unit1.html"><i></i></div><div class="progress-label"></div>
+    </a>
+    <a class="card" href="unit2.html">
+      <div class="code">Unit II · 14 hours</div>
+      <h3>Symmetric Key Cryptography</h3>
+      <p>Caesar, affine, Playfair, Vigenère, Hill, one-time pad, transposition, stream vs block ciphers, DES (round-by-round), Triple DES, AES and its four operations, key expansion, AES performance.</p>
+      <div class="progress" data-prog="crypto/unit2.html"><i></i></div><div class="progress-label"></div>
+    </a>
+    <a class="card" href="unit3.html">
+      <div class="code">Unit III · 14 hours</div>
+      <h3>Public Key Cryptography &amp; Hashing</h3>
+      <p>Modes of operation, modern stream ciphers, primes, primality tests, factorization, CRT, RSA, Rabin, ElGamal, elliptic curves, hash functions, MD family, Whirlpool, SHA-512.</p>
+      <div class="progress" data-prog="crypto/unit3.html"><i></i></div><div class="progress-label"></div>
+    </a>
+    <a class="card" href="unit4.html">
+      <div class="code">Unit IV · 14 hours</div>
+      <h3>Signatures, Key Management &amp; Network Security</h3>
+      <p>Digital signature schemes, KDC, Needham–Schroeder, Diffie–Hellman, certificates &amp; PKI, Kerberos, PGP, S/MIME, SSL/TLS handshake, IPSec (AH/ESP), IKE.</p>
+      <div class="progress" data-prog="crypto/unit4.html"><i></i></div><div class="progress-label"></div>
+    </a>
+    <a class="card" href="revision.html">
+      <div class="code">Exam kit</div>
+      <h3>Revision &amp; Exam Kit</h3>
+      <p>One-page summaries, comparison tables, formula sheet, likely 2/5/10-mark questions and a mixed self-test.</p>
+    </a>
+  </div>
+
+  <h2>Course outcomes — what the exam tests</h2>
+  <table>
+    <tr><th>CO</th><th>You should be able to…</th><th>Where</th></tr>
+    <tr><td>CO1</td><td>Explain security goals, attacks and the mathematics used in encryption.</td><td><a href="unit1.html">Unit I</a></td></tr>
+    <tr><td>CO2</td><td>Apply symmetric (DES, AES) and asymmetric (RSA, ElGamal, ECC) algorithms.</td><td><a href="unit2.html">Unit II</a>, <a href="unit3.html">Unit III</a></td></tr>
+    <tr><td>CO3</td><td>Analyse hash functions, digital signatures and key management for authentication and integrity.</td><td><a href="unit3.html#hash-functions">Unit III</a>, <a href="unit4.html">Unit IV</a></td></tr>
+    <tr><td>CO4</td><td>Understand network security protocols (PGP, S/MIME, SSL/TLS, IPSec, IKE).</td><td><a href="unit4.html">Unit IV</a></td></tr>
+  </table>
+
+  <h2>How to score well in this paper</h2>
+  <div class="two-col">
+    <div class="box tip" data-title="Theory answers">
+      <ul>
+        <li>Always draw the <b>block diagram</b> (DES round, AES round, Kerberos, SSL handshake, IPSec modes). Diagrams fetch marks quickly.</li>
+        <li>Use the four-part structure: <b>definition → working → example → advantages/limitations</b>.</li>
+        <li>For comparison questions (DES vs AES, AH vs ESP, PGP vs S/MIME, stream vs block) answer in a <b>table</b>.</li>
+      </ul>
+    </div>
+    <div class="box tip" data-title="Numerical answers">
+      <ul>
+        <li>Show the extended Euclidean <b>table</b> — examiners award marks per row.</li>
+        <li>For RSA: write <i>n</i>, φ(<i>n</i>), <i>e</i>, <i>d</i> and verify <i>e·d</i> mod φ(<i>n</i>) = 1.</li>
+        <li>For classical ciphers: write the letter → number mapping first, then the formula, then the table of results.</li>
+        <li>For modular powers, show square-and-multiply steps instead of a single final number.</li>
+      </ul>
+    </div>
+  </div>
+  <h3>Number ↔ letter table (used throughout)</h3>
+  <table class="num compact">
+    <tr><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th><th>L</th><th>M</th></tr>
+    <tr><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td></tr>
+    <tr><th>N</th><th>O</th><th>P</th><th>Q</th><th>R</th><th>S</th><th>T</th><th>U</th><th>V</th><th>W</th><th>X</th><th>Y</th><th>Z</th></tr>
+    <tr><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td></tr>
+  </table>
+
+  <h2>Text &amp; reference books</h2>
+  <ul>
+    <li>William Stallings, <i>Cryptography and Network Security: Principles and Practice</i>, 8th ed., Pearson, 2023.</li>
+    <li>Behrouz A. Forouzan, <i>Cryptography and Network Security</i>, McGraw-Hill, 2007. (This site follows Forouzan's notation for most worked examples.)</li>
+    <li>Atul Kahate, <i>Cryptography and Network Security</i>, 4th ed., McGraw-Hill, 2019.</li>
+    <li>Stallings, <i>Network Security Essentials</i>, 6th ed.; Mukhopadhyay, <i>Cryptography and Network Security</i>, 2nd ed.</li>
+  </ul>
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

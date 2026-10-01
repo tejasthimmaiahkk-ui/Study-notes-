@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit I · Fundamentals &amp; Mathematical Foundations — Cryptography</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="crypto" data-page="unit1.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Unit I · 14 hours · CO1</div>
+  <h1>Fundamentals &amp; Mathematical Foundations of Cryptography</h1>
+  <p class="lead">Before any cipher makes sense you need two things: a clear picture of <b>what we are protecting and from whom</b>, and the small amount of <b>number theory</b> that every cipher is built on. This unit gives you both — slowly, from the very beginning.</p>
+  <div class="meta"><span class="chip acc">Security goals</span><span class="chip acc">Attacks</span><span class="chip acc">Services &amp; mechanisms</span><span class="chip acc">Integer &amp; modular arithmetic</span><span class="chip acc">Matrices</span><span class="chip acc">Linear congruence</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="basics">
+<h2><span class="num">1.0</span> Starting from zero: the language of security</h2>
+
+<div class="box found">
+  <p>Nothing in this unit assumes you have studied security before. This section gives you the vocabulary that every later topic uses.</p>
+</div>
+
+<p>Imagine you send your bank PIN to a friend over WhatsApp, or you log in to your university portal. The message travels through many computers (routers, Wi-Fi access points, servers) that you do not own. Any of them could <b>read</b> it, <b>change</b> it, <b>block</b> it or <b>pretend</b> to be you. <b>Network security</b> is the set of ideas and tools that let us communicate safely over such an untrusted network. <b>Cryptography</b> (Greek <i>kryptos</i> = hidden, <i>graphein</i> = writing) is the science of transforming messages so that only the intended person can understand them and so that tampering is detected.</p>
+
+<h3>Essential vocabulary</h3>
+<table>
+  <tr><th>Term</th><th>Meaning</th><th>Everyday analogy</th></tr>
+  <tr><td><b>Plaintext (P)</b></td><td>The original, readable message.</td><td>A letter you write.</td></tr>
+  <tr><td><b>Ciphertext (C)</b></td><td>The scrambled, unreadable form of the message.</td><td>The letter after it is locked in a box.</td></tr>
+  <tr><td><b>Encryption (E)</b></td><td>The process/algorithm that converts plaintext into ciphertext.</td><td>Locking the box.</td></tr>
+  <tr><td><b>Decryption (D)</b></td><td>The reverse process: ciphertext → plaintext.</td><td>Unlocking the box.</td></tr>
+  <tr><td><b>Cipher</b></td><td>The pair of encryption + decryption algorithms.</td><td>The design of the lock.</td></tr>
+  <tr><td><b>Key (K)</b></td><td>A secret value (number/bit string) that controls the cipher. Same algorithm + different key ⇒ different ciphertext.</td><td>The physical key of the lock.</td></tr>
+  <tr><td><b>Cryptanalysis</b></td><td>The science of breaking ciphers — recovering plaintext or key without being given the key.</td><td>Lock-picking.</td></tr>
+  <tr><td><b>Cryptology</b></td><td>Cryptography + cryptanalysis together.</td><td>—</td></tr>
+  <tr><td><b>Alice, Bob, Eve</b></td><td>Standard names: Alice sends, Bob receives, Eve is the eavesdropper/attacker.</td><td>—</td></tr>
+</table>
+
+<figure class="fig">
+<svg viewBox="0 0 720 220" width="720" role="img" aria-label="Basic model of encrypted communication">
+ <rect class="dg-good" x="10" y="85" width="90" height="46" rx="8"/><text class="dg-tb" x="55" y="113" text-anchor="middle">Alice</text>
+ <rect class="dg-acc" x="150" y="85" width="120" height="46" rx="8"/><text class="dg-tb" x="210" y="106" text-anchor="middle">Encryption</text><text class="dg-ts" x="210" y="123" text-anchor="middle">C = E(K, P)</text>
+ <rect class="dg-acc" x="450" y="85" width="120" height="46" rx="8"/><text class="dg-tb" x="510" y="106" text-anchor="middle">Decryption</text><text class="dg-ts" x="510" y="123" text-anchor="middle">P = D(K′, C)</text>
+ <rect class="dg-good" x="620" y="85" width="90" height="46" rx="8"/><text class="dg-tb" x="665" y="113" text-anchor="middle">Bob</text>
+ <path class="dg-line" d="M100 108 H146" marker-end="url(#arr)"/><text class="dg-ts" x="124" y="100" text-anchor="middle">P</text>
+ <path class="dg-line" d="M270 108 H446" marker-end="url(#arr)"/><text class="dg-ts" x="358" y="100" text-anchor="middle">ciphertext C over insecure channel</text>
+ <path class="dg-line" d="M570 108 H616" marker-end="url(#arr)"/><text class="dg-ts" x="594" y="100" text-anchor="middle">P</text>
+ <rect class="dg-warn" x="160" y="18" width="100" height="32" rx="6"/><text class="dg-t" x="210" y="39" text-anchor="middle">Key K</text>
+ <path class="dg-line" d="M210 50 V82" marker-end="url(#arr)"/>
+ <rect class="dg-warn" x="460" y="18" width="100" height="32" rx="6"/><text class="dg-t" x="510" y="39" text-anchor="middle">Key K′</text>
+ <path class="dg-line" d="M510 50 V82" marker-end="url(#arr)"/>
+ <rect class="dg-bad" x="300" y="165" width="120" height="40" rx="8"/><text class="dg-tb" x="360" y="190" text-anchor="middle">Eve (attacker)</text>
+ <path class="dg-dash" d="M360 163 V114" marker-end="url(#arrR)"/><text class="dg-tbad" x="368" y="146">reads / alters / blocks</text>
+</svg>
+<figcaption>Fig 1.1 — The basic model. In symmetric cryptography K′ = K; in asymmetric cryptography K′ ≠ K.</figcaption>
+</figure>
+
+<h3>Kerckhoffs's principle</h3>
+<div class="concept">
+  <div class="f-exp">Proposed by Auguste Kerckhoffs (1883): <b>a cipher must remain secure even if everything about it except the key is public</b>. The algorithm is assumed to be known to the enemy; only the key is secret.</div>
+  <div class="f-use">Every modern standard — DES, AES, RSA, SHA — is fully published. Anyone can study and test them, which is exactly why we trust them.</div>
+  <div class="f-imp">Design the algorithm openly, let experts attack it for years, then keep only the key secret. If a key leaks, you change the key — not the whole system.</div>
+  <div class="f-lim">It puts all the burden on key management: if the key is weak (short, guessable) or stolen, security is gone no matter how good the algorithm is. "Security through obscurity" (hiding the algorithm) is the opposite approach and is considered bad practice.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="security-goals">
+<h2><span class="num">1.1</span> Basic security goals (the CIA triad)</h2>
+<p>Information is an asset, so it must be protected like any other asset. Security has three basic goals, remembered as <b>CIA</b>: <b>C</b>onfidentiality, <b>I</b>ntegrity and <b>A</b>vailability.</p>
+
+<figure class="fig">
+<svg viewBox="0 0 460 300" width="440" role="img" aria-label="CIA triad">
+ <polygon class="dg-acc" points="230,30 420,270 40,270" />
+ <circle class="dg-box" cx="230" cy="30" r="0"/>
+ <text class="dg-tb" x="230" y="20" text-anchor="middle">Confidentiality</text>
+ <text class="dg-ts" x="230" y="80" text-anchor="middle">only authorised people</text>
+ <text class="dg-ts" x="230" y="94" text-anchor="middle">can READ</text>
+ <text class="dg-tb" x="40" y="292" text-anchor="middle">Integrity</text>
+ <text class="dg-ts" x="120" y="248" text-anchor="middle">only authorised</text>
+ <text class="dg-ts" x="120" y="262" text-anchor="middle">changes</text>
+ <text class="dg-tb" x="420" y="292" text-anchor="middle">Availability</text>
+ <text class="dg-ts" x="340" y="248" text-anchor="middle">accessible when</text>
+ <text class="dg-ts" x="340" y="262" text-anchor="middle">needed</text>
+ <text class="dg-ta" x="230" y="190" text-anchor="middle">Information</text>
+ <text class="dg-ta" x="230" y="207" text-anchor="middle">Security</text>
+</svg>
+<figcaption>Fig 1.2 — The CIA triad: every attack threatens at least one corner.</figcaption>
+</figure>
+
+<div class="concept">
+  <h3>Confidentiality</h3>
+  <div class="f-exp">Information must be <b>hidden from unauthorised access</b>. Only the people who are supposed to read the data can read it. It applies both to data <b>stored</b> (data at rest) and data <b>in transit</b> over a network.</div>
+  <div class="f-use">Military secrets, bank account details, medical records, exam question papers, passwords, WhatsApp messages (end-to-end encryption).</div>
+  <div class="f-imp">Achieved mainly by <b>encryption</b> (symmetric: AES; asymmetric: RSA) and by <b>access control</b> (permissions, passwords). Traffic padding can hide even the <i>amount</i> of communication.</div>
+  <div class="f-lim">Encryption protects content but not always <i>metadata</i> (who talks to whom, when, how much). If keys are stolen, confidentiality is lost. Encryption alone does not stop an attacker from <i>changing</i> or <i>deleting</i> the data.</div>
+</div>
+
+<div class="concept">
+  <h3>Integrity</h3>
+  <div class="f-exp">Information must be <b>changed only by authorised entities and through authorised mechanisms</b>. The receiver should be able to detect whether data was altered — accidentally (noise, bugs) or deliberately (an attacker).</div>
+  <div class="f-use">A bank transfer of ₹1,000 must not become ₹10,000 on the way; a downloaded software update must be exactly what the vendor published; marks stored in a university database must not be edited by students.</div>
+  <div class="f-imp">Hash functions and message digests (SHA-256), <b>MAC/HMAC</b> (hash with a secret key), <b>digital signatures</b>, checksums for accidental errors, database access control and audit logs.</div>
+  <div class="f-lim">Integrity mechanisms <i>detect</i> modification but generally cannot <i>prevent</i> or <i>undo</i> it. A plain hash (without a key) can be recomputed by an attacker after changing the message, so a key or signature is needed against deliberate attacks.</div>
+</div>
+
+<div class="concept">
+  <h3>Availability</h3>
+  <div class="f-exp">Information and services must be <b>available to authorised users when they need them</b>. Data that is perfectly secret and unaltered is useless if nobody can reach it.</div>
+  <div class="f-use">Online exam portals during result day, ATM networks, hospital systems, railway reservation (IRCTC Tatkal time), cloud services.</div>
+  <div class="f-imp">Redundancy (backup servers, RAID, data centres in different cities), load balancing, firewalls and DoS-filtering services, rate limiting, regular backups, disaster-recovery plans.</div>
+  <div class="f-lim">Cryptography helps very little against availability attacks — you cannot "encrypt away" a flood of traffic. Availability measures cost money, and stronger security checks can themselves reduce availability (e.g. too many login checks slow the system).</div>
+</div>
+
+<div class="box oos">
+  <p>Many books extend CIA with more goals. You may write them for extra marks in a "security goals" answer, but mention CIA first.</p>
+  <ul>
+    <li><b>Authentication</b> — proving the identity of a user or the origin of a message.</li>
+    <li><b>Non-repudiation</b> — a sender cannot later deny having sent a message (or a receiver deny receiving it).</li>
+    <li><b>Accountability</b> — actions can be traced uniquely to an entity (logs, audit trails).</li>
+  </ul>
+  <p>These appear later as <i>security services</i> (Section 1.3).</p>
+</div>
+
+<div class="box tip">A 5-mark question "Explain the security goals" is answered best with the triangle diagram, a two-line definition of each goal, one example each, and how it is achieved.</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="attacks">
+<h2><span class="num">1.2</span> Types of attacks</h2>
+<p>An <b>attack</b> is any action that compromises one of the security goals. A <b>threat</b> is a potential for an attack; a <b>vulnerability</b> is a weakness that the attack exploits. Attacks are classified in two ways: by <b>which goal they threaten</b> (Forouzan) and by whether they are <b>passive or active</b> (Stallings / X.800). A third group — <b>cryptanalytic attacks</b> — targets the cipher itself.</p>
+
+<figure class="fig">
+<svg viewBox="0 0 760 250" width="760" role="img" aria-label="Taxonomy of attacks">
+ <rect class="dg-acc" x="300" y="10" width="160" height="38" rx="8"/><text class="dg-tb" x="380" y="34" text-anchor="middle">Attacks</text>
+ <path class="dg-line" d="M380 48 V70 M125 70 H635 M125 70 V88 M380 70 V88 M635 70 V88"/>
+ <rect class="dg-warn" x="35" y="90" width="180" height="40" rx="8"/><text class="dg-tb" x="125" y="108" text-anchor="middle">Threat to</text><text class="dg-tb" x="125" y="124" text-anchor="middle">Confidentiality</text>
+ <rect class="dg-warn" x="290" y="90" width="180" height="40" rx="8"/><text class="dg-tb" x="380" y="108" text-anchor="middle">Threat to</text><text class="dg-tb" x="380" y="124" text-anchor="middle">Integrity</text>
+ <rect class="dg-warn" x="545" y="90" width="180" height="40" rx="8"/><text class="dg-tb" x="635" y="108" text-anchor="middle">Threat to</text><text class="dg-tb" x="635" y="124" text-anchor="middle">Availability</text>
+ <path class="dg-line" d="M125 130 V150 M380 130 V150 M635 130 V150"/>
+ <rect class="dg-box" x="35" y="150" width="180" height="60" rx="8"/><text class="dg-t" x="125" y="174" text-anchor="middle">Snooping</text><text class="dg-t" x="125" y="194" text-anchor="middle">Traffic analysis</text>
+ <rect class="dg-box" x="290" y="150" width="180" height="90" rx="8"/><text class="dg-t" x="380" y="172" text-anchor="middle">Modification</text><text class="dg-t" x="380" y="190" text-anchor="middle">Masquerading</text><text class="dg-t" x="380" y="208" text-anchor="middle">Replaying</text><text class="dg-t" x="380" y="226" text-anchor="middle">Repudiation</text>
+ <rect class="dg-box" x="545" y="150" width="180" height="60" rx="8"/><text class="dg-t" x="635" y="184" text-anchor="middle">Denial of service</text>
+ <text class="dg-tgood" x="125" y="228" text-anchor="middle">PASSIVE</text>
+ <text class="dg-tbad" x="635" y="228" text-anchor="middle">ACTIVE</text>
+ <text class="dg-tbad" x="380" y="258" text-anchor="middle"></text>
+</svg>
+<figcaption>Fig 1.3 — Taxonomy of attacks by the goal they threaten. Confidentiality attacks are passive; integrity and availability attacks are active.</figcaption>
+</figure>
+
+<h3>A. Attacks threatening confidentiality</h3>
+<div class="concept">
+  <h3>Snooping (eavesdropping / interception)</h3>
+  <div class="f-exp"><b>Unauthorised access to or interception of data.</b> The attacker simply reads the message as it passes — the message itself is not altered.</div>
+  <div class="f-use">A person on the same public Wi-Fi capturing packets with a tool like Wireshark and reading an unencrypted HTTP login; tapping a phone line.</div>
+  <div class="f-imp">Defence: <b>encipherment</b> (encryption) makes the captured data unintelligible. Use HTTPS, VPNs, WPA3 Wi-Fi encryption.</div>
+  <div class="f-lim">Very hard to <i>detect</i> because nothing changes; the defence is prevention, not detection.</div>
+</div>
+<div class="concept">
+  <h3>Traffic analysis</h3>
+  <div class="f-exp">Even when data is encrypted, the attacker <b>observes patterns</b>: who is sending to whom, how often, at what time, and how large the messages are. From this, useful information can be inferred.</div>
+  <div class="f-use">Noticing a sudden burst of messages between two companies before a merger is announced; deducing which website you visit from encrypted packet sizes.</div>
+  <div class="f-imp">Defence: <b>traffic padding</b> (inserting dummy data so traffic looks uniform), routing control, onion routing (Tor).</div>
+  <div class="f-lim">Padding wastes bandwidth; metadata leaks are very hard to eliminate completely.</div>
+</div>
+
+<h3>B. Attacks threatening integrity</h3>
+<div class="concept">
+  <h3>Modification</h3>
+  <div class="f-exp">After intercepting a message, the attacker <b>changes</b> it (alters, deletes, delays or reorders parts) to benefit themselves.</div>
+  <div class="f-use">Changing "Pay ₹500 to Ravi" into "Pay ₹5000 to Eve" in a banking request.</div>
+  <div class="f-imp">Defence: message digests/MAC, digital signatures — any change makes verification fail.</div>
+  <div class="f-lim">Detection is possible, but the original message is lost unless retransmitted.</div>
+</div>
+<div class="concept">
+  <h3>Masquerading (spoofing)</h3>
+  <div class="f-exp">The attacker <b>impersonates</b> somebody else — pretends to be a legitimate user or server.</div>
+  <div class="f-use">A phishing website pretending to be your bank; stealing a user's password and logging in as that user; IP or e-mail address spoofing.</div>
+  <div class="f-imp">Defence: <b>authentication</b> — passwords + OTP, digital certificates (for websites), authentication exchange protocols such as Kerberos.</div>
+  <div class="f-lim">If credentials are stolen, the system cannot distinguish the attacker from the real user. Multi-factor authentication reduces this.</div>
+</div>
+<div class="concept">
+  <h3>Replaying</h3>
+  <div class="f-exp">The attacker <b>captures a valid message and sends it again later</b> to produce an unauthorised effect. The message is genuine — only its re-use is malicious.</div>
+  <div class="f-use">Capturing an encrypted "transfer ₹2000 to X" request and resending it ten times; replaying a captured car-key-fob signal.</div>
+  <div class="f-imp">Defence: include a <b>timestamp</b>, <b>sequence number</b> or <b>nonce</b> (number used once) in every message so old copies are rejected.</div>
+  <div class="f-lim">Timestamps need synchronised clocks; nonces need the receiver to remember previously used values.</div>
+</div>
+<div class="concept">
+  <h3>Repudiation</h3>
+  <div class="f-exp">Unlike the others, this attack is done by <b>one of the two communicating parties</b>: the sender later <b>denies having sent</b> a message, or the receiver denies having received it.</div>
+  <div class="f-use">A customer orders shares, the price falls, and the customer claims "I never placed that order."</div>
+  <div class="f-imp">Defence: <b>non-repudiation</b> service using <b>digital signatures</b> (only the sender's private key could have produced them) and notarization by a trusted third party.</div>
+  <div class="f-lim">If the private key is stolen, the true owner can genuinely deny the action; legal frameworks (e.g. IT Act 2000 in India) are also needed.</div>
+</div>
+
+<h3>C. Attacks threatening availability</h3>
+<div class="concept">
+  <h3>Denial of Service (DoS) and DDoS</h3>
+  <div class="f-exp">The attacker <b>slows down or totally interrupts</b> a service. Methods: flooding a server with bogus requests so it cannot answer real ones, deleting server responses, or crashing the service. In a <b>Distributed</b> DoS (DDoS) thousands of compromised machines (a botnet) attack together.</div>
+  <div class="f-use">Taking down a shopping site during a sale; the 2016 Mirai botnet that used IoT cameras to knock major websites offline.</div>
+  <div class="f-imp">Defence: firewalls, rate limiting, traffic filtering/scrubbing services, over-provisioned bandwidth, cookies (e.g. SYN cookies; IKE uses cookies against clogging attacks — Unit IV).</div>
+  <div class="f-lim">Very hard to stop completely because attack traffic can look like legitimate traffic; defence is expensive.</div>
+</div>
+
+<h3>D. Passive versus active attacks</h3>
+<table>
+  <tr><th>Basis</th><th>Passive attack</th><th>Active attack</th></tr>
+  <tr><td>Aim</td><td>Only to <b>obtain</b> information</td><td>To <b>change</b> data or <b>harm</b> the system</td></tr>
+  <tr><td>Effect on data</td><td>No modification</td><td>Data is modified, fabricated, replayed or blocked</td></tr>
+  <tr><td>Threat to</td><td>Confidentiality</td><td>Integrity and availability</td></tr>
+  <tr><td>Examples</td><td>Snooping, traffic analysis</td><td>Modification, masquerading, replaying, repudiation, DoS</td></tr>
+  <tr><td>Detection</td><td>Difficult to detect</td><td>Easier to detect than to prevent</td></tr>
+  <tr><td>Main defence</td><td><b>Prevention</b> (encryption)</td><td><b>Detection and recovery</b></td></tr>
+</table>
+
+<h3>E. Cryptanalytic attacks (attacks on the cipher)</h3>
+<p>These are classified by <b>how much the attacker (Eve) knows</b>. Remember Kerckhoffs: Eve always knows the algorithm.</p>
+<table>
+  <tr><th>Attack</th><th>What Eve has</th><th>Goal / example</th></tr>
+  <tr><td><b>Ciphertext-only</b></td><td>Only some ciphertext</td><td>Find plaintext/key. Methods: brute force (try every key), statistical/frequency analysis, pattern analysis. Weakest position for Eve, so a cipher must at least resist this.</td></tr>
+  <tr><td><b>Known-plaintext</b></td><td>Some plaintext–ciphertext <b>pairs</b> she did not choose</td><td>Use the pairs to deduce the key, e.g. old messages that were later made public; standard headers like "Dear Sir".</td></tr>
+  <tr><td><b>Chosen-plaintext</b></td><td>Pairs for plaintexts <b>she chooses</b> (temporary access to the encryption machine)</td><td>Encrypt carefully chosen inputs to expose structure (used in differential cryptanalysis of DES).</td></tr>
+  <tr><td><b>Chosen-ciphertext</b></td><td>Pairs for ciphertexts <b>she chooses</b> (temporary access to the decryption machine)</td><td>Common against public-key systems such as RSA.</td></tr>
+</table>
+<div class="concept">
+  <h3>Brute-force (exhaustive key search)</h3>
+  <div class="f-exp">Try <b>every possible key</b> until meaningful plaintext appears. It always works in theory; the question is <i>how long</i> it takes.</div>
+  <div class="f-use">Breaking the Caesar cipher (only 25 keys) is instant; DES (2<sup>56</sup> keys) was broken in 1998 in 56 hours by the EFF "Deep Crack" machine.</div>
+  <div class="f-imp">On average the attacker must try half the key space. Time ≈ 2<sup>k−1</sup> ÷ (keys tested per second).</div>
+  <div class="f-lim">Defeated by a large key space: AES-128 has 2<sup>128</sup> ≈ 3.4 × 10<sup>38</sup> keys — even at 10<sup>12</sup> keys/s this takes ~10<sup>19</sup> years.</div>
+</div>
+<div class="demo box" data-demo="bruteforce" data-title="Interactive demo — how long would brute force take?"></div>
+
+<div class="box practice">
+  <p>Identify the attack in each scenario and the goal it threatens.</p>
+  <ol class="qlist">
+    <li>An attacker records your encrypted "unlock door" command and plays it again at night.
+      <details class="ans"><summary>Show answer</summary><div><b>Replaying</b> → integrity. Fix: add a timestamp or nonce.</div></details></li>
+    <li>A student sends an e-mail that appears to come from the HOD's address.
+      <details class="ans"><summary>Show answer</summary><div><b>Masquerading (spoofing)</b> → integrity (of message origin). Fix: authentication, digital signatures (S/MIME, PGP).</div></details></li>
+    <li>A botnet sends millions of requests to the university results server.
+      <details class="ans"><summary>Show answer</summary><div><b>Distributed Denial of Service</b> → availability.</div></details></li>
+    <li>Eve cannot decrypt messages but sees that the army HQ sends large messages to one base every night at 2 a.m.
+      <details class="ans"><summary>Show answer</summary><div><b>Traffic analysis</b> (passive) → confidentiality. Fix: traffic padding.</div></details></li>
+    <li>Eve gets temporary access to a smart-card and makes it encrypt messages of her choice.
+      <details class="ans"><summary>Show answer</summary><div><b>Chosen-plaintext attack.</b></div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="services-mechanisms">
+<h2><span class="num">1.3</span> Security services and mechanisms (ITU-T X.800)</h2>
+<p>The International Telecommunication Union (ITU-T) standard <b>X.800</b> defines <b>security services</b> (<i>what</i> protection is provided) and <b>security mechanisms</b> (<i>how</i> it is provided). Think of a service as a goal and a mechanism as a tool.</p>
+
+<h3>The five security services</h3>
+<figure class="fig">
+<svg viewBox="0 0 760 170" width="760" role="img" aria-label="Security services">
+ <rect class="dg-acc" x="290" y="8" width="180" height="36" rx="8"/><text class="dg-tb" x="380" y="31" text-anchor="middle">Security services</text>
+ <path class="dg-line" d="M380 44 V60 M80 60 H680 M80 60 V76 M230 60 V76 M380 60 V76 M530 60 V76 M680 60 V76"/>
+ <rect class="dg-box" x="10" y="76" width="140" height="44" rx="8"/><text class="dg-t" x="80" y="94" text-anchor="middle">Data</text><text class="dg-t" x="80" y="111" text-anchor="middle">confidentiality</text>
+ <rect class="dg-box" x="160" y="76" width="140" height="44" rx="8"/><text class="dg-t" x="230" y="103" text-anchor="middle">Data integrity</text>
+ <rect class="dg-box" x="310" y="76" width="140" height="44" rx="8"/><text class="dg-t" x="380" y="103" text-anchor="middle">Authentication</text>
+ <rect class="dg-box" x="460" y="76" width="140" height="44" rx="8"/><text class="dg-t" x="530" y="103" text-anchor="middle">Non-repudiation</text>
+ <rect class="dg-box" x="610" y="76" width="140" height="44" rx="8"/><text class="dg-t" x="680" y="103" text-anchor="middle">Access control</text>
+ <text class="dg-ts" x="380" y="140" text-anchor="middle">Authentication → peer-entity authentication &amp; data-origin authentication</text>
+ <text class="dg-ts" x="530" y="158" text-anchor="middle">Non-repudiation → proof of origin &amp; proof of delivery</text>
+</svg>
+<figcaption>Fig 1.4 — X.800 security services.</figcaption>
+</figure>
+
+<div class="concept">
+  <h3>1. Data confidentiality</h3>
+  <div class="f-exp">Protects data from disclosure. It can protect a whole message, part of a message (selective-field confidentiality) and even traffic flow (against traffic analysis).</div>
+  <div class="f-use">Encrypting a whole e-mail; encrypting only the credit-card field of an order.</div>
+  <div class="f-imp">Mechanisms: encipherment, traffic padding, routing control.</div>
+  <div class="f-lim">Does not guarantee the data is unaltered or comes from who it claims.</div>
+</div>
+<div class="concept">
+  <h3>2. Data integrity</h3>
+  <div class="f-exp">Ensures data received is exactly what was sent — no modification, insertion, deletion or replay. Can be <i>with recovery</i> (the damage is repaired) or <i>without recovery</i> (only detected).</div>
+  <div class="f-use">Software downloads with published SHA-256 values; integrity check value in IPSec packets.</div>
+  <div class="f-imp">Mechanisms: data-integrity mechanism (check value / MAC), digital signature, encipherment.</div>
+  <div class="f-lim">Usually detects but does not repair; recovery requires retransmission or backups.</div>
+</div>
+<div class="concept">
+  <h3>3. Authentication</h3>
+  <div class="f-exp">Confirms identity. <b>Peer-entity authentication</b>: in a connection, each side confirms who the other is (at login/connection time). <b>Data-origin authentication</b>: in connectionless communication, confirms the source of each piece of data.</div>
+  <div class="f-use">Logging in to a portal (peer entity); verifying that an e-mail really came from your bank (data origin).</div>
+  <div class="f-imp">Mechanisms: authentication exchange (passwords, challenge–response, Kerberos), digital signatures, encipherment.</div>
+  <div class="f-lim">Only as strong as the secret used; stolen passwords or private keys defeat it.</div>
+</div>
+<div class="concept">
+  <h3>4. Non-repudiation</h3>
+  <div class="f-exp">Protects against denial by one of the parties. <b>Proof of origin</b>: the receiver can prove who sent the data. <b>Proof of delivery</b>: the sender can prove the data was received.</div>
+  <div class="f-use">Online contracts, stock-trading orders, e-filing of tax returns signed with a Digital Signature Certificate.</div>
+  <div class="f-imp">Mechanisms: digital signature, data integrity, notarization (a trusted third party records the transaction).</div>
+  <div class="f-lim">Fails if the private key is compromised; needs legal recognition of digital signatures.</div>
+</div>
+<div class="concept">
+  <h3>5. Access control</h3>
+  <div class="f-exp">Prevents unauthorised use of resources: decides <b>who</b> may access <b>what</b> and <b>how</b> (read, write, execute).</div>
+  <div class="f-use">File permissions in Linux, role-based access in a college ERP (student vs faculty vs admin).</div>
+  <div class="f-imp">Mechanism: access-control lists, capability lists, passwords, tokens — combined with authentication.</div>
+  <div class="f-lim">Misconfiguration is common; insiders with legitimate access can still misuse data.</div>
+</div>
+
+<h3>The eight security mechanisms</h3>
+<table>
+  <tr><th>Mechanism</th><th>What it does</th></tr>
+  <tr><td><b>Encipherment</b></td><td>Hiding/covering data using cryptography (encryption) or steganography. Provides confidentiality.</td></tr>
+  <tr><td><b>Data integrity</b></td><td>Appends a short <i>check value</i> created from the data by a specific process; the receiver recomputes and compares it.</td></tr>
+  <tr><td><b>Digital signature</b></td><td>Sender signs data electronically with a private key; receiver verifies with the public key.</td></tr>
+  <tr><td><b>Authentication exchange</b></td><td>Two entities exchange messages to prove identity (e.g. proving knowledge of a secret only the real entity knows).</td></tr>
+  <tr><td><b>Traffic padding</b></td><td>Inserting bogus data into traffic to defeat traffic analysis.</td></tr>
+  <tr><td><b>Routing control</b></td><td>Selecting and continuously changing routes between sender and receiver to avoid eavesdropping on a particular route.</td></tr>
+  <tr><td><b>Notarization</b></td><td>A trusted third party controls/records the communication — prevents repudiation.</td></tr>
+  <tr><td><b>Access control</b></td><td>Methods that prove a user has access rights to data or resources (passwords, PINs).</td></tr>
+</table>
+
+<h3>Relation between services and mechanisms</h3>
+<table>
+  <tr><th>Security service</th><th>Mechanism(s)</th></tr>
+  <tr><td>Data confidentiality</td><td>Encipherment, routing control</td></tr>
+  <tr><td>Data integrity</td><td>Encipherment, digital signature, data integrity</td></tr>
+  <tr><td>Authentication</td><td>Encipherment, digital signature, authentication exchange</td></tr>
+  <tr><td>Non-repudiation</td><td>Digital signature, data integrity, notarization</td></tr>
+  <tr><td>Access control</td><td>Access-control mechanism</td></tr>
+</table>
+<div class="box tip">Notice that <b>one mechanism can serve several services</b> (encipherment appears in three rows) and <b>one service may need several mechanisms</b>. Examiners like this observation.</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="crypto-methods">
+<h2><span class="num">1.4</span> Cryptographic methods (techniques)</h2>
+<p>The mechanisms above are implemented with two techniques: <b>cryptography</b> (making a message unreadable) and <b>steganography</b> (hiding the very existence of the message). Cryptography itself has three branches.</p>
+
+<figure class="fig">
+<svg viewBox="0 0 760 200" width="760" role="img" aria-label="Cryptographic techniques">
+ <rect class="dg-acc" x="290" y="8" width="180" height="36" rx="8"/><text class="dg-tb" x="380" y="31" text-anchor="middle">Techniques</text>
+ <path class="dg-line" d="M380 44 V58 M200 58 H600 M200 58 V72 M600 58 V72"/>
+ <rect class="dg-box" x="120" y="72" width="160" height="36" rx="8"/><text class="dg-tb" x="200" y="95" text-anchor="middle">Cryptography</text>
+ <rect class="dg-box" x="520" y="72" width="160" height="36" rx="8"/><text class="dg-tb" x="600" y="95" text-anchor="middle">Steganography</text>
+ <path class="dg-line" d="M200 108 V124 M70 124 H330 M70 124 V140 M200 124 V140 M330 124 V140"/>
+ <rect class="dg-good" x="5" y="140" width="130" height="50" rx="8"/><text class="dg-t" x="70" y="161" text-anchor="middle">Symmetric-key</text><text class="dg-ts" x="70" y="178" text-anchor="middle">one shared key</text>
+ <rect class="dg-good" x="140" y="140" width="120" height="50" rx="8"/><text class="dg-t" x="200" y="161" text-anchor="middle">Asymmetric-key</text><text class="dg-ts" x="200" y="178" text-anchor="middle">public + private</text>
+ <rect class="dg-good" x="265" y="140" width="130" height="50" rx="8"/><text class="dg-t" x="330" y="161" text-anchor="middle">Hashing</text><text class="dg-ts" x="330" y="178" text-anchor="middle">fixed-size digest</text>
+ <path class="dg-line" d="M600 108 V124 M530 124 H670 M530 124 V140 M670 124 V140"/>
+ <rect class="dg-warn" x="465" y="140" width="130" height="50" rx="8"/><text class="dg-t" x="530" y="161" text-anchor="middle">Text cover</text><text class="dg-ts" x="530" y="178" text-anchor="middle">spaces, word choice</text>
+ <rect class="dg-warn" x="605" y="140" width="130" height="50" rx="8"/><text class="dg-t" x="670" y="161" text-anchor="middle">Image / audio</text><text class="dg-ts" x="670" y="178" text-anchor="middle">LSB of pixels</text>
+</svg>
+<figcaption>Fig 1.5 — The two techniques and the three branches of cryptography.</figcaption>
+</figure>
+
+<div class="concept">
+  <h3>Symmetric-key (secret-key) cryptography</h3>
+  <div class="f-exp">The <b>same secret key</b> is used for encryption and decryption. Alice and Bob must share the key in advance through a secure channel. Also called conventional or private-key encryption. <span class="math">C = E<sub>K</sub>(P)</span>, <span class="math">P = D<sub>K</sub>(C)</span>.</div>
+  <div class="f-use">Encrypting files and disks (BitLocker), Wi-Fi traffic (AES in WPA2), the bulk data in HTTPS after the handshake. Examples: Caesar, DES, 3DES, AES, RC4.</div>
+  <div class="f-imp">Uses substitution and transposition repeated in rounds (Unit II). Very fast — suitable for large data.</div>
+  <div class="f-lim"><b>Key distribution problem</b>: how do you share the key securely? For <i>n</i> people, every pair needs a key: <span class="math"><span class="fr"><span>n(n − 1)</span><span>2</span></span></span> keys (1000 users → 499,500 keys). It also cannot provide non-repudiation since both parties hold the same key.</div>
+</div>
+<div class="concept">
+  <h3>Asymmetric-key (public-key) cryptography</h3>
+  <div class="f-exp">Uses a <b>pair of keys</b>: a <b>public key</b> that anyone may know and a <b>private key</b> kept secret by its owner. What one key encrypts, only the other can decrypt. To send a secret to Bob, Alice uses <i>Bob's public key</i>; only Bob's private key can open it.</div>
+  <div class="f-use">Exchanging session keys in HTTPS, digital signatures, e-mail security (PGP), SSH login keys. Examples: RSA, ElGamal, ECC, Rabin.</div>
+  <div class="f-imp">Based on mathematical "one-way trapdoor" problems: factorising large numbers (RSA, Rabin) or the discrete logarithm (ElGamal, ECC) — Unit III.</div>
+  <div class="f-lim">Hundreds to thousands of times slower than symmetric ciphers, so it is used only for small data (keys, hashes). Needs a way to trust that a public key really belongs to its owner (certificates — Unit IV).</div>
+</div>
+<div class="concept">
+  <h3>Hashing</h3>
+  <div class="f-exp">A <b>hash function</b> takes a message of any length and produces a fixed-length <b>digest</b> (fingerprint). It uses no key and is <b>one-way</b>: the message cannot be recovered from the digest.</div>
+  <div class="f-use">Checking downloads, storing passwords, digital signatures (sign the digest), blockchain. Examples: MD5, SHA-1, SHA-256, SHA-512, Whirlpool.</div>
+  <div class="f-imp">Message is padded, split into blocks and processed by a compression function in a chain (Unit III).</div>
+  <div class="f-lim">Provides integrity, not confidentiality. A keyless hash cannot authenticate the sender (the attacker can recompute it) — you need a MAC or signature. Old hashes (MD5, SHA-1) have practical collisions.</div>
+</div>
+<div class="concept">
+  <h3>Steganography</h3>
+  <div class="f-exp">Greek for "covered writing": <b>hides the existence of the message</b> inside an innocent-looking cover (text, image, audio, video). An observer does not even know a secret is present.</div>
+  <div class="f-use">Digital watermarking to prove ownership of images; hiding a message in the least significant bits (LSB) of image pixels; historically invisible ink, or a message tattooed on a shaved head.</div>
+  <div class="f-imp">Example (image): each pixel colour value is 8 bits; changing the last bit changes the colour by 1/256 — invisible to the eye. Replace the LSBs of many pixels with the bits of the secret message. Example (text): one or two spaces between words to encode 0 or 1.</div>
+  <div class="f-lim">Once the method is discovered, the message is exposed (no key-based security). Low capacity: a lot of cover is needed for a little data. Compression or resizing of the cover image can destroy the hidden data. Best used <i>together</i> with encryption.</div>
+</div>
+<div class="demo box" data-demo="stego" data-title="Interactive demo — hiding text in the least-significant bits"></div>
+
+<table>
+  <tr><th>Basis</th><th>Cryptography</th><th>Steganography</th></tr>
+  <tr><td>Goal</td><td>Make the message unreadable</td><td>Hide that a message exists</td></tr>
+  <tr><td>Visibility</td><td>Ciphertext is visible but meaningless</td><td>Cover looks normal</td></tr>
+  <tr><td>Security based on</td><td>Secrecy of the key</td><td>Secrecy of the method</td></tr>
+  <tr><td>Once detected</td><td>Still secure if the key is safe</td><td>Message is exposed</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="integer-arithmetic">
+<h2><span class="num">1.5</span> Integer arithmetic</h2>
+<p>Almost every cipher works on <b>integers</b>: letters become numbers (A = 0 … Z = 25), bytes are numbers 0–255, and RSA keys are huge integers. So we begin with plain integer arithmetic.</p>
+
+<div class="box found">
+  <p><b>The set of integers</b> <span class="math">ℤ = {…, −3, −2, −1, 0, 1, 2, 3, …}</span> contains all whole numbers, positive, negative and zero — infinitely many.</p>
+  <p>A <b>binary operation</b> takes two inputs and gives one output. In ℤ the three binary operations are <b>addition</b>, <b>subtraction</b> and <b>multiplication</b> — the result is always an integer. <b>Division is not</b> a binary operation in ℤ because 7 ÷ 2 = 3.5 is not an integer. Instead, division gives <b>two</b> outputs: a quotient and a remainder.</p>
+</div>
+
+<div class="concept">
+  <h3>The division algorithm</h3>
+  <div class="f-exp">For any integer <span class="var">a</span> (the dividend) and positive integer <span class="var">n</span> (the divisor), there are unique integers <span class="var">q</span> (quotient) and <span class="var">r</span> (remainder) such that
+  <span class="eq">a = q × n + r, &nbsp; with 0 ≤ r &lt; n</span>
+  The rule <b>0 ≤ r &lt; n</b> is crucial: the remainder is never negative.</div>
+  <div class="f-use">Every "mod" calculation in cryptography is just the remainder <i>r</i> of this division. Converting letters back after a shift (e.g. 25 + 3 = 28 → 28 − 26 = 2 → C) is the division algorithm with n = 26.</div>
+  <div class="f-imp">
+    <p><b>Positive a:</b> a = 255, n = 11 → 255 = 23 × 11 + 2, so q = 23, r = 2.</p>
+    <p><b>Negative a:</b> a calculator gives −255 = (−23) × 11 + (−2), but r = −2 is not allowed. <b>Fix:</b> decrease q by 1 and add n to r:</p>
+    <span class="eq">−255 = (−24) × 11 + 9 &nbsp;⇒&nbsp; q = −24, r = 9</span>
+    <p>Check: −24 × 11 = −264, and −264 + 9 = −255 ✓.</p>
+  </div>
+  <div class="f-lim">The divisor must be positive (n &gt; 0); with n = 0 the division is undefined.</div>
+</div>
+
+<div class="concept">
+  <h3>Divisibility</h3>
+  <div class="f-exp">If the remainder is zero (a = q × n), we say <b>n divides a</b>, written <span class="math">n | a</span>. If not, we write <span class="math">n ∤ a</span>. E.g. 4 | 32 because 32 = 8 × 4, but 8 ∤ 42.</div>
+  <div class="f-use">Divisibility decides whether inverses exist, whether a linear congruence has solutions, and whether a number is prime (no divisors other than 1 and itself).</div>
+  <div class="f-imp"><b>Properties</b> (learn these — 2-mark question):
+    <ol>
+      <li>If a | 1, then a = ±1.</li>
+      <li>If a | b and b | a, then a = ±b.</li>
+      <li>If a | b and b | c, then a | c. &nbsp;(3 | 15 and 15 | 45 ⇒ 3 | 45)</li>
+      <li>If a | b and a | c, then a | (m × b + n × c) for any integers m, n. &nbsp;(3 | 15 and 3 | 9 ⇒ 3 | (2×15 + 4×9) = 66 ✓)</li>
+    </ol>
+    <b>Facts:</b> 1 divides every integer; every integer divides 0; a positive integer with only two divisors (1 and itself) is <b>prime</b>; one with more is <b>composite</b>.</div>
+  <div class="f-lim">Checking divisibility of very large numbers (hundreds of digits) by all possible divisors is infeasible — which is exactly what makes RSA secure.</div>
+</div>
+
+<div class="concept">
+  <h3>Greatest Common Divisor (GCD) and the Euclidean algorithm</h3>
+  <div class="f-exp">The <b>GCD</b> of two positive integers is the largest integer that divides both. gcd(12, 18) = 6. Two numbers are <b>relatively prime (coprime)</b> if gcd(a, b) = 1, e.g. gcd(8, 15) = 1 even though neither is prime.</div>
+  <div class="f-use">Checking whether a key is valid (multiplicative/affine cipher keys must be coprime to 26; RSA's <i>e</i> must be coprime to φ(n)); computing inverses; simplifying congruences.</div>
+  <div class="f-imp">
+    <p>Listing all divisors is slow for big numbers. Euclid (≈300 BC) used two facts:</p>
+    <div class="box formula" data-title="Euclid's two facts"><span class="eq">Fact 1: gcd(a, 0) = a &nbsp;&nbsp;&nbsp;&nbsp; Fact 2: gcd(a, b) = gcd(b, r), where r = a mod b</span></div>
+    <p>So we keep replacing (a, b) by (b, a mod b) until the second number becomes 0. The first number is then the GCD.</p>
+    <pre><code>r1 ← a ; r2 ← b
+while (r2 &gt; 0) {
+    q  ← r1 / r2         // integer quotient
+    r  ← r1 − q × r2     // remainder
+    r1 ← r2 ; r2 ← r
+}
+gcd(a, b) ← r1</code></pre>
+  </div>
+  <div class="f-lim">Gives the GCD only — it does not tell you the coefficients needed for inverses. For that we extend it (next card).</div>
+</div>
+
+<div class="box example" data-title="Worked example — gcd(2740, 1760)">
+<table class="num">
+  <tr><th>q</th><th>r1</th><th>r2</th><th>r = r1 − q·r2</th><th>Equation</th></tr>
+  <tr><td>1</td><td>2740</td><td>1760</td><td>980</td><td>2740 = 1 × 1760 + 980</td></tr>
+  <tr><td>1</td><td>1760</td><td>980</td><td>780</td><td>1760 = 1 × 980 + 780</td></tr>
+  <tr><td>1</td><td>980</td><td>780</td><td>200</td><td>980 = 1 × 780 + 200</td></tr>
+  <tr><td>3</td><td>780</td><td>200</td><td>180</td><td>780 = 3 × 200 + 180</td></tr>
+  <tr><td>1</td><td>200</td><td>180</td><td>20</td><td>200 = 1 × 180 + 20</td></tr>
+  <tr><td>9</td><td>180</td><td>20</td><td>0</td><td>180 = 9 × 20 + 0</td></tr>
+  <tr class="total"><td></td><td>20</td><td>0</td><td></td><td>r2 = 0, so gcd = r1 = <b>20</b></td></tr>
+</table>
+</div>
+<div class="demo box" data-demo="euclid" data-title="Interactive demo — Euclidean algorithm step by step"></div>
+
+<div class="concept">
+  <h3>Extended Euclidean algorithm</h3>
+  <div class="f-exp">Given a and b, it finds gcd(a, b) <b>and</b> two integers s and t such that
+  <span class="eq">s × a + t × b = gcd(a, b)</span>
+  (This is called <b>Bézout's identity</b>.) When gcd(a, b) = 1 these coefficients give us <b>multiplicative inverses</b>, which every cipher's decryption needs.</div>
+  <div class="f-use">Finding the decryption key of the multiplicative/affine/Hill ciphers, the RSA private key d = e<sup>−1</sup> mod φ(n), inverses in ElGamal and in the Chinese Remainder Theorem, and solving linear Diophantine equations.</div>
+  <div class="f-imp">
+    <p>Run Euclid as before, but carry two extra columns s and t. Each new value follows the <b>same rule</b> as r:</p>
+    <span class="eq">r = r1 − q·r2 &nbsp;&nbsp; s = s1 − q·s2 &nbsp;&nbsp; t = t1 − q·t2</span>
+    <p>Start with <b>s1 = 1, s2 = 0</b> and <b>t1 = 0, t2 = 1</b>. When r2 becomes 0, the answers are in the first column: gcd = r1, s = s1, t = t1.</p>
+    <pre><code>r1 ← a; r2 ← b; s1 ← 1; s2 ← 0; t1 ← 0; t2 ← 1
+while (r2 &gt; 0) {
+   q ← r1 / r2
+   r ← r1 − q × r2 ; r1 ← r2 ; r2 ← r
+   s ← s1 − q × s2 ; s1 ← s2 ; s2 ← s
+   t ← t1 − q × t2 ; t1 ← t2 ; t2 ← t
+}
+gcd ← r1 ; s ← s1 ; t ← t1</code></pre>
+  </div>
+  <div class="f-lim">s and t can be negative; when used as an inverse you must convert to the range 0 … n−1 by adding n. If gcd ≠ 1 there is no inverse.</div>
+</div>
+
+<div class="box example" data-title="Worked example — a = 161, b = 28">
+<table class="num">
+  <tr><th>q</th><th>r1</th><th>r2</th><th>r</th><th>s1</th><th>s2</th><th>s</th><th>t1</th><th>t2</th><th>t</th></tr>
+  <tr><td>5</td><td>161</td><td>28</td><td>21</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>−5</td></tr>
+  <tr><td>1</td><td>28</td><td>21</td><td>7</td><td>0</td><td>1</td><td>−1</td><td>1</td><td>−5</td><td>6</td></tr>
+  <tr><td>3</td><td>21</td><td>7</td><td>0</td><td>1</td><td>−1</td><td>4</td><td>−5</td><td>6</td><td>−23</td></tr>
+  <tr class="total"><td></td><td>7</td><td>0</td><td></td><td>−1</td><td>4</td><td></td><td>6</td><td>−23</td><td></td></tr>
+</table>
+<p>gcd(161, 28) = <b>7</b>, s = <b>−1</b>, t = <b>6</b>. Check: (−1)(161) + 6(28) = −161 + 168 = 7 ✓</p>
+<p><b>How the first row was filled:</b> q = ⌊161/28⌋ = 5; r = 161 − 5×28 = 21; s = 1 − 5×0 = 1; t = 0 − 5×1 = −5. Then everything shifts left by one column-pair.</p>
+</div>
+<div class="demo box" data-demo="egcd" data-title="Interactive demo — extended Euclidean algorithm"></div>
+
+<div class="concept">
+  <h3>Linear Diophantine equations</h3>
+  <div class="f-exp">An equation <span class="math">ax + by = c</span> where we want <b>integer</b> solutions. Let d = gcd(a, b). If <b>d ∤ c</b> there is no solution; if <b>d | c</b> there are infinitely many.</div>
+  <div class="f-use">A direct application of extended Euclid; the same reasoning is reused for linear congruences (Section 1.8).</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li>Divide the equation by d: a₁x + b₁y = c₁ where a₁ = a/d, b₁ = b/d, c₁ = c/d.</li>
+      <li>Use extended Euclid to solve a₁s + b₁t = 1.</li>
+      <li>Particular solution: x₀ = (c/d) × s, y₀ = (c/d) × t.</li>
+      <li>General solution: x = x₀ + k(b/d), y = y₀ − k(a/d), for any integer k.</li>
+    </ol>
+  </div>
+  <div class="f-lim">Applies only to linear equations with integer coefficients.</div>
+</div>
+<div class="box example" data-title="Worked example — 21x + 14y = 35">
+  <ol class="steps">
+    <li>d = gcd(21, 14) = 7; 7 | 35 ✓ so solutions exist. Divide by 7: <b>3x + 2y = 5</b>.</li>
+    <li>Solve 3s + 2t = 1 using extended Euclid → s = 1, t = −1 (3 − 2 = 1 ✓).</li>
+    <li>x₀ = 5 × 1 = 5, y₀ = 5 × (−1) = −5.</li>
+    <li>General: x = 5 + 2k, y = −5 − 3k. For k = −1: (3, −2); check 21(3) + 14(−2) = 63 − 28 = 35 ✓</li>
+  </ol>
+</div>
+
+<div class="box practice">
+  <ol class="qlist">
+    <li>Find q and r when a = −18, n = 14.
+      <details class="ans"><summary>Show answer</summary><div>−18 = (−2) × 14 + 10 → q = −2, r = 10. (Calculator gives q = −1, r = −4; adjust: q − 1 = −2, r + 14 = 10.)</div></details></li>
+    <li>Find gcd(25, 60) using Euclid.
+      <details class="ans"><summary>Show answer</summary><div>60 = 2×25 + 10; 25 = 2×10 + 5; 10 = 2×5 + 0 → gcd = <b>5</b>.</div></details></li>
+    <li>Using extended Euclid find gcd(17, 0) and gcd(0, 45).
+      <details class="ans"><summary>Show answer</summary><div>By Fact 1: gcd(17, 0) = 17 with s = 1, t = 0. gcd(0, 45) = 45 with s = 0, t = 1.</div></details></li>
+    <li>Find s and t for a = 84, b = 320.
+      <details class="ans"><summary>Show answer</summary><div>
+      <table class="num compact"><tr><th>q</th><th>r1</th><th>r2</th><th>r</th><th>s1</th><th>s2</th><th>s</th><th>t1</th><th>t2</th><th>t</th></tr>
+      <tr><td>0</td><td>84</td><td>320</td><td>84</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+      <tr><td>3</td><td>320</td><td>84</td><td>68</td><td>0</td><td>1</td><td>−3</td><td>1</td><td>0</td><td>1</td></tr>
+      <tr><td>1</td><td>84</td><td>68</td><td>16</td><td>1</td><td>−3</td><td>4</td><td>0</td><td>1</td><td>−1</td></tr>
+      <tr><td>4</td><td>68</td><td>16</td><td>4</td><td>−3</td><td>4</td><td>−19</td><td>1</td><td>−1</td><td>5</td></tr>
+      <tr><td>4</td><td>16</td><td>4</td><td>0</td><td>4</td><td>−19</td><td>80</td><td>−1</td><td>5</td><td>−21</td></tr>
+      <tr class="total"><td></td><td>4</td><td>0</td><td></td><td>−19</td><td>80</td><td></td><td>5</td><td>−21</td><td></td></tr></table>
+      gcd = 4, s = −19, t = 5. Check: −19×84 + 5×320 = −1596 + 1600 = 4 ✓</div></details></li>
+    <li>Find integer solutions of 4x + 10y = 7 and 8x + 12y = 20.
+      <details class="ans"><summary>Show answer</summary><div>(a) gcd(4,10) = 2, 2 ∤ 7 → <b>no solution</b>.<br>(b) gcd = 4, divide: 2x + 3y = 5. 2s + 3t = 1 → s = −1, t = 1. x₀ = −5, y₀ = 5. General x = −5 + 3k, y = 5 − 2k. (k = 2 → x = 1, y = 1: 8 + 12 = 20 ✓)</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="modular-arithmetic">
+<h2><span class="num">1.6</span> Modular arithmetic</h2>
+<p>In the division algorithm we often care <b>only about the remainder</b>. Arithmetic that keeps only remainders is called <b>modular arithmetic</b>. You already use it: a clock is arithmetic modulo 12 (9 o'clock + 5 hours = 2 o'clock), days of the week are modulo 7.</p>
+
+<div class="concept">
+  <h3>The modulo operator</h3>
+  <div class="f-exp">
+    <span class="eq">a mod n = r &nbsp;&nbsp; (the remainder when a is divided by n, with 0 ≤ r &lt; n)</span>
+    n is called the <b>modulus</b> and r the <b>residue</b>. Examples: 27 mod 5 = 2, 36 mod 12 = 0, −18 mod 14 = 10, −7 mod 10 = 3.
+  </div>
+  <div class="f-use">Keeps results inside a fixed range — 26 letters, 256 byte values, or a key space. The Caesar cipher is C = (P + 3) mod 26.</div>
+  <div class="f-imp"><b>Rule for negative numbers:</b> keep adding n until the result lies in 0 … n−1. −7 mod 10 → −7 + 10 = 3.</div>
+  <div class="f-lim">Programming languages differ: in C/Java/JavaScript, <code>-7 % 10</code> gives −7, not 3! Cryptographic code must correct this with <code>((a % n) + n) % n</code>.</div>
+</div>
+
+<div class="concept">
+  <h3>The set of residues ℤ<sub>n</sub></h3>
+  <div class="f-exp">The result of "mod n" is always one of <span class="math">ℤ<sub>n</sub> = {0, 1, 2, …, n − 1}</span>. So ℤ<sub>2</sub> = {0, 1}, ℤ<sub>6</sub> = {0, 1, 2, 3, 4, 5}, ℤ<sub>26</sub> = {0 … 25}.</div>
+  <div class="f-use">ℤ<sub>26</sub> for English letters; ℤ<sub>2</sub> for bits (XOR is addition in ℤ<sub>2</sub>); ℤ<sub>256</sub> for bytes; ℤ<sub>p</sub> for large prime p in Diffie–Hellman and ElGamal.</div>
+  <div class="f-imp">Infinitely many integers map onto just n residues, like wrapping a number line around a clock with n positions (try the demo below).</div>
+  <div class="f-lim">Information about the quotient is lost; you cannot recover a from a mod n alone.</div>
+</div>
+
+<div class="concept">
+  <h3>Congruence and residue classes</h3>
+  <div class="f-exp">Two integers are <b>congruent modulo n</b> if they leave the same remainder:
+  <span class="eq">a ≡ b (mod n) &nbsp;⇔&nbsp; n | (a − b)</span>
+  2 ≡ 12 ≡ 22 ≡ −8 (mod 10). Note "≡" is a relation, while "mod" in "a mod n" is an operator.<br>
+  A <b>residue class</b> [a] is the set of all integers congruent to a: [2] (mod 5) = {…, −8, −3, 2, 7, 12, …}. There are exactly n classes mod n and we use the smallest non-negative member as the representative.</div>
+  <div class="f-use">Lets us replace huge numbers by small equivalents before calculating, which is how 7<sup>200</sup> mod 13 can be done by hand.</div>
+  <div class="f-imp">Congruence behaves like equality: it is reflexive, symmetric and transitive, and you can add or multiply both sides by the same integer.</div>
+  <div class="f-lim">You <b>cannot</b> always divide both sides: 2 × 3 ≡ 2 × 8 (mod 10) is true (6 ≡ 16) but 3 ≢ 8 (mod 10). Division is only allowed by numbers coprime to n (i.e. multiplying by an inverse).</div>
+</div>
+
+<div class="concept">
+  <h3>Operations in ℤ<sub>n</sub> and their properties</h3>
+  <div class="f-exp">Addition, subtraction and multiplication work as usual, followed by reduction mod n. The key properties let us reduce <b>before</b> or <b>after</b> the operation — whichever is easier:</div>
+  <div class="box formula" data-title="Properties">
+    <span class="eq">(a + b) mod n = [(a mod n) + (b mod n)] mod n</span>
+    <span class="eq">(a − b) mod n = [(a mod n) − (b mod n)] mod n</span>
+    <span class="eq">(a × b) mod n = [(a mod n) × (b mod n)] mod n</span>
+  </div>
+  <div class="f-use">Example: 10<sup>n</sup> mod 3 = (10 mod 3)<sup>n</sup> = 1<sup>n</sup> = 1. That is why a number's remainder mod 3 equals the remainder of its digit sum (divisibility rule for 3!).</div>
+  <div class="f-imp"><b>Examples:</b> (14 + 7) mod 15 = 21 mod 15 = 6; (7 − 11) mod 13 = −4 mod 13 = 9; (7 × 10) mod 20 = 70 mod 20 = 10.<br>
+  (1,723,345 + 2,124,945) mod 11 = (8 + 9) mod 11 = 6, because 1,723,345 mod 11 = 8 and 2,124,945 mod 11 = 9.</div>
+  <div class="f-lim">There is no "division" operation; instead we multiply by a multiplicative inverse (next card) — which may not exist.</div>
+</div>
+
+<div class="concept">
+  <h3>Inverses: additive and multiplicative</h3>
+  <div class="f-exp">
+    <p><b>Additive inverse:</b> b is the additive inverse of a in ℤ<sub>n</sub> if <span class="math">a + b ≡ 0 (mod n)</span>. Every element has one: b = n − a (and 0 is its own). In ℤ<sub>10</sub>: (0,0) (1,9) (2,8) (3,7) (4,6) (5,5).</p>
+    <p><b>Multiplicative inverse:</b> b is the multiplicative inverse of a if <span class="math">a × b ≡ 1 (mod n)</span>, written a<sup>−1</sup>. It exists <b>if and only if gcd(n, a) = 1</b>. In ℤ<sub>10</sub> only 1, 3, 7, 9 have inverses: (1,1) (3,7) (9,9).</p>
+  </div>
+  <div class="f-use">Additive inverse = decryption key of the additive (shift) cipher: key 3 → decrypt with 23. Multiplicative inverse = decryption key of the multiplicative cipher, the affine cipher, RSA (d = e<sup>−1</sup> mod φ(n)), and is needed in Hill, ElGamal and CRT.</div>
+  <div class="f-imp">
+    <p><b>Finding a<sup>−1</sup> mod n with extended Euclid:</b> run it on (n, a). Because gcd = 1, s·n + t·a = 1, so t·a ≡ 1 (mod n). The inverse is <b>t mod n</b> (the s column is not needed).</p>
+  </div>
+  <div class="f-lim">No inverse when gcd(a, n) ≠ 1 — e.g. 8 has no inverse mod 26 — so such values can never be used as multiplicative keys. For small n, trial (try b = 1, 2, 3, …) works, but for large n only extended Euclid is practical.</div>
+</div>
+
+<div class="box example" data-title="Worked example — find 11⁻¹ mod 26">
+<p>Run extended Euclid with r1 = 26, r2 = 11 and only the t columns (t1 = 0, t2 = 1):</p>
+<table class="num">
+  <tr><th>q</th><th>r1</th><th>r2</th><th>r</th><th>t1</th><th>t2</th><th>t</th></tr>
+  <tr><td>2</td><td>26</td><td>11</td><td>4</td><td>0</td><td>1</td><td>−2</td></tr>
+  <tr><td>2</td><td>11</td><td>4</td><td>3</td><td>1</td><td>−2</td><td>5</td></tr>
+  <tr><td>1</td><td>4</td><td>3</td><td>1</td><td>−2</td><td>5</td><td>−7</td></tr>
+  <tr><td>3</td><td>3</td><td>1</td><td>0</td><td>5</td><td>−7</td><td>26</td></tr>
+  <tr class="total"><td></td><td>1</td><td>0</td><td></td><td>−7</td><td>26</td><td></td></tr>
+</table>
+<p>gcd = 1 ✓ so the inverse exists. t1 = −7 → −7 mod 26 = <b>19</b>. Check: 11 × 19 = 209 = 8 × 26 + 1 ≡ 1 (mod 26) ✓</p>
+</div>
+
+<div class="demo box" data-demo="modclock" data-title="Interactive demo — the ℤₙ clock, inverses and operations"></div>
+
+<div class="concept">
+  <h3>The sets ℤ<sub>n</sub>* and ℤ<sub>p</sub></h3>
+  <div class="f-exp"><b>ℤ<sub>n</sub>*</b> is the subset of ℤ<sub>n</sub> containing only the numbers that <b>have</b> a multiplicative inverse (i.e. are coprime to n). ℤ<sub>10</sub>* = {1, 3, 7, 9}; ℤ<sub>6</sub>* = {1, 5}. Its size is Euler's φ(n) (Unit III).<br>
+  When the modulus is a <b>prime p</b>, every non-zero element is coprime to p, so ℤ<sub>p</sub>* = {1, 2, …, p − 1} and ℤ<sub>p</sub> behaves like ordinary fractions — every non-zero number can be "divided by".</div>
+  <div class="f-use">Use ℤ<sub>n</sub> when we need additive inverses, ℤ<sub>n</sub>* when we need multiplicative inverses. Diffie–Hellman, ElGamal and DSA all work in ℤ<sub>p</sub>* with a large prime p.</div>
+  <div class="f-imp">To list ℤ<sub>n</sub>*: write 1 … n−1, keep the ones with gcd(·, n) = 1. ℤ<sub>13</sub>* = {1, 2, …, 12} (13 is prime).</div>
+  <div class="f-lim">For composite n, ℤ<sub>n</sub>* is missing elements, so not every equation can be solved.</div>
+</div>
+
+<div class="concept">
+  <h3>Modular exponentiation — the square-and-multiply method</h3>
+  <div class="f-exp">Public-key cryptography needs a<sup>e</sup> mod n for huge e (RSA uses e ≈ 2<sup>2048</sup>-size exponents for decryption). Computing a<sup>e</sup> first and then reducing is impossible — the number would have billions of digits. Instead we reduce <b>after every multiplication</b> and use the binary form of e.</div>
+  <div class="f-use">RSA encryption/decryption, Diffie–Hellman, ElGamal, Fermat and Miller–Rabin primality tests, DSA.</div>
+  <div class="f-imp">
+    <p><b>Method A (powers of two — easiest by hand):</b> write e as a sum of powers of 2, compute a<sup>1</sup>, a<sup>2</sup>, a<sup>4</sup>, a<sup>8</sup>, … by repeatedly squaring mod n, then multiply the needed ones.</p>
+    <p><b>Method B (left-to-right square-and-multiply):</b> start with y = 1; for each bit of e from the left: y = y² mod n; if the bit is 1, y = y × a mod n.</p>
+    <p>Only about 2 × (number of bits of e) multiplications are needed — for a 2048-bit exponent that is ≈ 4096 instead of 2<sup>2048</sup>.</p>
+  </div>
+  <div class="f-lim">Naïve implementations take different time for 0-bits and 1-bits, which leaks the secret exponent (<b>timing attack</b>, Unit III). Real libraries use constant-time versions.</div>
+</div>
+<div class="box example" data-title="Worked example — 5¹³ mod 23">
+  <p><b>Method A.</b> 13 = 8 + 4 + 1. Square repeatedly:</p>
+  <p>5<sup>1</sup> = 5; &nbsp; 5<sup>2</sup> = 25 ≡ 2; &nbsp; 5<sup>4</sup> = 2<sup>2</sup> = 4; &nbsp; 5<sup>8</sup> = 4<sup>2</sup> = 16 (mod 23)</p>
+  <p>5<sup>13</sup> = 5<sup>8</sup> × 5<sup>4</sup> × 5<sup>1</sup> ≡ 16 × 4 × 5 = 320 = 13 × 23 + 21 ≡ <b>21</b> (mod 23).</p>
+  <p><b>Method B.</b> 13 = 1101<sub>2</sub>.</p>
+  <table class="num"><tr><th>bit</th><th>square: y²</th><th>multiply (if bit = 1): y × 5</th></tr>
+  <tr><td>1</td><td>1² = 1</td><td>1 × 5 = 5</td></tr>
+  <tr><td>1</td><td>5² = 25 ≡ 2</td><td>2 × 5 = 10</td></tr>
+  <tr><td>0</td><td>10² = 100 ≡ 8</td><td>— (stays 8)</td></tr>
+  <tr><td>1</td><td>8² = 64 ≡ 18</td><td>18 × 5 = 90 ≡ <b>21</b></td></tr></table>
+</div>
+<div class="demo box" data-demo="modpow" data-title="Interactive demo — square-and-multiply"></div>
+
+<div class="box practice">
+  <ol class="qlist">
+    <li>Find: (a) 273 mod 13 (b) −140 mod 13 (c) 0 mod 7.
+      <details class="ans"><summary>Show answer</summary><div>(a) 273 = 21 × 13 → <b>0</b>. (b) −140 = −11 × 13 + 3 → <b>3</b> (−140 + 143). (c) <b>0</b>.</div></details></li>
+    <li>Find all additive and multiplicative inverse pairs in ℤ<sub>11</sub>.
+      <details class="ans"><summary>Show answer</summary><div>Additive: (0,0) (1,10) (2,9) (3,8) (4,7) (5,6).<br>Multiplicative (11 is prime, so all non-zero have one): (1,1) (2,6) (3,4) (5,9) (7,8) (10,10). Check 7 × 8 = 56 = 55 + 1 ✓</div></details></li>
+    <li>Find 23<sup>−1</sup> mod 100.
+      <details class="ans"><summary>Show answer</summary><div>Extended Euclid (100, 23): q=4 r=8 t=−4; q=2 r=7 t=9; q=1 r=1 t=−13; q=7 r=0. t1 = −13 → −13 + 100 = <b>87</b>. Check 23 × 87 = 2001 ≡ 1 (mod 100) ✓</div></details></li>
+    <li>Does 12 have a multiplicative inverse in ℤ<sub>26</sub>? Why?
+      <details class="ans"><summary>Show answer</summary><div>No — gcd(26, 12) = 2 ≠ 1.</div></details></li>
+    <li>List ℤ<sub>14</sub>* and ℤ<sub>21</sub>*.
+      <details class="ans"><summary>Show answer</summary><div>ℤ<sub>14</sub>* = {1, 3, 5, 9, 11, 13} (6 elements). ℤ<sub>21</sub>* = {1, 2, 4, 5, 8, 10, 11, 13, 16, 17, 19, 20} (12 elements).</div></details></li>
+    <li>Compute 3<sup>200</sup> mod 13 by hand.
+      <details class="ans"><summary>Show answer</summary><div>3<sup>3</sup> = 27 ≡ 1 (mod 13). 200 = 3 × 66 + 2, so 3<sup>200</sup> = (3<sup>3</sup>)<sup>66</sup> × 3<sup>2</sup> ≡ 1 × 9 = <b>9</b>. (Finding a small power that equals 1 is a great shortcut.)</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="matrices">
+<h2><span class="num">1.7</span> Matrices</h2>
+<p>Matrices are used in the <b>Hill cipher</b> (Unit II), in AES's MixColumns operation and for solving several congruences at once. We need only the basics, but done carefully modulo n.</p>
+
+<div class="concept">
+  <h3>Definitions and types</h3>
+  <div class="f-exp">A <b>matrix</b> of size l × m is a rectangular array of numbers with l rows and m columns; a<sub>ij</sub> is the element in row i, column j.
+  <ul>
+    <li><b>Row matrix</b> (1 × m), <b>column matrix</b> (l × 1), <b>square matrix</b> (l = m).</li>
+    <li><b>Zero matrix</b> 0: all entries 0. <b>Identity matrix</b> I: square, 1 on the main diagonal, 0 elsewhere.</li>
+  </ul></div>
+  <div class="f-use">A 1 × 2 row matrix holds two plaintext letters in the Hill cipher; a 2 × 2 square matrix is its key. AES arranges 16 bytes as a 4 × 4 "state" matrix.</div>
+  <div class="f-imp">
+  <span class="eq">I = <span class="mat c2"><span>1</span><span>0</span><span>0</span><span>1</span></span> &nbsp;&nbsp;&nbsp; A = <span class="mat c3"><span>5</span><span>2</span><span>1</span><span>3</span><span>0</span><span>−4</span><span>2</span><span>1</span><span>6</span></span> (3 × 3)</span>
+  </div>
+  <div class="f-lim">Only square matrices can have a determinant or an inverse.</div>
+</div>
+
+<div class="concept">
+  <h3>Operations: addition, scalar and matrix multiplication</h3>
+  <div class="f-exp"><b>Addition/subtraction</b>: same size, add element by element. <b>Scalar multiplication</b>: multiply every element by the number. <b>Matrix multiplication</b> A (l × m) × B (m × p) = C (l × p): number of columns of A must equal number of rows of B; c<sub>ij</sub> = (row i of A) · (column j of B).</div>
+  <div class="f-use">Hill encryption is C = P × K (mod 26): a row of letters times the key matrix.</div>
+  <div class="f-imp">
+    <p>Example: [5 2 1] × [[7],[8],[2]] = 5×7 + 2×8 + 1×2 = 35 + 16 + 2 = <b>53</b> (1 × 3 times 3 × 1 gives 1 × 1).</p>
+    <p>Example: [[5,2],[3,1]] × [[1,4],[2,3]] = [[5+4, 20+6],[3+2, 12+3]] = <b>[[9, 26],[5, 15]]</b>.</p>
+  </div>
+  <div class="f-lim">Matrix multiplication is <b>not commutative</b>: in general A × B ≠ B × A. So P × K and K × P give different ciphertexts — you must use the convention of your textbook consistently.</div>
+</div>
+
+<div class="concept">
+  <h3>Determinant</h3>
+  <div class="f-exp">A single number computed from a square matrix. A matrix has an inverse only if its determinant is non-zero (in ordinary arithmetic) or <b>invertible mod n</b> (in modular arithmetic).</div>
+  <div class="f-use">Checking whether a Hill-cipher key matrix is usable: det(K) must be coprime to 26.</div>
+  <div class="f-imp">
+    <p><b>2 × 2:</b> det [[a, b],[c, d]] = <b>ad − bc</b>.</p>
+    <p><b>3 × 3</b> (expand along row 1 with alternating signs + − +):</p>
+    <p>det A = a<sub>11</sub>(a<sub>22</sub>a<sub>33</sub> − a<sub>23</sub>a<sub>32</sub>) − a<sub>12</sub>(a<sub>21</sub>a<sub>33</sub> − a<sub>23</sub>a<sub>31</sub>) + a<sub>13</sub>(a<sub>21</sub>a<sub>32</sub> − a<sub>22</sub>a<sub>31</sub>)</p>
+    <p>For A = [[5,2,1],[3,0,−4],[2,1,6]]: 5(0·6 − (−4)·1) − 2(3·6 − (−4)·2) + 1(3·1 − 0·2) = 5(4) − 2(26) + 1(3) = 20 − 52 + 3 = <b>−29</b>.</p>
+  </div>
+  <div class="f-lim">For large matrices, cofactor expansion is slow (n! terms); row reduction is used in software.</div>
+</div>
+
+<div class="concept">
+  <h3>Inverse of a matrix and residue matrices</h3>
+  <div class="f-exp">The <b>multiplicative inverse</b> A<sup>−1</sup> satisfies A × A<sup>−1</sup> = A<sup>−1</sup> × A = I. A <b>residue matrix</b> has all entries in ℤ<sub>n</sub>. A residue matrix A has an inverse in ℤ<sub>n</sub> <b>if and only if det(A) has a multiplicative inverse in ℤ<sub>n</sub></b>, i.e. gcd(det A, n) = 1.</div>
+  <div class="f-use">Hill-cipher decryption: P = C × K<sup>−1</sup> (mod 26).</div>
+  <div class="f-imp">
+    <p><b>2 × 2 inverse mod n:</b></p>
+    <span class="eq"><span class="mat c2"><span>a</span><span>b</span><span>c</span><span>d</span></span><sup>−1</sup> = (ad − bc)<sup>−1</sup> × <span class="mat c2"><span>d</span><span>−b</span><span>−c</span><span>a</span></span> &nbsp; (mod n)</span>
+    <ol class="steps">
+      <li>Compute det = ad − bc, reduce mod n.</li>
+      <li>Check gcd(det, n) = 1; find det<sup>−1</sup> mod n (extended Euclid).</li>
+      <li>Swap a and d, negate b and c (the <b>adjugate</b>).</li>
+      <li>Multiply every entry by det<sup>−1</sup> and reduce mod n.</li>
+      <li>Verify A × A<sup>−1</sup> ≡ I.</li>
+    </ol>
+  </div>
+  <div class="f-lim">Many matrices are not invertible mod 26 (any with even determinant or a determinant divisible by 13), which reduces the usable key space of the Hill cipher.</div>
+</div>
+<div class="box example" data-title="Worked example — inverse of K = [[3, 3],[2, 5]] in ℤ₂₆">
+  <ol class="steps">
+    <li>det = 3×5 − 3×2 = 15 − 6 = 9.</li>
+    <li>gcd(9, 26) = 1 ✓. 9<sup>−1</sup> mod 26 = <b>3</b> (because 9 × 3 = 27 ≡ 1).</li>
+    <li>Adjugate: [[5, −3],[−2, 3]].</li>
+    <li>Multiply by 3: [[15, −9],[−6, 9]] → mod 26: <b>[[15, 17],[20, 9]]</b>.</li>
+    <li>Check: [[3,3],[2,5]] × [[15,17],[20,9]] = [[105, 78],[130, 79]] ≡ [[1, 0],[0, 1]] (mod 26) ✓</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="matinv" data-title="Interactive demo — 2×2 matrix inverse modulo n"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Find the inverse of [[5, 8],[17, 3]] in ℤ<sub>26</sub>.
+      <details class="ans"><summary>Show answer</summary><div>det = 15 − 136 = −121 ≡ −121 + 130 = 9 (mod 26). 9<sup>−1</sup> = 3. Adjugate [[3, −8],[−17, 5]] → ×3 = [[9, −24],[−51, 15]] ≡ <b>[[9, 2],[1, 15]]</b>. Check: 5×9 + 8×1 = 53 ≡ 1 ✓.</div></details></li>
+    <li>Is [[2, 4],[1, 3]] invertible in ℤ<sub>26</sub>?
+      <details class="ans"><summary>Show answer</summary><div>det = 6 − 4 = 2; gcd(2, 26) = 2 ≠ 1 → <b>not invertible</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="linear-congruence">
+<h2><span class="num">1.8</span> Linear congruence</h2>
+<p>Cryptanalysis often requires solving equations "mod n". A <b>linear congruence</b> is the modular version of a linear equation.</p>
+
+<div class="concept">
+  <h3>Single-variable linear equations: ax ≡ b (mod n)</h3>
+  <div class="f-exp">Let <b>d = gcd(a, n)</b>.
+  <ul>
+    <li>If <b>d ∤ b</b>: <b>no solution</b>.</li>
+    <li>If <b>d | b</b>: exactly <b>d solutions</b> in ℤ<sub>n</sub>.</li>
+  </ul></div>
+  <div class="f-use">Finding the key of an affine cipher from known plaintext; solving the "x" in modular key equations; it is the building block of CRT.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li>Compute d = gcd(a, n). If d ∤ b, stop — no solution.</li>
+      <li>Divide everything by d: a′ = a/d, b′ = b/d, n′ = n/d. Now a′x ≡ b′ (mod n′) and gcd(a′, n′) = 1.</li>
+      <li>Multiply both sides by a′<sup>−1</sup> mod n′: <b>x₀ = b′ × (a′)<sup>−1</sup> mod n′</b>.</li>
+      <li>All solutions: <b>x = x₀ + k × (n/d)</b> for k = 0, 1, …, d − 1.</li>
+    </ol>
+    <p>An equation like <b>ax + c ≡ b</b> is first rewritten as ax ≡ (b − c) (mod n).</p>
+  </div>
+  <div class="f-lim">You cannot simply "divide by a" unless a is coprime to n — that is the whole reason for step 2.</div>
+</div>
+
+<div class="box example" data-title="Worked example 1 — 10x ≡ 2 (mod 15)">
+  <p>d = gcd(10, 15) = 5. Does 5 | 2? No → <b>no solution</b>.</p>
+</div>
+<div class="box example" data-title="Worked example 2 — 14x ≡ 12 (mod 18)">
+  <ol class="steps">
+    <li>d = gcd(14, 18) = 2. 2 | 12 ✓ → there are <b>2 solutions</b>.</li>
+    <li>Divide by 2: 7x ≡ 6 (mod 9).</li>
+    <li>7<sup>−1</sup> mod 9 = 4 (7 × 4 = 28 ≡ 1). x₀ = 6 × 4 = 24 ≡ <b>6</b> (mod 9).</li>
+    <li>Solutions: x = 6 + k × (18/2) = 6 + 9k → <b>x = 6 and x = 15</b>.</li>
+    <li>Check: 14 × 6 = 84 = 4 × 18 + 12 ✓; 14 × 15 = 210 = 11 × 18 + 12 ✓</li>
+  </ol>
+</div>
+<div class="box example" data-title="Worked example 3 — 3x + 4 ≡ 6 (mod 13)">
+  <ol class="steps">
+    <li>Rewrite: 3x ≡ 6 − 4 = 2 (mod 13).</li>
+    <li>d = gcd(3, 13) = 1 → one solution.</li>
+    <li>3<sup>−1</sup> mod 13 = 9 (27 ≡ 1). x = 2 × 9 = 18 ≡ <b>5</b>. Check: 3(5) + 4 = 19 ≡ 6 ✓</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="lincong" data-title="Interactive demo — solve ax ≡ b (mod n)"></div>
+
+<div class="concept">
+  <h3>Set of linear congruences (using matrices)</h3>
+  <div class="f-exp">Several equations with the same modulus, e.g. two equations in x and y, can be written in matrix form <b>A × X ≡ B (mod n)</b> and solved as <b>X ≡ A<sup>−1</sup> × B (mod n)</b>.</div>
+  <div class="f-use">Breaking the Hill cipher with known plaintext leads to exactly such a system.</div>
+  <div class="f-imp">Find A<sup>−1</sup> mod n (Section 1.7) and multiply. Requires gcd(det A, n) = 1.</div>
+  <div class="f-lim">If det A is not invertible mod n, the system may have no solution or several.</div>
+</div>
+<div class="box example" data-title="Worked example — 2x + 3y ≡ 10, 4x + 5y ≡ 4 (mod 11)">
+  <ol class="steps">
+    <li>A = [[2, 3],[4, 5]], B = [10, 4]<sup>T</sup>.</li>
+    <li>det A = 10 − 12 = −2 ≡ 9 (mod 11); 9<sup>−1</sup> = 5 (45 = 44 + 1).</li>
+    <li>A<sup>−1</sup> = 5 × [[5, −3],[−4, 2]] = [[25, −15],[−20, 10]] ≡ <b>[[3, 7],[2, 10]]</b> (mod 11).</li>
+    <li>x = 3·10 + 7·4 = 58 ≡ <b>3</b>; y = 2·10 + 10·4 = 60 ≡ <b>5</b> (mod 11).</li>
+    <li>Check: 2(3) + 3(5) = 21 ≡ 10 ✓; 4(3) + 5(5) = 37 ≡ 4 ✓</li>
+  </ol>
+</div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Solve 4x ≡ 4 (mod 6).
+      <details class="ans"><summary>Show answer</summary><div>d = gcd(4,6) = 2, 2 | 4 → 2 solutions. Divide: 2x ≡ 2 (mod 3); 2<sup>−1</sup> mod 3 = 2; x₀ = 4 mod 3 = 1. Solutions <b>x = 1, 4</b>. Check: 4 ≡ 4 ✓, 16 ≡ 4 (mod 6) ✓.</div></details></li>
+    <li>Solve 5x + 3 ≡ 8 (mod 10).
+      <details class="ans"><summary>Show answer</summary><div>5x ≡ 5 (mod 10). d = 5 | 5 → 5 solutions. Divide: x ≡ 1 (mod 2). x = 1 + 2k → <b>1, 3, 5, 7, 9</b>.</div></details></li>
+    <li>Solve 232x + 42 ≡ 248 (mod 50).
+      <details class="ans"><summary>Show answer</summary><div>232x ≡ 206 (mod 50) → reduce: 32x ≡ 6 (mod 50). d = 2, 2 | 6 → 2 solutions. Divide: 16x ≡ 3 (mod 25). 16<sup>−1</sup> mod 25 = 11 (176 = 175 + 1). x₀ = 33 mod 25 = 8. Solutions <b>x = 8, 33</b>.</div></details></li>
+    <li>Solve the system 3x + 5y + 7z ≡ 3, x + 4y + 13z ≡ 5, 2x + 7y + 3z ≡ 4 (mod 16).
+      <details class="ans"><summary>Show answer</summary><div>Using the matrix inverse (or software): <b>x ≡ 15, y ≡ 4, z ≡ 14</b>. Check eq 1: 45 + 20 + 98 = 163 = 10 × 16 + 3 ✓.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="unit1-review">
+<h2><span class="num">1.9</span> Unit I review and self-test</h2>
+<div class="box summary">
+<ul>
+  <li><b>CIA</b>: confidentiality (secrecy), integrity (no unauthorised change), availability (accessible when needed).</li>
+  <li><b>Attacks</b>: snooping, traffic analysis (passive → C); modification, masquerading, replaying, repudiation (active → I); DoS (active → A).</li>
+  <li><b>Cryptanalytic attacks</b>: ciphertext-only, known-plaintext, chosen-plaintext, chosen-ciphertext, brute force.</li>
+  <li><b>X.800</b>: 5 services (confidentiality, integrity, authentication, non-repudiation, access control) and 8 mechanisms.</li>
+  <li><b>Techniques</b>: cryptography (symmetric, asymmetric, hashing) and steganography.</li>
+  <li><b>a = qn + r</b>, 0 ≤ r &lt; n. Euclid: gcd(a, b) = gcd(b, a mod b). Extended Euclid gives s·a + t·b = gcd.</li>
+  <li><b>a<sup>−1</sup> mod n</b> exists ⇔ gcd(a, n) = 1. 2×2 inverse = det<sup>−1</sup> × adj.</li>
+  <li><b>ax ≡ b (mod n)</b>: d = gcd(a, n); no solution if d ∤ b, else d solutions spaced n/d apart.</li>
+</ul>
+</div>
+
+<div class="quiz">
+  <div class="mcq" data-ans="b"><p class="q">1. Traffic analysis is a threat to:</p><ol><li>Integrity</li><li>Confidentiality</li><li>Availability</li><li>Non-repudiation</li></ol><p class="why">It is passive — the attacker learns information from patterns without changing anything.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">2. Which attack is performed by one of the legitimate communicating parties?</p><ol><li>Masquerading</li><li>Replaying</li><li>Snooping</li><li>Repudiation</li></ol><p class="why">In repudiation the sender or receiver denies the communication.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">3. The mechanism that defeats traffic analysis is:</p><ol><li>Notarization</li><li>Digital signature</li><li>Traffic padding</li><li>Access control</li></ol><p class="why">Padding inserts bogus data so traffic patterns reveal nothing.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">4. −23 mod 7 equals:</p><ol><li>5</li><li>−2</li><li>2</li><li>3</li></ol><p class="why">−23 + 28 = 5.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">5. The multiplicative inverse of 7 in ℤ<sub>26</sub> is:</p><ol><li>3</li><li>11</li><li>15</li><li>19</li></ol><p class="why">7 × 15 = 105 = 4 × 26 + 1.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">6. How many elements does ℤ<sub>12</sub>* have?</p><ol><li>2</li><li>4</li><li>6</li><li>11</li></ol><p class="why">{1, 5, 7, 11} — the numbers coprime to 12.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">7. How many solutions does 6x ≡ 9 (mod 15) have?</p><ol><li>0</li><li>1</li><li>2</li><li>3</li></ol><p class="why">d = gcd(6, 15) = 3 and 3 | 9 → 3 solutions (x = 4, 9, 14).</p></div>
+  <div class="mcq" data-ans="a"><p class="q">8. In which cryptanalytic attack does Eve have the least information?</p><ol><li>Ciphertext-only</li><li>Known-plaintext</li><li>Chosen-plaintext</li><li>Chosen-ciphertext</li></ol><p class="why">She has only intercepted ciphertext.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">9. A 2×2 residue matrix is invertible in ℤ<sub>26</sub> if and only if:</p><ol><li>det = 1</li><li>gcd(det, 26) = 1</li><li>det is prime</li><li>det is even</li></ol><p class="why">det must have a multiplicative inverse mod 26.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">10. Steganography mainly provides:</p><ol><li>Integrity</li><li>Non-repudiation</li><li>Concealment of the message's existence</li><li>Availability</li></ol><p class="why">It hides that communication is happening at all.</p></div>
+</div>
+
+<h3>Likely exam questions</h3>
+<table>
+  <tr><th>Marks</th><th>Question</th></tr>
+  <tr><td>2</td><td>Define confidentiality, integrity and availability. · What is a replay attack? · Differentiate cryptography and steganography. · State Kerckhoffs's principle. · Find gcd(…) / inverse of … mod n. · What is ℤ<sub>n</sub>*?</td></tr>
+  <tr><td>5</td><td>Explain passive and active attacks with examples. · Explain cryptanalytic attacks. · Find the multiplicative inverse using extended Euclid. · Solve a linear congruence. · Explain symmetric vs asymmetric cryptography.</td></tr>
+  <tr><td>10</td><td>Explain security goals and the attacks threatening them with a neat diagram. · Explain X.800 security services and mechanisms and their relationship. · Explain the extended Euclidean algorithm and apply it to (a, b). · Explain modular arithmetic: operations, inverses, ℤ<sub>n</sub> and ℤ<sub>n</sub>*.</td></tr>
+</table>
+</section>
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>
