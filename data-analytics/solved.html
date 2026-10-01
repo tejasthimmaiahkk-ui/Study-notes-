@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solved University-Pattern Questions — Data Analytics</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="da" data-page="solved.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Exam practice · long-answer questions</div>
+  <h1>Solved University-Pattern Questions</h1>
+  <p class="lead">23 high-weightage questions (8–12 marks) in the patterns that repeat most in university statistics and analytics papers. Many combine topics, e.g. correlation + probable error + regression, distribution fitting + χ² test. Each has the approach, the full working table, the decision in words, and the usual mistakes.</p>
+  <div class="meta"><span class="chip acc">20 numerical</span><span class="chip acc">3 long theory (model answers)</span><span class="chip">All values verified by computation</span></div>
+</div>
+<div class="box tip" data-title="How to use this page">
+  <ol>
+    <li>Solve on paper first (≈ 15 minutes for a 10-mark question). Use the tables in <a href="unit3.html#normal">Unit III</a> for z, t, F and χ² values.</li>
+    <li>Open the solution and compare <b>each column of your table</b> — most marks are for the table, formula and conclusion.</li>
+    <li>Always end a test with a sentence: "Since calculated … &lt; table …, H₀ is accepted, i.e. …".</li>
+  </ol>
+  <p><b>Where these patterns come from:</b> 24BCA52 is a new syllabus, so few papers exist for it yet. These questions follow the long-answer patterns that repeat across university papers on correlation, regression, probability, sampling tests and BI tools (BCA, B.Com and BBA statistics and analytics papers). Also check your own university's past papers in your college library.</p>
+</div>
+
+<!-- ================================================================ Q1 -->
+<section class="topic" id="q1">
+<h2><span class="num">Q1</span> Karl Pearson's r by the assumed-mean method, with probable error and interpretation <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Pearson (short-cut)</span><span class="chip">Probable error</span><span class="chip">Significance</span></div>
+<div class="box question"><p>Calculate Karl Pearson's coefficient of correlation between X and Y, compute its probable error and comment on its significance.</p>
+<table class="num compact"><tr><th>X</th><td>25</td><td>28</td><td>30</td><td>32</td><td>35</td><td>36</td><td>38</td><td>39</td><td>42</td><td>45</td></tr><tr><th>Y</th><td>20</td><td>26</td><td>29</td><td>30</td><td>25</td><td>18</td><td>26</td><td>35</td><td>35</td><td>46</td></tr></table></div>
+<div class="box approach"><p>Take assumed means near the middle (A = 35, B = 30), build the dx, dy, dx², dy², dxdy table, use the short-cut formula, then P.E. = 0.6745(1 − r²)/√N.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<table class="num compact"><tr><th>X</th><th>Y</th><th>dx = X − 35</th><th>dy = Y − 30</th><th>dx²</th><th>dy²</th><th>dxdy</th></tr>
+<tr><td>25</td><td>20</td><td>−10</td><td>−10</td><td>100</td><td>100</td><td>100</td></tr>
+<tr><td>28</td><td>26</td><td>−7</td><td>−4</td><td>49</td><td>16</td><td>28</td></tr>
+<tr><td>30</td><td>29</td><td>−5</td><td>−1</td><td>25</td><td>1</td><td>5</td></tr>
+<tr><td>32</td><td>30</td><td>−3</td><td>0</td><td>9</td><td>0</td><td>0</td></tr>
+<tr><td>35</td><td>25</td><td>0</td><td>−5</td><td>0</td><td>25</td><td>0</td></tr>
+<tr><td>36</td><td>18</td><td>1</td><td>−12</td><td>1</td><td>144</td><td>−12</td></tr>
+<tr><td>38</td><td>26</td><td>3</td><td>−4</td><td>9</td><td>16</td><td>−12</td></tr>
+<tr><td>39</td><td>35</td><td>4</td><td>5</td><td>16</td><td>25</td><td>20</td></tr>
+<tr><td>42</td><td>35</td><td>7</td><td>5</td><td>49</td><td>25</td><td>35</td></tr>
+<tr><td>45</td><td>46</td><td>10</td><td>16</td><td>100</td><td>256</td><td>160</td></tr>
+<tr class="total"><td></td><td></td><td>Σdx = 0</td><td>Σdy = −10</td><td>358</td><td>608</td><td>324</td></tr></table>
+<p><b>Formula:</b> r = [NΣdxdy − ΣdxΣdy] / [√(NΣdx² − (Σdx)²) × √(NΣdy² − (Σdy)²)]</p>
+<p>= [10 × 324 − (0)(−10)] / [√(3580 − 0) × √(6080 − 100)] = 3240 / (59.833 × 77.330) = 3240 / 4626.9 = <b>0.700</b></p>
+<p><b>Probable error:</b> P.E. = 0.6745 × (1 − 0.700²)/√10 = 0.6745 × 0.5097/3.1623 = <b>0.1087</b>. 6 × P.E. = 0.652.</p>
+<p><b>Interpretation:</b> r = 0.70 &gt; 6 P.E. = 0.652 → the correlation is <b>significant</b>; there is a fairly high positive correlation. Limits of the population correlation: 0.700 ± 0.109 = 0.591 to 0.809.</p>
+<div class="box answer"><p>r ≈ 0.70, P.E. ≈ 0.109; significant positive correlation.</p></div>
+<div class="box warn"><p>Forgetting the −(Σdx)(Σdy) and −(Σdy)² terms when assumed means differ from actual means; using N − 1 in P.E.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q2 -->
+<section class="topic" id="q2">
+<h2><span class="num">Q2</span> Correlation and both regression lines from raw data, with estimation <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Pearson</span><span class="chip">Regression Y on X and X on Y</span><span class="chip">r = √(b<sub>yx</sub>b<sub>xy</sub>)</span></div>
+<div class="box question"><p>Advertising expenditure X (₹ lakh) and sales Y (₹ crore) of a company:</p>
+<table class="num compact"><tr><th>X</th><td>10</td><td>12</td><td>15</td><td>23</td><td>20</td></tr><tr><th>Y</th><td>14</td><td>17</td><td>23</td><td>25</td><td>21</td></tr></table>
+<p>(a) Find r. (b) Obtain both regression equations. (c) Estimate sales when advertising is ₹25 lakh, and advertising needed for sales of ₹30 crore. (d) Verify r from the regression coefficients.</p></div>
+<div class="box approach"><p>Means are whole numbers (16, 20) → use deviations from actual means. One table gives r, b<sub>yx</sub> and b<sub>xy</sub>.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p>X̄ = 80/5 = <b>16</b>, Ȳ = 100/5 = <b>20</b>.</p>
+<table class="num compact"><tr><th>X</th><th>Y</th><th>x</th><th>y</th><th>x²</th><th>y²</th><th>xy</th></tr>
+<tr><td>10</td><td>14</td><td>−6</td><td>−6</td><td>36</td><td>36</td><td>36</td></tr>
+<tr><td>12</td><td>17</td><td>−4</td><td>−3</td><td>16</td><td>9</td><td>12</td></tr>
+<tr><td>15</td><td>23</td><td>−1</td><td>3</td><td>1</td><td>9</td><td>−3</td></tr>
+<tr><td>23</td><td>25</td><td>7</td><td>5</td><td>49</td><td>25</td><td>35</td></tr>
+<tr><td>20</td><td>21</td><td>4</td><td>1</td><td>16</td><td>1</td><td>4</td></tr>
+<tr class="total"><td>80</td><td>100</td><td>0</td><td>0</td><td>118</td><td>80</td><td>84</td></tr></table>
+<p><b>(a)</b> r = Σxy/√(Σx²Σy²) = 84/√(118 × 80) = 84/97.16 = <b>0.865</b> (high positive).</p>
+<p><b>(b)</b> b<sub>yx</sub> = Σxy/Σx² = 84/118 = <b>0.712</b>; b<sub>xy</sub> = Σxy/Σy² = 84/80 = <b>1.05</b>.<br>
+Y on X: Y − 20 = 0.712(X − 16) → <b>Y = 0.712X + 8.61</b>.<br>
+X on Y: X − 16 = 1.05(Y − 20) → <b>X = 1.05Y − 5</b>.</p>
+<p><b>(c)</b> Sales for X = 25 (use Y on X): Y = 20 + 0.712 × 9 = <b>₹26.41 crore</b>. Advertising for Y = 30 (use X on Y): X = 1.05 × 30 − 5 = <b>₹26.5 lakh</b>.</p>
+<p><b>(d)</b> r = √(0.712 × 1.05) = √0.7475 = 0.865 ✓ (positive, as both coefficients are positive). Note b<sub>xy</sub> &gt; 1 so b<sub>yx</sub> must be &lt; 1 ✓.</p>
+<div class="box answer"><p>r = 0.865; Y = 0.712X + 8.61; X = 1.05Y − 5; Y(25) ≈ 26.41; X(30) = 26.5.</p></div>
+<div class="box warn"><p>Using the Y-on-X line to estimate X. Each estimate needs its own line.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q3 -->
+<section class="topic" id="q3">
+<h2><span class="num">Q3</span> Rank correlation among three judges <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Spearman (ranks given)</span><span class="chip">Comparison</span></div>
+<div class="box question"><p>Ten competitors in a beauty contest are ranked by three judges:</p>
+<table class="num compact"><tr><th>A</th><td>1</td><td>6</td><td>5</td><td>10</td><td>3</td><td>2</td><td>4</td><td>9</td><td>7</td><td>8</td></tr><tr><th>B</th><td>3</td><td>5</td><td>8</td><td>4</td><td>7</td><td>10</td><td>2</td><td>1</td><td>6</td><td>9</td></tr><tr><th>C</th><td>6</td><td>4</td><td>9</td><td>8</td><td>1</td><td>2</td><td>3</td><td>10</td><td>5</td><td>7</td></tr></table>
+<p>Which pair of judges has the nearest approach to common tastes in beauty?</p></div>
+<div class="box approach"><p>Compute R for each of the three pairs (AB, BC, AC) with R = 1 − 6ΣD²/[N(N² − 1)], N(N² − 1) = 990. The pair with the largest positive R agrees most.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<table class="num compact"><tr><th>A</th><th>B</th><th>C</th><th>D<sub>AB</sub></th><th>D²<sub>AB</sub></th><th>D<sub>BC</sub></th><th>D²<sub>BC</sub></th><th>D<sub>AC</sub></th><th>D²<sub>AC</sub></th></tr>
+<tr><td>1</td><td>3</td><td>6</td><td>−2</td><td>4</td><td>−3</td><td>9</td><td>−5</td><td>25</td></tr>
+<tr><td>6</td><td>5</td><td>4</td><td>1</td><td>1</td><td>1</td><td>1</td><td>2</td><td>4</td></tr>
+<tr><td>5</td><td>8</td><td>9</td><td>−3</td><td>9</td><td>−1</td><td>1</td><td>−4</td><td>16</td></tr>
+<tr><td>10</td><td>4</td><td>8</td><td>6</td><td>36</td><td>−4</td><td>16</td><td>2</td><td>4</td></tr>
+<tr><td>3</td><td>7</td><td>1</td><td>−4</td><td>16</td><td>6</td><td>36</td><td>2</td><td>4</td></tr>
+<tr><td>2</td><td>10</td><td>2</td><td>−8</td><td>64</td><td>8</td><td>64</td><td>0</td><td>0</td></tr>
+<tr><td>4</td><td>2</td><td>3</td><td>2</td><td>4</td><td>−1</td><td>1</td><td>1</td><td>1</td></tr>
+<tr><td>9</td><td>1</td><td>10</td><td>8</td><td>64</td><td>−9</td><td>81</td><td>−1</td><td>1</td></tr>
+<tr><td>7</td><td>6</td><td>5</td><td>1</td><td>1</td><td>1</td><td>1</td><td>2</td><td>4</td></tr>
+<tr><td>8</td><td>9</td><td>7</td><td>−1</td><td>1</td><td>2</td><td>4</td><td>1</td><td>1</td></tr>
+<tr class="total"><td colspan="3">Total</td><td>0</td><td>200</td><td>0</td><td>214</td><td>0</td><td>60</td></tr></table>
+<ul>
+<li>R<sub>AB</sub> = 1 − 6 × 200/990 = 1 − 1.2121 = <b>−0.212</b></li>
+<li>R<sub>BC</sub> = 1 − 6 × 214/990 = 1 − 1.2970 = <b>−0.297</b></li>
+<li>R<sub>AC</sub> = 1 − 6 × 60/990 = 1 − 0.3636 = <b>+0.636</b></li>
+</ul>
+<p><b>Conclusion:</b> R<sub>AC</sub> is the highest (and the only positive one), so judges <b>A and C</b> have the nearest approach to common tastes. B's ranking disagrees with both.</p>
+<div class="box answer"><p>A &amp; C (R = 0.636).</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q4 -->
+<section class="topic" id="q4">
+<h2><span class="num">Q4</span> Spearman's R with repeated ranks, compared with Pearson's r <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Ranking</span><span class="chip">Tie correction</span><span class="chip">Pearson vs Spearman</span></div>
+<div class="box question"><p>Compute the rank correlation coefficient for the marks below and comment. (Pearson's r for the same data is 0.18.)</p>
+<table class="num compact"><tr><th>X</th><td>15</td><td>20</td><td>28</td><td>12</td><td>40</td><td>60</td><td>20</td><td>80</td></tr><tr><th>Y</th><td>40</td><td>30</td><td>50</td><td>30</td><td>20</td><td>10</td><td>30</td><td>60</td></tr></table></div>
+<div class="box approach"><p>Rank each series (1 = highest), giving tied values the average rank. Add Σ(m³ − m)/12 for every tie group.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p><b>Ranks.</b> X: 80→1, 60→2, 40→3, 28→4, 20 and 20 share ranks 5, 6 → 5.5 each, 15→7, 12→8. Y: 60→1, 50→2, 40→3, 30 ×3 share 4, 5, 6 → 5 each, 20→7, 10→8.</p>
+<table class="num compact"><tr><th>X</th><th>R₁</th><th>Y</th><th>R₂</th><th>D</th><th>D²</th></tr>
+<tr><td>15</td><td>7</td><td>40</td><td>3</td><td>4</td><td>16</td></tr>
+<tr><td>20</td><td>5.5</td><td>30</td><td>5</td><td>0.5</td><td>0.25</td></tr>
+<tr><td>28</td><td>4</td><td>50</td><td>2</td><td>2</td><td>4</td></tr>
+<tr><td>12</td><td>8</td><td>30</td><td>5</td><td>3</td><td>9</td></tr>
+<tr><td>40</td><td>3</td><td>20</td><td>7</td><td>−4</td><td>16</td></tr>
+<tr><td>60</td><td>2</td><td>10</td><td>8</td><td>−6</td><td>36</td></tr>
+<tr><td>20</td><td>5.5</td><td>30</td><td>5</td><td>0.5</td><td>0.25</td></tr>
+<tr><td>80</td><td>1</td><td>60</td><td>1</td><td>0</td><td>0</td></tr>
+<tr class="total"><td colspan="4"></td><td>0</td><td>81.5</td></tr></table>
+<p><b>Correction factor:</b> X has one tie of m = 2 → (8 − 2)/12 = 0.5; Y has one tie of m = 3 → (27 − 3)/12 = 2. CF = 2.5.</p>
+<p>R = 1 − 6(81.5 + 2.5)/[8(64 − 1)] = 1 − 504/504 = <b>0</b>.</p>
+<p><b>Comment:</b> there is no rank (monotonic) association between the two sets of marks; Pearson's r = 0.18 is also very low. Both show practically no relationship — Pearson is slightly positive because of the one extreme pair (80, 60).</p>
+<div class="box answer"><p>R = 0 (no correlation).</p></div>
+<div class="box warn"><p>Forgetting the correction; giving tied items different ranks; ranking one series high-to-low and the other low-to-high.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q5 -->
+<section class="topic" id="q5">
+<h2><span class="num">Q5</span> Two regression equations given: means, identification, r and σ <span class="marks">8 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Simultaneous equations</span><span class="chip">Properties of b<sub>yx</sub>, b<sub>xy</sub></span></div>
+<div class="box question"><p>The regression equations of two variables are 3X + 12Y = 19 and 9X + 3Y = 46. Find (a) the means of X and Y, (b) which equation is Y on X, (c) r, (d) σ<sub>y</sub> if the variance of X is 9.</p></div>
+<div class="box approach"><p>Solve simultaneously for the means. Assume one line is Y on X, check b<sub>yx</sub>·b<sub>xy</sub> ≤ 1. Then b<sub>yx</sub> = rσ<sub>y</sub>/σ<sub>x</sub>.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<ol class="steps">
+  <li><b>Means:</b> from 9X + 3Y = 46, Y = (46 − 9X)/3. Substitute: 3X + 4(46 − 9X) = 19 → 3X + 184 − 36X = 19 → 33X = 165 → <b>X̄ = 5</b>; Ȳ = (46 − 45)/3 = <b>1/3</b>.</li>
+  <li><b>Assume</b> 3X + 12Y = 19 is Y on X: Y = 19/12 − X/4 → b<sub>yx</sub> = −1/4. Then 9X + 3Y = 46 is X on Y: X = 46/9 − Y/3 → b<sub>xy</sub> = −1/3.</li>
+  <li>Check: b<sub>yx</sub>·b<sub>xy</sub> = 1/12 ≈ 0.083 ≤ 1 ✓ — assumption is correct. (The other way round would give (−4)(−3) = 12 &gt; 1, impossible.)</li>
+  <li><b>r</b> = −√(1/12) = <b>−0.289</b> (negative because both coefficients are negative).</li>
+  <li><b>σ<sub>y</sub>:</b> σ<sub>x</sub> = 3. b<sub>yx</sub> = r σ<sub>y</sub>/σ<sub>x</sub> → −0.25 = −0.2887 × σ<sub>y</sub>/3 → σ<sub>y</sub> = 0.75/0.2887 = <b>2.60</b>.</li>
+</ol>
+<div class="box answer"><p>X̄ = 5, Ȳ = 1/3; 3X + 12Y = 19 is Y on X; r = −0.289; σ<sub>y</sub> ≈ 2.60.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q6 -->
+<section class="topic" id="q6">
+<h2><span class="num">Q6</span> Correlation and regression from summary data <span class="marks">8 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Summary statistics</span><span class="chip">Regression</span></div>
+<div class="box question"><p>For 10 observations: ΣX = 350, ΣY = 310, Σ(X − 35)² = 162, Σ(Y − 31)² = 222, Σ(X − 35)(Y − 31) = 92. Find r, both regression equations and the most likely value of Y when X = 40.</p></div>
+<div class="box approach"><p>X̄ = 35 and Ȳ = 31 — the given deviations are already from the actual means, so the "actual mean" formulas apply directly.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<ol class="steps">
+  <li>X̄ = 350/10 = 35, Ȳ = 310/10 = 31 → deviations are from the means.</li>
+  <li>r = 92/√(162 × 222) = 92/189.64 = <b>0.485</b>.</li>
+  <li>b<sub>yx</sub> = 92/162 = 0.568; b<sub>xy</sub> = 92/222 = 0.414.</li>
+  <li>Y on X: Y − 31 = 0.568(X − 35) → <b>Y = 0.568X + 11.12</b>. X on Y: X − 35 = 0.414(Y − 31) → <b>X = 0.414Y + 22.16</b>.</li>
+  <li>For X = 40: Y = 31 + 0.568 × 5 = <b>33.84</b>.</li>
+</ol>
+<div class="box answer"><p>r = 0.485; Y ≈ 33.84 at X = 40.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q7 -->
+<section class="topic" id="q7">
+<h2><span class="num">Q7</span> Least-squares trend line and forecast <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II + Unit I</span><span class="chip">Least squares</span><span class="chip">Normal equations</span><span class="chip">Predictive analytics</span></div>
+<div class="box question"><p>Production (thousand tonnes) of a factory:</p>
+<table class="num compact"><tr><th>Year</th><td>2018</td><td>2019</td><td>2020</td><td>2021</td><td>2022</td><td>2023</td><td>2024</td></tr><tr><th>Production</th><td>77</td><td>88</td><td>94</td><td>85</td><td>91</td><td>98</td><td>90</td></tr></table>
+<p>Fit a straight-line trend by least squares, compute the trend values and forecast production for 2026. Which type of analytics is this?</p></div>
+<div class="box approach"><p>Code years as X = year − 2021 (−3 … 3) so ΣX = 0. Then the normal equations reduce to a = ΣY/N and b = ΣXY/ΣX².</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<table class="num compact"><tr><th>Year</th><th>Y</th><th>X</th><th>X²</th><th>XY</th><th>Trend 89 + 2X</th></tr>
+<tr><td>2018</td><td>77</td><td>−3</td><td>9</td><td>−231</td><td>83</td></tr>
+<tr><td>2019</td><td>88</td><td>−2</td><td>4</td><td>−176</td><td>85</td></tr>
+<tr><td>2020</td><td>94</td><td>−1</td><td>1</td><td>−94</td><td>87</td></tr>
+<tr><td>2021</td><td>85</td><td>0</td><td>0</td><td>0</td><td>89</td></tr>
+<tr><td>2022</td><td>91</td><td>1</td><td>1</td><td>91</td><td>91</td></tr>
+<tr><td>2023</td><td>98</td><td>2</td><td>4</td><td>196</td><td>93</td></tr>
+<tr><td>2024</td><td>90</td><td>3</td><td>9</td><td>270</td><td>95</td></tr>
+<tr class="total"><td></td><td>623</td><td>0</td><td>28</td><td>56</td><td>623</td></tr></table>
+<ol class="steps">
+  <li>Normal equations: ΣY = Na + bΣX → 623 = 7a → <b>a = 89</b>; ΣXY = aΣX + bΣX² → 56 = 28b → <b>b = 2</b>.</li>
+  <li>Trend: <b>Y = 89 + 2X</b> (origin 2021, X in years, Y in thousand tonnes). Production rises on average by 2 thousand tonnes a year.</li>
+  <li>2026: X = 5 → Y = 89 + 10 = <b>99 thousand tonnes</b>.</li>
+  <li>Check: Σ trend values = 623 = ΣY ✓.</li>
+</ol>
+<p>This is <b>predictive analytics</b> (forecasting the future from historical patterns); describing past production would be descriptive analytics.</p>
+<div class="box answer"><p>Y = 89 + 2X (origin 2021); forecast for 2026 = 99.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q8 -->
+<section class="topic" id="q8">
+<h2><span class="num">Q8</span> Probability: addition, conditional, independence and combinations <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Classical probability</span><span class="chip">nCr</span><span class="chip">Conditional</span><span class="chip">Independence</span></div>
+<div class="box question"><p>(a) Two cards are drawn without replacement from a pack of 52. Find P(both kings), P(at least one king) and P(second is a king | first is a king).<br>(b) P(A) = 0.4, P(B) = 0.5, P(A ∪ B) = 0.7. Find P(A ∩ B), P(A | B), P(neither) and test whether A and B are independent.<br>(c) A box has 5 defective and 15 good bulbs. Three are drawn at random. Find P(exactly one defective).</p></div>
+<div class="box approach"><p>(a) multiplication rule for dependent events / complement; (b) rearrange the addition theorem; (c) combinations favourable ÷ total.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p><b>(a)</b> P(both kings) = 4/52 × 3/51 = 12/2652 = <b>1/221 ≈ 0.0045</b>.<br>
+P(at least one king) = 1 − P(no king) = 1 − (48/52)(47/51) = 1 − 2256/2652 = 396/2652 = <b>33/221 ≈ 0.149</b>.<br>
+P(2nd king | 1st king) = 3/51 = <b>1/17</b> (one king and one card are gone).</p>
+<p><b>(b)</b> P(A ∩ B) = P(A) + P(B) − P(A ∪ B) = 0.4 + 0.5 − 0.7 = <b>0.2</b>.<br>
+P(A | B) = 0.2/0.5 = <b>0.4</b>. P(neither) = 1 − P(A ∪ B) = <b>0.3</b>.<br>
+P(A)·P(B) = 0.2 = P(A ∩ B) → A and B are <b>independent</b> (also P(A | B) = P(A)).</p>
+<p><b>(c)</b> Total ways = ²⁰C₃ = 1140. Favourable = ⁵C₁ × ¹⁵C₂ = 5 × 105 = 525. P = 525/1140 = <b>0.461</b>.</p>
+<div class="box answer"><p>1/221, 33/221, 1/17; 0.2, 0.4, 0.3, independent; 0.461.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q9 -->
+<section class="topic" id="q9">
+<h2><span class="num">Q9</span> Bayes' theorem with total probability (three factories) <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Total probability</span><span class="chip">Bayes</span><span class="chip">Tree diagram</span></div>
+<div class="box question"><p>Factories A, B and C produce 50 %, 30 % and 20 % of a company's bulbs; 3 %, 4 % and 5 % of their output respectively is defective. (a) Find the probability that a randomly chosen bulb is defective. (b) A bulb is defective — find the probability that it was made by each factory. (c) A bulb is found good — what is the probability that it came from C?</p></div>
+<div class="box approach"><p>Draw the tree; joint = prior × likelihood; P(D) = sum of joints; posterior = joint ÷ P(D). Part (c) uses the "good" branches.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<table class="num"><tr><th>Factory</th><th>Prior P(F)</th><th>P(D | F)</th><th>Joint P(F)P(D | F)</th><th>Posterior P(F | D)</th></tr>
+<tr><td>A</td><td>0.50</td><td>0.03</td><td>0.015</td><td>0.015/0.037 = <b>0.405</b></td></tr>
+<tr><td>B</td><td>0.30</td><td>0.04</td><td>0.012</td><td>0.012/0.037 = <b>0.324</b></td></tr>
+<tr><td>C</td><td>0.20</td><td>0.05</td><td>0.010</td><td>0.010/0.037 = <b>0.270</b></td></tr>
+<tr class="total"><td>Total</td><td>1</td><td></td><td>P(D) = 0.037</td><td>1.000</td></tr></table>
+<p><b>(a)</b> By total probability, P(D) = <b>0.037</b> (3.7 %).<br><b>(b)</b> 15/37, 12/37, 10/37 — A most likely, even though C has the highest defect rate, because A makes half the bulbs.<br>
+<b>(c)</b> P(good) = 1 − 0.037 = 0.963. P(C | good) = 0.20 × 0.95/0.963 = 0.19/0.963 = <b>0.197</b>.</p>
+<div class="box answer"><p>P(D) = 0.037; posteriors 0.405, 0.324, 0.270; P(C | good) ≈ 0.197.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q10 -->
+<section class="topic" id="q10">
+<h2><span class="num">Q10</span> Fit a binomial distribution and test the fit with χ² <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Binomial</span><span class="chip">Expected frequencies</span><span class="chip">χ² goodness of fit</span></div>
+<div class="box question"><p>Four coins were tossed 160 times with the following results. (a) Fit a binomial distribution (estimating p from the data). (b) Test the goodness of fit at 5 %. (c) Test also whether the coins are unbiased (p = ½).</p>
+<table class="num compact"><tr><th>Heads</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td></tr><tr><th>Frequency</th><td>7</td><td>30</td><td>60</td><td>48</td><td>15</td></tr></table></div>
+<div class="box approach"><p>Mean = Σfx/N = np → p. Expected = N × ⁴Cᵣ pʳqⁿ⁻ʳ. In (b) one parameter is estimated, so df = 5 − 1 − 1 = 3; in (c) p is given, so df = 4.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p><b>(a)</b> Σfx = 0 + 30 + 120 + 144 + 60 = 354; mean = 354/160 = 2.2125 = 4p → <b>p = 0.553</b>, q = 0.447.</p>
+<table class="num compact"><tr><th>x</th><th>O</th><th>⁴Cₓ pˣ q⁴⁻ˣ</th><th>E = 160 × P</th><th>(O − E)²/E</th></tr>
+<tr><td>0</td><td>7</td><td>0.0399</td><td>6.38</td><td>0.060</td></tr>
+<tr><td>1</td><td>30</td><td>0.1974</td><td>31.59</td><td>0.080</td></tr>
+<tr><td>2</td><td>60</td><td>0.3666</td><td>58.65</td><td>0.031</td></tr>
+<tr><td>3</td><td>48</td><td>0.3025</td><td>48.40</td><td>0.003</td></tr>
+<tr><td>4</td><td>15</td><td>0.0936</td><td>14.98</td><td>0.000</td></tr>
+<tr class="total"><td></td><td>160</td><td>1</td><td>160</td><td>χ² = 0.17</td></tr></table>
+<p><b>(b)</b> H₀: the data follow a binomial distribution. df = 5 − 1 − 1 = 3; χ²<sub>0.05</sub> = 7.815. 0.17 &lt; 7.815 → <b>accept H₀</b>: the binomial fit is good.</p>
+<p><b>(c)</b> H₀: coins unbiased, p = ½. Expected = 160 × (1, 4, 6, 4, 1)/16 = 10, 40, 60, 40, 10.<br>
+χ² = (7−10)²/10 + (30−40)²/40 + 0 + (48−40)²/40 + (15−10)²/10 = 0.9 + 2.5 + 0 + 1.6 + 2.5 = <b>7.5</b>. df = 4, χ²<sub>0.05</sub> = 9.488. 7.5 &lt; 9.488 → <b>accept H₀</b>: the data do not contradict unbiased coins at 5 %.</p>
+<div class="box answer"><p>p = 0.553; expected 6.38, 31.59, 58.65, 48.40, 14.98; χ² = 0.17 (good fit); unbiased test χ² = 7.5 &lt; 9.49 (accept).</p></div>
+<div class="box warn"><p>Not reducing df for the estimated parameter; using E values that don't add to N.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q11 -->
+<section class="topic" id="q11">
+<h2><span class="num">Q11</span> Fit a Poisson distribution to observed data <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Poisson</span><span class="chip">Recurrence relation</span><span class="chip">Mean = variance check</span></div>
+<div class="box question"><p>The number of accidents per day on a stretch of highway over 200 days:</p>
+<table class="num compact"><tr><th>Accidents</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td></tr><tr><th>Days</th><td>109</td><td>65</td><td>22</td><td>3</td><td>1</td></tr></table>
+<p>Fit a Poisson distribution and compute the expected frequencies. (e<sup>−0.61</sup> = 0.5434.) Why is Poisson appropriate here?</p></div>
+<div class="box approach"><p>m = mean. E₀ = N e<sup>−m</sup>; then E<sub>r+1</sub> = E<sub>r</sub> × m/(r + 1) — much faster than the full formula each time.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<ol class="steps">
+  <li>Σfx = 0 + 65 + 44 + 9 + 4 = 122; m = 122/200 = <b>0.61</b>. (Variance from data = 0.608 ≈ mean — supports Poisson.)</li>
+  <li>E₀ = 200 × 0.5434 = <b>108.67</b>.</li>
+  <li>E₁ = 108.67 × 0.61/1 = <b>66.29</b>; E₂ = 66.29 × 0.61/2 = <b>20.22</b>; E₃ = 20.22 × 0.61/3 = <b>4.11</b>; E₄ = 4.11 × 0.61/4 = <b>0.63</b>.</li>
+</ol>
+<table class="num compact"><tr><th>x</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td></tr><tr><th>Observed</th><td>109</td><td>65</td><td>22</td><td>3</td><td>1</td></tr><tr><th>Expected</th><td>108.67</td><td>66.29</td><td>20.22</td><td>4.11</td><td>0.63</td></tr><tr><th>Rounded</th><td>109</td><td>66</td><td>20</td><td>4</td><td>1</td></tr></table>
+<p>The fit is very close. Poisson is appropriate because accidents are rare, independent events counted in a fixed interval (a day), with a constant average rate, and mean ≈ variance.</p>
+<div class="box answer"><p>m = 0.61; expected ≈ 109, 66, 20, 4, 1.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q12 -->
+<section class="topic" id="q12">
+<h2><span class="num">Q12</span> Normal distribution: find μ and σ from percentages, then apply <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">z-table (reverse)</span><span class="chip">Simultaneous equations</span><span class="chip">Areas</span></div>
+<div class="box question"><p>In a normal distribution of marks, 31 % of students scored below 45 and 8 % scored above 64. (a) Find the mean and standard deviation. (b) For 1000 students, how many scored between 40 and 60? Above 70? (c) What is the minimum mark for the top 15 %?</p></div>
+<div class="box approach"><p>Convert each percentage to an area from the mean, read z from the table backwards (z is negative below the mean), set up two equations x = μ + zσ.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<ol class="steps">
+  <li>Below 45 is 31 % → area between 45 and μ = 0.50 − 0.31 = 0.19 → z ≈ −0.50. So <b>45 = μ − 0.5σ</b> … (i)</li>
+  <li>Above 64 is 8 % → area between μ and 64 = 0.42 → z ≈ 1.40. So <b>64 = μ + 1.4σ</b> … (ii)</li>
+  <li>(ii) − (i): 19 = 1.9σ → <b>σ = 10</b>; μ = 45 + 5 = <b>50</b>.</li>
+  <li>(b) 40 to 60: z = −1 to +1 → 0.3413 + 0.3413 = 0.6826 → 1000 × 0.6826 ≈ <b>683 students</b>. Above 70: z = 2 → 0.5 − 0.4772 = 0.0228 → ≈ <b>23 students</b>.</li>
+  <li>(c) Top 15 %: area from mean = 0.35 → z ≈ 1.04 → x = 50 + 1.04 × 10 = <b>60.4</b>, i.e. at least 61 marks.</li>
+</ol>
+<div class="box answer"><p>μ = 50, σ = 10; 683 students; 23 students; cut-off ≈ 60.4.</p></div>
+<div class="box warn"><p>Using 0.31 directly as the table area (the table gives area from the mean); forgetting the negative sign for values below the mean.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q13 -->
+<section class="topic" id="q13">
+<h2><span class="num">Q13</span> Random variable: find k, expectation, variance and probabilities <span class="marks">8 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">pmf</span><span class="chip">E(X), Var(X)</span></div>
+<div class="box question"><p>A random variable X has the distribution below. Find k, E(X), Var(X) and P(X ≥ 2).</p>
+<table class="num compact"><tr><th>x</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td></tr><tr><th>P(x)</th><td>k</td><td>3k</td><td>5k</td><td>7k</td><td>9k</td></tr></table></div>
+<div class="box approach"><p>ΣP = 1 gives k. Then add an x·p and an x²·p column.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p>k + 3k + 5k + 7k + 9k = 25k = 1 → <b>k = 0.04</b>.</p>
+<table class="num compact"><tr><th>x</th><th>p</th><th>x·p</th><th>x²·p</th></tr>
+<tr><td>0</td><td>0.04</td><td>0</td><td>0</td></tr><tr><td>1</td><td>0.12</td><td>0.12</td><td>0.12</td></tr><tr><td>2</td><td>0.20</td><td>0.40</td><td>0.80</td></tr><tr><td>3</td><td>0.28</td><td>0.84</td><td>2.52</td></tr><tr><td>4</td><td>0.36</td><td>1.44</td><td>5.76</td></tr>
+<tr class="total"><td></td><td>1</td><td>2.80</td><td>9.20</td></tr></table>
+<p>E(X) = <b>2.8</b>; Var(X) = 9.2 − 2.8² = 9.2 − 7.84 = <b>1.36</b>; SD = 1.166. P(X ≥ 2) = 0.20 + 0.28 + 0.36 = <b>0.84</b>.</p>
+<div class="box answer"><p>k = 0.04, E = 2.8, Var = 1.36, P(X ≥ 2) = 0.84.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q14 -->
+<section class="topic" id="q14">
+<h2><span class="num">Q14</span> One-sample t-test with confidence interval (and one- vs two-tailed) <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">t-test</span><span class="chip">Confidence interval</span><span class="chip">Tails</span></div>
+<div class="box question"><p>Heights (inches) of 10 randomly chosen students: 63, 63, 64, 65, 66, 69, 69, 70, 70, 71. (a) Test at 5 % whether the mean height of the population is 65 inches. (b) Would the conclusion change if the claim to be tested were that the mean is <i>more than</i> 65? (c) Find the 95 % confidence interval for the mean.</p></div>
+<div class="box approach"><p>Small sample, σ unknown → t with n − 1 = 9 df. Two-tailed critical value 2.262, one-tailed 1.833.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p>x̄ = 670/10 = <b>67</b>. Deviations: −4, −4, −3, −2, −1, 2, 2, 3, 3, 4 → Σ(x − x̄)² = 16 + 16 + 9 + 4 + 1 + 4 + 4 + 9 + 9 + 16 = <b>88</b>.<br>S = √(88/9) = √9.778 = <b>3.127</b>.</p>
+<p><b>(a)</b> H₀: μ = 65; H₁: μ ≠ 65. t = (67 − 65)/(3.127/√10) = 2/0.9888 = <b>2.02</b>. Table t<sub>0.05, 9</sub> (two-tailed) = 2.262. 2.02 &lt; 2.262 → <b>accept H₀</b>: the mean can be taken as 65.</p>
+<p><b>(b)</b> H₁: μ &gt; 65 (one-tailed). Table t<sub>0.05, 9</sub> (one-tailed) = 1.833. 2.02 &gt; 1.833 → <b>reject H₀</b>: the mean height is significantly greater than 65. The conclusion changes because all 5 % of the rejection region is now in one tail.</p>
+<p><b>(c)</b> 95 % CI = x̄ ± t × S/√n = 67 ± 2.262 × 0.9888 = 67 ± 2.24 → <b>64.76 to 69.24</b>. (It contains 65, consistent with (a).)</p>
+<div class="box answer"><p>t = 2.02; two-tailed: accept; one-tailed: reject; CI 64.76–69.24.</p></div>
+<div class="box warn"><p>Using √n with the population-style SD (divide by n) without adjusting; choosing the wrong tail; forgetting to state H₁.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q15 -->
+<section class="topic" id="q15">
+<h2><span class="num">Q15</span> Two-sample t-test (independent groups) <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Pooled SD</span><span class="chip">t-test</span></div>
+<div class="box question"><p>Scores of students taught by two methods:</p>
+<table class="num compact"><tr><th>Method A</th><td>28</td><td>30</td><td>32</td><td>33</td><td>33</td><td>29</td><td>34</td></tr><tr><th>Method B</th><td>29</td><td>30</td><td>30</td><td>24</td><td>27</td><td>29</td><td></td></tr></table>
+<p>Test at 5 % whether the two methods differ in effectiveness.</p></div>
+<div class="box approach"><p>Means, sums of squared deviations for each group, pooled S with n₁ + n₂ − 2 df, then t.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<ol class="steps">
+  <li>H₀: μ₁ = μ₂; H₁: μ₁ ≠ μ₂.</li>
+  <li>x̄₁ = 219/7 = <b>31.286</b>; x̄₂ = 169/6 = <b>28.167</b>.</li>
+  <li>Σ(x₁ − x̄₁)² = 3.286² + 1.286² + 0.714² + 1.714² + 1.714² + 2.286² + 2.714² = <b>31.43</b>.<br>Σ(x₂ − x̄₂)² = 0.833² + 1.833² + 1.833² + 4.167² + 1.167² + 0.833² = <b>26.83</b>.</li>
+  <li>S = √[(31.43 + 26.83)/(7 + 6 − 2)] = √(58.26/11) = √5.296 = <b>2.301</b>.</li>
+  <li>t = (31.286 − 28.167)/[2.301 × √(1/7 + 1/6)] = 3.119/(2.301 × 0.5563) = 3.119/1.280 = <b>2.44</b>.</li>
+  <li>df = 11; t<sub>0.05</sub> = <b>2.201</b>. 2.44 &gt; 2.201 → <b>reject H₀</b>: the methods differ significantly; method A gives higher scores.</li>
+</ol>
+<div class="box answer"><p>t = 2.44 &gt; 2.20 → significant difference.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q16 -->
+<section class="topic" id="q16">
+<h2><span class="num">Q16</span> Paired t-test (before and after) <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Differences</span><span class="chip">One-tailed test</span></div>
+<div class="box question"><p>Marks of 10 students before and after a coaching programme:</p>
+<table class="num compact"><tr><th>Before</th><td>45</td><td>50</td><td>48</td><td>52</td><td>47</td><td>55</td><td>49</td><td>53</td><td>51</td><td>46</td></tr><tr><th>After</th><td>48</td><td>53</td><td>50</td><td>55</td><td>46</td><td>58</td><td>52</td><td>55</td><td>54</td><td>49</td></tr></table>
+<p>Does the coaching improve marks? Use 5 % level.</p></div>
+<div class="box approach"><p>Same students → paired test on d = after − before. "Improve" → one-tailed (H₁: μ<sub>d</sub> &gt; 0).</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p>d = 3, 3, 2, 3, −1, 3, 3, 2, 3, 3; Σd = 24 → d̄ = <b>2.4</b>.<br>d − d̄ = 0.6 (seven times), −0.4 (twice), −3.4 (once) → Σ(d − d̄)² = 7(0.36) + 2(0.16) + 11.56 = <b>14.4</b>.<br>S<sub>d</sub> = √(14.4/9) = √1.6 = <b>1.265</b>.</p>
+<ol class="steps">
+  <li>H₀: μ<sub>d</sub> = 0 (no improvement); H₁: μ<sub>d</sub> &gt; 0.</li>
+  <li>t = d̄/(S<sub>d</sub>/√n) = 2.4/(1.265/3.162) = 2.4/0.4 = <b>6.0</b>.</li>
+  <li>df = 9, one-tailed t<sub>0.05</sub> = <b>1.833</b>. 6.0 &gt; 1.833 → <b>reject H₀</b>: coaching significantly improves marks.</li>
+</ol>
+<div class="box answer"><p>t = 6.0 → significant improvement.</p></div>
+<div class="box warn"><p>Using the two-sample test here would ignore the pairing and lose power. Keep the sign convention for d consistent.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q17 -->
+<section class="topic" id="q17">
+<h2><span class="num">Q17</span> One-way ANOVA using the coding method <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Coding (change of origin)</span><span class="chip">SST/SSC/SSE</span><span class="chip">F-test</span></div>
+<div class="box question"><p>Sales (₹ thousand) made by five salesmen in each of three areas:</p>
+<table class="num compact"><tr><th>Area A</th><td>20</td><td>21</td><td>23</td><td>16</td><td>20</td></tr><tr><th>Area B</th><td>18</td><td>20</td><td>17</td><td>15</td><td>25</td></tr><tr><th>Area C</th><td>25</td><td>28</td><td>22</td><td>28</td><td>32</td></tr></table>
+<p>Test at 5 % whether the mean sales differ between areas.</p></div>
+<div class="box approach"><p>Subtract 20 from every value (ANOVA is unaffected by a change of origin), then CF, SST, SSC, SSE, ANOVA table, F.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p><b>Coded values (X − 20):</b></p>
+<table class="num compact"><tr><th>A</th><td>0</td><td>1</td><td>3</td><td>−4</td><td>0</td><th>T = 0</th></tr><tr><th>B</th><td>−2</td><td>0</td><td>−3</td><td>−5</td><td>5</td><th>T = −5</th></tr><tr><th>C</th><td>5</td><td>8</td><td>2</td><td>8</td><td>12</td><th>T = 35</th></tr></table>
+<ol class="steps">
+  <li>H₀: μ<sub>A</sub> = μ<sub>B</sub> = μ<sub>C</sub>.</li>
+  <li>Grand total T = 30, N = 15, CF = 30²/15 = <b>60</b>.</li>
+  <li>ΣX² (coded) = (0 + 1 + 9 + 16 + 0) + (4 + 0 + 9 + 25 + 25) + (25 + 64 + 4 + 64 + 144) = 26 + 63 + 301 = 390 → SST = 390 − 60 = <b>330</b>.</li>
+  <li>SSC = (0² + (−5)² + 35²)/5 − 60 = (0 + 25 + 1225)/5 − 60 = 250 − 60 = <b>190</b>.</li>
+  <li>SSE = 330 − 190 = <b>140</b>.</li>
+</ol>
+<table class="num"><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th></tr>
+<tr><td>Between areas</td><td>190</td><td>2</td><td>95</td><td rowspan="2">95/11.67 = <b>8.14</b></td></tr>
+<tr><td>Within (error)</td><td>140</td><td>12</td><td>11.67</td></tr>
+<tr class="total"><td>Total</td><td>330</td><td>14</td><td></td><td></td></tr></table>
+<p>F<sub>0.05</sub>(2, 12) = <b>3.89</b>. 8.14 &gt; 3.89 → <b>reject H₀</b>: mean sales differ significantly between areas (area C is highest).</p>
+<div class="box answer"><p>F = 8.14 &gt; 3.89 → significant difference.</p></div>
+<div class="box warn"><p>Using F-table with the dfs reversed; forgetting that coding by subtraction leaves all SS unchanged (coding by division would scale them — not allowed without adjustment).</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q18 -->
+<section class="topic" id="q18">
+<h2><span class="num">Q18</span> χ² goodness of fit to a theoretical ratio <span class="marks">8 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Expected from ratio</span><span class="chip">χ²</span></div>
+<div class="box question"><p>In an experiment on pea plants the four types observed were 315, 108, 101 and 32. Theory predicts the ratio 9 : 3 : 3 : 1. Test whether the data agree with the theory.</p></div>
+<div class="box approach"><p>N = 556; expected = N × share of 16; df = k − 1 = 3.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<table class="num compact"><tr><th>O</th><th>E</th><th>O − E</th><th>(O − E)²/E</th></tr>
+<tr><td>315</td><td>556 × 9/16 = 312.75</td><td>2.25</td><td>0.016</td></tr>
+<tr><td>108</td><td>104.25</td><td>3.75</td><td>0.135</td></tr>
+<tr><td>101</td><td>104.25</td><td>−3.25</td><td>0.101</td></tr>
+<tr><td>32</td><td>34.75</td><td>−2.75</td><td>0.218</td></tr>
+<tr class="total"><td>556</td><td>556</td><td>0</td><td>χ² = 0.47</td></tr></table>
+<p>H₀: the data follow 9 : 3 : 3 : 1. df = 3, χ²<sub>0.05</sub> = 7.815. 0.47 &lt; 7.815 → <b>accept H₀</b>: the observations agree with the theory.</p>
+<div class="box answer"><p>χ² = 0.47 → good agreement.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q19 -->
+<section class="topic" id="q19">
+<h2><span class="num">Q19</span> χ² test of independence (2 × 3 contingency table) <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Expected = RT × CT/N</span><span class="chip">df = (r − 1)(c − 1)</span></div>
+<div class="box question"><p>200 customers were asked which of three products they prefer:</p>
+<table class="num compact"><tr><th></th><th>Product A</th><th>Product B</th><th>Product C</th><th>Total</th></tr><tr><th>Male</th><td>40</td><td>30</td><td>30</td><td>100</td></tr><tr><th>Female</th><td>20</td><td>40</td><td>40</td><td>100</td></tr><tr class="total"><td>Total</td><td>60</td><td>70</td><td>70</td><td>200</td></tr></table>
+<p>Is product preference independent of gender? (5 % level)</p></div>
+<div class="box approach"><p>Expected for each cell, then Σ(O − E)²/E, df = (2 − 1)(3 − 1) = 2.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p>E(Male, A) = 100 × 60/200 = 30; E(Male, B) = E(Male, C) = 100 × 70/200 = 35; same for females.</p>
+<table class="num compact"><tr><th>Cell</th><th>O</th><th>E</th><th>(O − E)²/E</th></tr>
+<tr><td>M, A</td><td>40</td><td>30</td><td>3.333</td></tr><tr><td>M, B</td><td>30</td><td>35</td><td>0.714</td></tr><tr><td>M, C</td><td>30</td><td>35</td><td>0.714</td></tr>
+<tr><td>F, A</td><td>20</td><td>30</td><td>3.333</td></tr><tr><td>F, B</td><td>40</td><td>35</td><td>0.714</td></tr><tr><td>F, C</td><td>40</td><td>35</td><td>0.714</td></tr>
+<tr class="total"><td colspan="3">χ²</td><td>9.52</td></tr></table>
+<p>H₀: preference is independent of gender. df = 2; χ²<sub>0.05</sub> = 5.991. 9.52 &gt; 5.991 → <b>reject H₀</b>: preference depends on gender (males favour A, females B and C).</p>
+<div class="box answer"><p>χ² = 9.52 &gt; 5.99 → associated.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q20 -->
+<section class="topic" id="q20">
+<h2><span class="num">Q20</span> Approximations: Poisson for Binomial, Normal for Binomial <span class="marks">8 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Binomial</span><span class="chip">Poisson</span><span class="chip">Normal</span></div>
+<div class="box question"><p>(a) 2 % of items produced are defective. Using the Poisson approximation, find the probability that a box of 200 items has (i) no defective, (ii) at most 3 defectives. (b) A fair coin is tossed 100 times. Using the normal approximation, find the probability of getting between 45 and 55 heads (inclusive).</p></div>
+<div class="box approach"><p>(a) m = np = 4. (b) μ = np = 50, σ = √(npq) = 5, with continuity correction 44.5 to 55.5.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p><b>(a)</b> n = 200 large, p = 0.02 small → Poisson with m = 4 (e⁻⁴ = 0.0183).<br>
+(i) P(0) = e⁻⁴ = <b>0.0183</b>.<br>
+(ii) P(X ≤ 3) = e⁻⁴(1 + 4 + 4²/2 + 4³/6) = 0.0183 × (1 + 4 + 8 + 10.667) = 0.0183 × 23.667 = <b>0.433</b> (exact binomial: 0.432 — the approximation is excellent).</p>
+<p><b>(b)</b> μ = 50, σ = 5. With continuity correction: z = (44.5 − 50)/5 = −1.1 and z = (55.5 − 50)/5 = 1.1. Area = 2 × 0.3643 = <b>0.7286</b>.</p>
+<div class="box answer"><p>(a) 0.0183, 0.433; (b) ≈ 0.729.</p></div>
+</div></details>
+</section>
+
+<div class="box def" data-title="Long theory questions — how marks are given">
+  <p>Introduction/definition, a diagram or table, the main points with business examples, and a conclusion. Model answers follow that skeleton; details are in the unit pages.</p>
+</div>
+
+<!-- ================================================================ Q21 -->
+<section class="topic" id="q21">
+<h2><span class="num">Q21</span> Types of analytics applied to one business case <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Descriptive → prescriptive</span><span class="chip">Applications</span><span class="chip">Benefits</span></div>
+<div class="box question"><p>Explain the four types of data analytics with a diagram. Illustrate each with the example of an online retail company and state the benefits the company gains.</p></div>
+<div class="box approach"><p>Use the value-vs-difficulty diagram; for each type give question, techniques/tools, the retail example and a limitation.</p></div>
+<details class="ans sol"><summary>Show model answer</summary><div>
+<p><b>Introduction.</b> Data analytics examines data to support decisions. Analytics types are classified by the question they answer; value and complexity increase from descriptive to prescriptive. [Draw the ascending staircase: hindsight → insight → foresight → optimisation.]</p>
+<table class="compact"><tr><th>Type</th><th>Question</th><th>Techniques / tools</th><th>Online-retail example</th></tr>
+<tr><td>Descriptive</td><td>What happened?</td><td>aggregation, KPIs, dashboards (Excel, Power BI)</td><td>Monthly dashboard: sales fell 12 % in June; top 10 products; average order value</td></tr>
+<tr><td>Diagnostic</td><td>Why did it happen?</td><td>drill-down, correlation, regression, hypothesis tests</td><td>Drill-down shows the drop is in Mumbai; correlation with delivery delays (r = −0.8) explains it</td></tr>
+<tr><td>Predictive</td><td>What will happen?</td><td>regression, time-series, classification, ML</td><td>Forecast Diwali demand; predict which customers will churn next month</td></tr>
+<tr><td>Prescriptive</td><td>What should we do?</td><td>optimisation, simulation, recommendation engines</td><td>Decide stock per warehouse; personalised discounts for likely churners; dynamic pricing</td></tr></table>
+<p><b>Benefits to the company:</b> faster data-driven decisions; better customer understanding and personalisation; lower inventory and delivery costs; higher revenue through pricing and recommendations; early fraud and risk detection; competitive advantage.</p>
+<p><b>Limitations:</b> data quality, privacy (DPDP Act 2023), skills and cost; predictions are probabilities, not certainties.</p>
+<p>See <a href="unit1.html#types">Unit I, 1.3–1.5</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q22 -->
+<section class="topic" id="q22">
+<h2><span class="num">Q22</span> Power BI end-to-end: from three data sources to an interactive dashboard <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit IV</span><span class="chip">Get data</span><span class="chip">Power Query</span><span class="chip">Merge/Append</span><span class="chip">Visuals</span><span class="chip">Slicers, drill-through, bookmarks</span></div>
+<div class="box question"><p>A company keeps monthly sales in Excel files, customer details in a SQL Server database and a competitor price list on a web page. Explain step by step how you would use Power BI to load, clean and combine this data and build an interactive sales dashboard. Name the components of Power BI used at each stage.</p></div>
+<div class="box approach"><p>Follow the BI pipeline: Desktop (Get data → Power Query → model → visuals → interactivity) → Publish → Service (dashboard, refresh, share) → Mobile. Give exact menu paths.</p></div>
+<details class="ans sol"><summary>Show model answer</summary><div>
+<ol class="steps">
+<li><b>Install and open Power BI Desktop</b> (authoring tool, Windows).</li>
+<li><b>Get data:</b> Home → Get data → <i>Excel workbook</i> (each monthly file) or <i>Folder</i> to combine all files; Get data → <i>SQL Server</i> (server, database, Import mode, credentials) → Customers table; Get data → <i>Web</i> (URL) → Navigator → select the HTML table of competitor prices. Choose <b>Transform Data</b>.</li>
+<li><b>Clean in Power Query Editor:</b> Use First Row as Headers; Remove Columns not needed; Remove Rows → Remove Duplicates / Blank Rows; Trim and Capitalize region names; Replace Values (null → 0); Change data types (Date, Whole number, Fixed decimal for ₹); Split Column (e.g. "City, State"). Each action is recorded in <b>Applied Steps</b> (M language) and replays on refresh.</li>
+<li><b>Combine:</b> <b>Append Queries</b> to stack January–December sales tables (same columns); <b>Merge Queries</b> (Left Outer join on CustomerID) to bring customer name, city and segment into the sales table; merge competitor prices on Product. Close &amp; Apply.</li>
+<li><b>Model</b> (Model view): check relationships (Sales → Customers → Products, star schema); create measures, e.g. Total Sales = SUM(Sales[Amount]), Margin % = DIVIDE([Profit], [Total Sales]).</li>
+<li><b>Visualise</b> (Report view): cards (Total Sales, Profit, Margin %), line chart (monthly trend), clustered bar (sales by category), map (sales by city), matrix (region × quarter), table vs competitor price, gauge (sales vs target).</li>
+<li><b>Interactivity:</b> slicers for Region, Month (Between) and Segment; cross-filtering via Edit interactions; date hierarchy for drill-down; a <b>drill-through</b> "Customer details" page (field in the Drill through well; back button added automatically); report-page <b>tooltip</b> showing trend on hover; <b>bookmarks</b> ("South view", "Reset") linked to buttons.</li>
+<li><b>Format:</b> theme, titles, data labels, conditional formatting (red for negative margin).</li>
+<li><b>Publish:</b> Home → Publish → workspace in <b>Power BI Service</b>; pin visuals to a <b>dashboard</b>; set scheduled refresh (gateway for the on-premises SQL Server); share or create an app; set data alerts on KPI tiles.</li>
+<li><b>Power BI Mobile:</b> managers view the dashboard and receive alerts on phones (mobile layout designed in Desktop).</li>
+</ol>
+<p>See <a href="unit4.html#power-query">Unit IV, 4.6–4.8</a> (with simulators).</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q23 -->
+<section class="topic" id="q23">
+<h2><span class="num">Q23</span> Text and web analytics for an e-commerce site <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Text analytics process</span><span class="chip">Web metrics</span><span class="chip">Skills</span></div>
+<div class="box question"><p>An e-commerce company wants to understand customer reviews and website behaviour. Explain how text analytics and web analytics can be applied, the steps and metrics involved, and the skills its analyst needs.</p></div>
+<div class="box approach"><p>Two halves (text, web) each with process + techniques/metrics + example + limitation; finish with skills.</p></div>
+<details class="ans sol"><summary>Show model answer</summary><div>
+<p><b>Text analytics</b> converts unstructured reviews into insight.</p>
+<ol class="steps"><li>Collect reviews, chats, social posts.</li><li>Pre-process: tokenisation, lower-casing, stop-word removal, stemming/lemmatisation.</li><li>Represent: bag of words, TF-IDF.</li><li>Analyse: sentiment analysis (positive/negative), topic modelling (delivery, quality, price), named-entity recognition (brands), classification of complaints.</li><li>Visualise: sentiment trend, word clouds; act on recurring complaints.</li></ol>
+<p>Limitations: sarcasm, slang, mixed languages, need for labelled data.</p>
+<p><b>Web analytics</b> measures website behaviour (tools: Google Analytics, page tags, cookies, logs).</p>
+<table class="compact"><tr><th>Metric</th><th>Use</th></tr><tr><td>Sessions, users, page views</td><td>traffic volume</td></tr><tr><td>Bounce rate = single-page sessions/sessions</td><td>landing-page quality</td></tr><tr><td>Conversion rate = converting sessions/sessions</td><td>business outcome</td></tr><tr><td>Average session duration, pages/session</td><td>engagement</td></tr><tr><td>Traffic sources, CTR</td><td>marketing effectiveness</td></tr><tr><td>Funnel / cart abandonment</td><td>where buyers drop out</td></tr></table>
+<p>Process: set goals and KPIs → collect → report → analyse funnels and segments → A/B test changes → implement. Limitations: ad-blockers, bots, consent rules, "why" needs surveys.</p>
+<p><b>Combined insight:</b> reviews say "payment failed" + web funnel shows 70 % drop at payment → fix the payment page (diagnostic → prescriptive).</p>
+<p><b>Skills:</b> SQL, Excel, Python/R (NLP libraries), Power BI/Tableau, statistics, domain knowledge, communication and data storytelling, ethics/privacy awareness.</p>
+<p>See <a href="unit1.html#text-analytics">Unit I, 1.6–1.8</a>.</p>
+</div></details>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

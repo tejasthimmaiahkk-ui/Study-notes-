@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solved University-Pattern Questions — Cryptography</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="crypto" data-page="solved.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Exam practice · long-answer questions</div>
+  <h1>Solved University-Pattern Questions</h1>
+  <p class="lead">24 high-weightage questions (8–12 marks) of the kinds that repeat most in university papers, many combining two or three concepts in one question. Each one has the approach, a complete step-by-step solution written the way you should write it in the exam, and the mistakes examiners deduct marks for.</p>
+  <div class="meta"><span class="chip acc">18 numerical</span><span class="chip acc">6 long theory (model answers)</span><span class="chip">All numbers verified</span></div>
+</div>
+<div class="box tip" data-title="How to use this page">
+  <ol>
+    <li>Read the question and the approach box, then <b>solve it on paper with a timer</b> (about 1.5 minutes per mark).</li>
+    <li>Open <b>Show full step-by-step solution</b> and compare line by line — marks are given for each step, not just the final answer.</li>
+    <li>Mark the question as understood. Re-do the ones you got wrong after two days.</li>
+  </ol>
+  <p><b>Where these patterns come from:</b> your syllabus (24BCA54) is new, so few papers exist for it yet. These questions follow the long-answer patterns that repeat across university papers for Cryptography &amp; Network Security courses built on the same textbooks (Forouzan, Stallings, Kahate). Check your own university's past papers in your college library as well.</p>
+</div>
+
+<!-- ================================================================ Q1 -->
+<section class="topic" id="q1">
+<h2><span class="num">Q1</span> RSA: key generation, encryption with square-and-multiply, decryption with CRT <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Extended Euclid</span><span class="chip">Modular exponentiation</span><span class="chip">CRT</span></div>
+<div class="box question"><p>In an RSA system p = 17, q = 23 and the public exponent e = 7.<br>(a) Find n, φ(n) and the private key d using the extended Euclidean algorithm.<br>(b) Encrypt M = 65 showing the square-and-multiply steps.<br>(c) Decrypt the ciphertext using the Chinese Remainder Theorem and verify.</p></div>
+<div class="box approach"><p>Three separate algorithms in one question: extended Euclid (table), square-and-multiply (bit table), CRT (two half-size exponentiations). Write each as a table — each table carries marks.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Key generation</h4>
+<p>n = p × q = 17 × 23 = <b>391</b>. φ(n) = (p − 1)(q − 1) = 16 × 22 = <b>352</b>. gcd(7, 352) = 1, so e = 7 is valid.</p>
+<p>d = 7⁻¹ mod 352 — extended Euclid on (352, 7), tracking t (t₁ = 0, t₂ = 1):</p>
+<table class="num compact"><tr><th>q</th><th>r1</th><th>r2</th><th>r</th><th>t1</th><th>t2</th><th>t = t1 − q·t2</th></tr>
+<tr><td>50</td><td>352</td><td>7</td><td>2</td><td>0</td><td>1</td><td>−50</td></tr>
+<tr><td>3</td><td>7</td><td>2</td><td>1</td><td>1</td><td>−50</td><td>151</td></tr>
+<tr><td>2</td><td>2</td><td>1</td><td>0</td><td>−50</td><td>151</td><td>−352</td></tr>
+<tr class="total"><td></td><td>1</td><td>0</td><td></td><td>151</td><td></td><td></td></tr></table>
+<p>gcd = 1, t₁ = 151 → <b>d = 151</b>. Check: 7 × 151 = 1057 = 3 × 352 + 1 ✓. Public key (7, 391), private key 151.</p>
+<h4>(b) Encryption C = 65⁷ mod 391</h4>
+<p>7 = 111₂. Start y = 1; for each bit: square, then multiply by 65 if the bit is 1.</p>
+<table class="num compact"><tr><th>bit</th><th>y² mod 391</th><th>× 65 (bit = 1)</th></tr>
+<tr><td>1</td><td>1² = 1</td><td>1 × 65 = 65</td></tr>
+<tr><td>1</td><td>65² = 4225 ≡ 315</td><td>315 × 65 = 20475 ≡ 143</td></tr>
+<tr><td>1</td><td>143² = 20449 ≡ 117</td><td>117 × 65 = 7605 ≡ <b>176</b></td></tr></table>
+<p>(4225 − 10 × 391 = 315; 20475 − 52 × 391 = 143; 20449 − 52 × 391 = 117; 7605 − 19 × 391 = 176.) <b>C = 176</b>.</p>
+<h4>(c) Decryption with CRT: M = 176¹⁵¹ mod 391</h4>
+<ol class="steps">
+  <li>Reduce the exponent for each prime (Fermat): d<sub>p</sub> = 151 mod 16 = <b>7</b>; d<sub>q</sub> = 151 mod 22 = <b>19</b>.</li>
+  <li>Reduce C: 176 mod 17 = 6; 176 mod 23 = 15.</li>
+  <li>M<sub>p</sub> = 6⁷ mod 17: 6² = 36 ≡ 2, 6⁴ ≡ 4, 6⁷ = 6⁴·6²·6 ≡ 4 × 2 × 6 = 48 ≡ <b>14</b>.</li>
+  <li>M<sub>q</sub> = 15¹⁹ mod 23: 15² = 225 ≡ 18, 15⁴ ≡ 18² = 324 ≡ 2, 15⁸ ≡ 4, 15¹⁶ ≡ 16; 19 = 16 + 2 + 1 → 16 × 18 × 15 = 4320 ≡ <b>19</b> (4320 − 187 × 23 = 19).</li>
+  <li>Combine: M ≡ 14 (mod 17), M ≡ 19 (mod 23). M₁ = 23, 23 mod 17 = 6, 6⁻¹ mod 17 = 3; M₂ = 17, 17⁻¹ mod 23 = 19 (17 × 19 = 323 = 14 × 23 + 1).<br>M = (14 × 23 × 3 + 19 × 17 × 19) mod 391 = (966 + 6137) mod 391 = 7103 mod 391 = <b>65</b> ✓.</li>
+</ol>
+<div class="box answer"><p>n = 391, φ = 352, d = 151; C = 176; decryption gives back M = 65.</p></div>
+<div class="box warn"><p>Writing φ(n) = 391 − 1; forgetting to check gcd(e, φ) = 1; giving a negative d (convert by adding φ); computing 65⁷ fully before reducing. CRT is worth showing because it explains why real RSA decrypts about 4× faster.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q2 -->
+<section class="topic" id="q2">
+<h2><span class="num">Q2</span> Affine cipher: encrypt, decrypt and break with known plaintext <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II + Unit I</span><span class="chip">Affine cipher</span><span class="chip">Multiplicative inverse</span><span class="chip">Linear congruence</span></div>
+<div class="box question"><p>(a) Encrypt "DEFEND" using the affine cipher with keys k₁ = 5, k₂ = 8 and decrypt the result.<br>(b) An attacker knows the affine cipher is used and that plaintext "e" became "C" and "t" became "Z". Recover the keys.<br>(c) How many keys does the affine cipher have? Comment on its security.</p></div>
+<div class="box approach"><p>(a) is substitution in C = (5P + 8) mod 26. (b) gives two linear congruences in k₁, k₂ — subtract to eliminate k₂, then multiply by an inverse (Unit I). (c) is 12 × 26.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Encryption C = (5P + 8) mod 26</h4>
+<table class="num compact"><tr><th>Plain</th><td>D</td><td>E</td><td>F</td><td>E</td><td>N</td><td>D</td></tr>
+<tr><th>P</th><td>3</td><td>4</td><td>5</td><td>4</td><td>13</td><td>3</td></tr>
+<tr><th>5P + 8</th><td>23</td><td>28</td><td>33</td><td>28</td><td>73</td><td>23</td></tr>
+<tr><th>mod 26</th><td>23</td><td>2</td><td>7</td><td>2</td><td>21</td><td>23</td></tr>
+<tr><th>Cipher</th><td>X</td><td>C</td><td>H</td><td>C</td><td>V</td><td>X</td></tr></table>
+<p>Ciphertext <b>XCHCVX</b>.</p>
+<p><b>Decryption</b> P = (C − 8) × 5⁻¹ mod 26. 5⁻¹ mod 26 = 21 (5 × 21 = 105 = 4 × 26 + 1).<br>X: (23 − 8) × 21 = 315 ≡ 3 → D; C: (2 − 8) × 21 = −126 ≡ 4 → E; H: (7 − 8) × 21 = −21 ≡ 5 → F; V: (21 − 8) × 21 = 273 ≡ 13 → N → <b>DEFEND</b> ✓.</p>
+<h4>(b) Known-plaintext attack</h4>
+<ol class="steps">
+  <li>e = 4 → C = 2: 4k₁ + k₂ ≡ 2 (mod 26) … (i)</li>
+  <li>t = 19 → Z = 25: 19k₁ + k₂ ≡ 25 (mod 26) … (ii)</li>
+  <li>(ii) − (i): 15k₁ ≡ 23 (mod 26). gcd(15, 26) = 1 → unique solution. 15⁻¹ mod 26 = 7 (105 ≡ 1).</li>
+  <li>k₁ = 23 × 7 = 161 ≡ <b>5</b> (161 − 156).</li>
+  <li>From (i): k₂ ≡ 2 − 20 = −18 ≡ <b>8</b>.</li>
+</ol>
+<h4>(c) Key space</h4>
+<p>k₁ must be in ℤ₂₆* (12 values: 1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25) and k₂ in ℤ₂₆ (26 values) → <b>312 keys</b>. Brute force tries all in a fraction of a second, frequency analysis works (monoalphabetic) and, as (b) shows, two known letters reveal the key — the cipher is insecure.</p>
+<div class="box answer"><p>(a) XCHCVX → DEFEND. (b) k₁ = 5, k₂ = 8. (c) 312 keys; insecure.</p></div>
+<div class="box warn"><p>Decrypting with "÷ 5" instead of "× 21"; forgetting that k₁ must be coprime to 26; leaving negative values unreduced.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q3 -->
+<section class="topic" id="q3">
+<h2><span class="num">Q3</span> Hill cipher: encryption, key inverse, decryption and known-plaintext attack <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II + Unit I</span><span class="chip">Hill cipher</span><span class="chip">Matrix inverse mod 26</span><span class="chip">Cryptanalysis</span></div>
+<div class="box question"><p>Using the key K = [[5, 8], [17, 3]] and C = P × K (mod 26):<br>(a) Encrypt "HELP". (b) Find K⁻¹ and decrypt the ciphertext. (c) Show how an attacker who knows the plaintext "HELP" and its ciphertext can recover K.</p></div>
+<div class="box approach"><p>Encryption = row vector × matrix. Inverse = det⁻¹ × adjugate (mod 26). Attack: arrange known plaintext as a matrix P and ciphertext as C, then K = P⁻¹C.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Encryption</h4>
+<p>HE = (7, 4): (7·5 + 4·17, 7·8 + 4·3) = (103, 68) ≡ (25, 16) → <b>ZQ</b>.<br>
+LP = (11, 15): (11·5 + 15·17, 11·8 + 15·3) = (310, 133) ≡ (24, 3) → <b>YD</b>.<br>Ciphertext <b>ZQYD</b>.</p>
+<h4>(b) Inverse of K</h4>
+<ol class="steps">
+  <li>det K = 5·3 − 8·17 = 15 − 136 = −121 ≡ 9 (mod 26) (−121 + 130).</li>
+  <li>gcd(9, 26) = 1 → invertible; 9⁻¹ mod 26 = 3 (27 ≡ 1).</li>
+  <li>Adjugate [[3, −8], [−17, 5]]; × 3 → [[9, −24], [−51, 15]] ≡ <b>[[9, 2], [1, 15]]</b>.</li>
+  <li>Check: K × K⁻¹ = [[5·9 + 8·1, 5·2 + 8·15], [17·9 + 3·1, 17·2 + 3·15]] = [[53, 130], [156, 79]] ≡ [[1, 0], [0, 1]] ✓.</li>
+</ol>
+<p><b>Decrypt</b> ZQ = (25, 16): (25·9 + 16·1, 25·2 + 16·15) = (241, 290) ≡ (7, 4) = HE; YD = (24, 3): (24·9 + 3·1, 24·2 + 3·15) = (219, 93) ≡ (11, 15) = LP → <b>HELP</b> ✓.</p>
+<h4>(c) Known-plaintext attack</h4>
+<ol class="steps">
+  <li>Write plaintext blocks as rows of P and ciphertext blocks as rows of C: P = [[7, 4], [11, 15]], C = [[25, 16], [24, 3]]. Since C = P × K, we get <b>K = P⁻¹ × C</b>.</li>
+  <li>det P = 7·15 − 4·11 = 61 ≡ 9; 9⁻¹ = 3. P⁻¹ = 3 × [[15, −4], [−11, 7]] = [[45, −12], [−33, 21]] ≡ [[19, 14], [19, 21]].</li>
+  <li>K = [[19·25 + 14·24, 19·16 + 14·3], [19·25 + 21·24, 19·16 + 21·3]] = [[811, 346], [979, 367]] ≡ <b>[[5, 8], [17, 3]]</b> ✓ — the secret key.</li>
+</ol>
+<div class="box answer"><p>ZQYD; K⁻¹ = [[9, 2], [1, 15]]; the key is fully recovered from one known 4-letter plaintext because the Hill cipher is linear.</p></div>
+<div class="box warn"><p>Mixing conventions: if your textbook uses column vectors (C = KP), keep that convention throughout. The attack fails only if the chosen plaintext matrix is not invertible mod 26 — the attacker then picks other blocks.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q4 -->
+<section class="topic" id="q4">
+<h2><span class="num">Q4</span> Playfair cipher: construct the matrix, encrypt and decrypt <span class="marks">8 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Playfair</span><span class="chip">Digraph rules</span></div>
+<div class="box question"><p>Construct the Playfair matrix for the keyword "CRYPTOGRAPHY" and encrypt "SECRET MEETING". Decrypt the result to verify. State two weaknesses of Playfair.</p></div>
+<div class="box approach"><p>Drop repeated keyword letters, fill the rest of the alphabet (I/J together). Split into pairs (insert X between double letters; pad an odd end with X). Apply the row / column / rectangle rules and show the rule used for each pair.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p><b>Matrix</b> (keyword letters C R Y P T O G A H, then the remaining alphabet):</p>
+<table class="grid" style="width:auto;margin:auto"><tr><td class="hl2">C</td><td class="hl2">R</td><td class="hl2">Y</td><td class="hl2">P</td><td class="hl2">T</td></tr><tr><td class="hl2">O</td><td class="hl2">G</td><td class="hl2">A</td><td class="hl2">H</td><td>B</td></tr><tr><td>D</td><td>E</td><td>F</td><td>I/J</td><td>K</td></tr><tr><td>L</td><td>M</td><td>N</td><td>Q</td><td>S</td></tr><tr><td>U</td><td>V</td><td>W</td><td>X</td><td>Z</td></tr></table>
+<p><b>Pairs:</b> SECRETMEETING → SE CR ET ME ET IN G<b>X</b> (odd length → pad X; the EE falls across two pairs, so no filler is needed there).</p>
+<table class="compact"><tr><th>Pair</th><th>Positions</th><th>Rule</th><th>Cipher</th></tr>
+<tr><td>SE</td><td>S(4,5), E(3,2)</td><td>rectangle: own row, other's column</td><td>MK</td></tr>
+<tr><td>CR</td><td>C(1,1), R(1,2)</td><td>same row → right</td><td>RY</td></tr>
+<tr><td>ET</td><td>E(3,2), T(1,5)</td><td>rectangle</td><td>KR</td></tr>
+<tr><td>ME</td><td>M(4,2), E(3,2)</td><td>same column → below</td><td>VM</td></tr>
+<tr><td>ET</td><td>as before</td><td>rectangle</td><td>KR</td></tr>
+<tr><td>IN</td><td>I(3,4), N(4,3)</td><td>rectangle</td><td>FQ</td></tr>
+<tr><td>GX</td><td>G(2,2), X(5,4)</td><td>rectangle</td><td>HV</td></tr></table>
+<p>Ciphertext: <b>MK RY KR VM KR FQ HV</b>.</p>
+<p><b>Decryption</b> uses the same matrix with left/up instead of right/down: MK → SE, RY → CR, KR → ET, VM → ME, KR → ET, FQ → IN, HV → GX → SECRETMEETINGX; drop the padding X ✓.</p>
+<p><b>Weaknesses:</b> (1) only 25 × 24 = 600 digraphs, so digraph frequency analysis breaks it with enough text; (2) a pair and its reverse encrypt to reversed pairs (AB ↔ CD means BA ↔ DC), and repeated plaintext pairs give repeated ciphertext (ET → KR twice here).</p>
+<div class="box answer"><p>MKRYKRVMKRFQHV.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q5 -->
+<section class="topic" id="q5">
+<h2><span class="num">Q5</span> Product cipher: Vigenère followed by columnar transposition <span class="marks">8 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Vigenère</span><span class="chip">Keyed transposition</span><span class="chip">Confusion &amp; diffusion</span></div>
+<div class="box question"><p>Encrypt "ATTACK AT DAWN" first with the Vigenère cipher (key "LEMON") and then with a keyed columnar transposition (key 3 1 4 2). Explain why combining substitution and transposition is stronger than either alone.</p></div>
+<div class="box approach"><p>Stage 1: additive shift by the repeating keyword. Stage 2: write the stage-1 output row-wise under the key and read columns in key order.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>Stage 1 — Vigenère</h4>
+<table class="num compact"><tr><th>P</th><td>A</td><td>T</td><td>T</td><td>A</td><td>C</td><td>K</td><td>A</td><td>T</td><td>D</td><td>A</td><td>W</td><td>N</td></tr>
+<tr><th>Key</th><td>L</td><td>E</td><td>M</td><td>O</td><td>N</td><td>L</td><td>E</td><td>M</td><td>O</td><td>N</td><td>L</td><td>E</td></tr>
+<tr><th>P + K</th><td>0+11</td><td>19+4</td><td>19+12</td><td>0+14</td><td>2+13</td><td>10+11</td><td>0+4</td><td>19+12</td><td>3+14</td><td>0+13</td><td>22+11</td><td>13+4</td></tr>
+<tr><th>mod 26</th><td>11</td><td>23</td><td>5</td><td>14</td><td>15</td><td>21</td><td>4</td><td>5</td><td>17</td><td>13</td><td>7</td><td>17</td></tr>
+<tr><th>C₁</th><td>L</td><td>X</td><td>F</td><td>O</td><td>P</td><td>V</td><td>E</td><td>F</td><td>R</td><td>N</td><td>H</td><td>R</td></tr></table>
+<p>Stage 1 output: <b>LXFOPVEFRNHR</b>.</p>
+<h4>Stage 2 — columnar transposition, key 3 1 4 2</h4>
+<pre><code>Key:  3 1 4 2
+      L X F O
+      P V E F
+      R N H R</code></pre>
+<p>Read column labelled 1 → XVN, 2 → OFR, 3 → LPR, 4 → FEH. Final ciphertext: <b>XVNOFRLPRFEH</b>.</p>
+<h4>Why the product is stronger</h4>
+<ul><li>Vigenère alone keeps letter positions, so the Kasiski test finds the key length from repeated fragments; transposition destroys those position patterns.</li>
+<li>Transposition alone keeps letter frequencies (an anagram); the Vigenère layer flattens frequencies.</li>
+<li>Together they give Shannon's <b>confusion</b> (substitution) and <b>diffusion</b> (transposition) — the principle behind DES and AES rounds.</li></ul>
+<div class="box answer"><p>LXFOPVEFRNHR after stage 1; XVNOFRLPRFEH final.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q6 -->
+<section class="topic" id="q6">
+<h2><span class="num">Q6</span> Extended Euclid: large inverse and a linear congruence with several solutions <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">Extended Euclid</span><span class="chip">Multiplicative inverse</span><span class="chip">Linear congruence</span></div>
+<div class="box question"><p>(a) Using the extended Euclidean algorithm find gcd(1769, 550) and 550⁻¹ mod 1769. (b) Solve 35x ≡ 10 (mod 50).</p></div>
+<div class="box approach"><p>(a) Long table — keep r, s and t columns aligned; the inverse is the final t made positive. (b) d = gcd(35, 50) decides how many solutions; divide through by d first.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a)</h4>
+<table class="num compact"><tr><th>q</th><th>r1</th><th>r2</th><th>r</th><th>s1</th><th>s2</th><th>s</th><th>t1</th><th>t2</th><th>t</th></tr>
+<tr><td>3</td><td>1769</td><td>550</td><td>119</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>−3</td></tr>
+<tr><td>4</td><td>550</td><td>119</td><td>74</td><td>0</td><td>1</td><td>−4</td><td>1</td><td>−3</td><td>13</td></tr>
+<tr><td>1</td><td>119</td><td>74</td><td>45</td><td>1</td><td>−4</td><td>5</td><td>−3</td><td>13</td><td>−16</td></tr>
+<tr><td>1</td><td>74</td><td>45</td><td>29</td><td>−4</td><td>5</td><td>−9</td><td>13</td><td>−16</td><td>29</td></tr>
+<tr><td>1</td><td>45</td><td>29</td><td>16</td><td>5</td><td>−9</td><td>14</td><td>−16</td><td>29</td><td>−45</td></tr>
+<tr><td>1</td><td>29</td><td>16</td><td>13</td><td>−9</td><td>14</td><td>−23</td><td>29</td><td>−45</td><td>74</td></tr>
+<tr><td>1</td><td>16</td><td>13</td><td>3</td><td>14</td><td>−23</td><td>37</td><td>−45</td><td>74</td><td>−119</td></tr>
+<tr><td>4</td><td>13</td><td>3</td><td>1</td><td>−23</td><td>37</td><td>−171</td><td>74</td><td>−119</td><td>550</td></tr>
+<tr><td>3</td><td>3</td><td>1</td><td>0</td><td>37</td><td>−171</td><td>550</td><td>−119</td><td>550</td><td>−1769</td></tr>
+<tr class="total"><td></td><td>1</td><td>0</td><td></td><td>−171</td><td></td><td></td><td>550</td><td></td><td></td></tr></table>
+<p>gcd = <b>1</b>, s = −171, t = 550. Check: (−171)(1769) + 550 × 550 = −302499 + 302500 = 1 ✓.<br>So <b>550⁻¹ mod 1769 = 550</b> (550 is its own inverse: 550² = 302500 = 171 × 1769 + 1).</p>
+<h4>(b) 35x ≡ 10 (mod 50)</h4>
+<ol class="steps">
+  <li>d = gcd(35, 50) = 5; 5 | 10 → exactly <b>5 solutions</b>.</li>
+  <li>Divide by 5: 7x ≡ 2 (mod 10).</li>
+  <li>7⁻¹ mod 10 = 3 (21 ≡ 1). x₀ = 2 × 3 = 6.</li>
+  <li>x = 6 + 10k, k = 0…4 → <b>x ∈ {6, 16, 26, 36, 46}</b>. Check: 35 × 16 = 560 = 11 × 50 + 10 ✓.</li>
+</ol>
+<div class="box answer"><p>gcd 1, inverse 550; x = 6, 16, 26, 36, 46.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q7 -->
+<section class="topic" id="q7">
+<h2><span class="num">Q7</span> Chinese Remainder Theorem with full verification <span class="marks">8 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">CRT</span><span class="chip">Inverses</span></div>
+<div class="box question"><p>State the Chinese Remainder Theorem and solve: x ≡ 1 (mod 5), x ≡ 2 (mod 6), x ≡ 3 (mod 7).</p></div>
+<div class="box approach"><p>Check the moduli are pairwise coprime, then M, Mᵢ, Mᵢ⁻¹ and the sum — present it as a table.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p><b>Statement:</b> if m₁, m₂, …, m<sub>k</sub> are pairwise coprime, the system x ≡ aᵢ (mod mᵢ) has a unique solution modulo M = m₁m₂…m<sub>k</sub>, given by x = Σ aᵢMᵢMᵢ⁻¹ mod M, where Mᵢ = M/mᵢ and Mᵢ⁻¹ is the inverse of Mᵢ modulo mᵢ.</p>
+<p>gcd(5, 6) = gcd(5, 7) = gcd(6, 7) = 1 ✓. M = 5 × 6 × 7 = <b>210</b>.</p>
+<table class="num"><tr><th>i</th><th>aᵢ</th><th>mᵢ</th><th>Mᵢ = M/mᵢ</th><th>Mᵢ mod mᵢ</th><th>Mᵢ⁻¹</th><th>aᵢMᵢMᵢ⁻¹</th></tr>
+<tr><td>1</td><td>1</td><td>5</td><td>42</td><td>2</td><td>3 (2×3 = 6 ≡ 1)</td><td>126</td></tr>
+<tr><td>2</td><td>2</td><td>6</td><td>35</td><td>5</td><td>5 (25 ≡ 1)</td><td>350</td></tr>
+<tr><td>3</td><td>3</td><td>7</td><td>30</td><td>2</td><td>4 (8 ≡ 1)</td><td>360</td></tr>
+<tr class="total"><td colspan="6">Sum</td><td>836</td></tr></table>
+<p>x = 836 mod 210 = 836 − 630 = <b>206</b>.</p>
+<p><b>Verify:</b> 206 = 41 × 5 + 1 ✓; 206 = 34 × 6 + 2 ✓; 206 = 29 × 7 + 3 ✓. General solution x = 206 + 210k.</p>
+<div class="box answer"><p>x ≡ 206 (mod 210).</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q8 -->
+<section class="topic" id="q8">
+<h2><span class="num">Q8</span> Euler's φ, Fermat and Euler theorems for large powers and inverses <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">φ(n)</span><span class="chip">Fermat</span><span class="chip">Euler</span><span class="chip">CRT</span></div>
+<div class="box question"><p>(a) Find φ(240) and φ(77). (b) Using Euler's theorem find 7²²² mod 10. (c) Using Fermat's theorem find 5⁻¹ mod 23. (d) Find 3¹⁰⁰ mod 77 using Fermat's theorem and CRT.</p></div>
+<div class="box approach"><p>Reduce exponents modulo φ(n) (or p − 1). For a composite modulus n = pq, work mod p and mod q separately, then combine with CRT.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<p><b>(a)</b> 240 = 2⁴ × 3 × 5 → φ = (16 − 8)(3 − 1)(5 − 1) = 8 × 2 × 4 = <b>64</b>. 77 = 7 × 11 → φ = 6 × 10 = <b>60</b>.</p>
+<p><b>(b)</b> gcd(7, 10) = 1, φ(10) = 4 → 7⁴ ≡ 1 (mod 10). 222 = 4 × 55 + 2 → 7²²² ≡ 7² = 49 ≡ <b>9</b>.</p>
+<p><b>(c)</b> 23 is prime → a⁻¹ ≡ a<sup>p−2</sup> = 5²¹ (mod 23). 5² = 25 ≡ 2; 5⁴ ≡ 4; 5⁸ ≡ 16; 5¹⁶ ≡ 256 ≡ 3. 21 = 16 + 4 + 1 → 3 × 4 × 5 = 60 ≡ <b>14</b>. Check 5 × 14 = 70 = 3 × 23 + 1 ✓.</p>
+<p><b>(d)</b></p>
+<ol class="steps">
+  <li>mod 7: 3⁶ ≡ 1; 100 = 6 × 16 + 4 → 3¹⁰⁰ ≡ 3⁴ = 81 ≡ <b>4</b>.</li>
+  <li>mod 11: 3¹⁰ ≡ 1; 100 = 10 × 10 → 3¹⁰⁰ ≡ <b>1</b>.</li>
+  <li>CRT: x ≡ 4 (mod 7), x ≡ 1 (mod 11). M₁ = 11 ≡ 4 (mod 7), 4⁻¹ = 2; M₂ = 7, 7⁻¹ mod 11 = 8 (56 ≡ 1).</li>
+  <li>x = 4 × 11 × 2 + 1 × 7 × 8 = 88 + 56 = 144 ≡ <b>67</b> (mod 77).</li>
+</ol>
+<div class="box answer"><p>φ(240) = 64, φ(77) = 60; 7²²² mod 10 = 9; 5⁻¹ mod 23 = 14; 3¹⁰⁰ mod 77 = 67.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q9 -->
+<section class="topic" id="q9">
+<h2><span class="num">Q9</span> Primality testing and factorization: Fermat vs Miller–Rabin, Fermat factorization <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Fermat test</span><span class="chip">Miller–Rabin</span><span class="chip">Fermat factorization</span></div>
+<div class="box question"><p>(a) Apply the Miller–Rabin test with base 2 to n = 29, n = 221 and n = 561. (b) Show that 561 passes the Fermat test with base 2 and explain the significance. (c) Factorize 7171 using Fermat's factorization method.</p></div>
+<div class="box approach"><p>For each n write n − 1 = m·2ᵏ, compute T = 2ᵐ mod n, then square k − 1 times. Watch for −1 (= n − 1) and 1.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Miller–Rabin, base a = 2</h4>
+<table><tr><th>n</th><th>n − 1 = m·2ᵏ</th><th>T = 2ᵐ mod n</th><th>Squarings</th><th>Result</th></tr>
+<tr><td>29</td><td>28 = 7 × 2²</td><td>128 mod 29 = 12</td><td>12² = 144 ≡ 28 = n − 1</td><td><b>probably prime</b> (it is prime)</td></tr>
+<tr><td>221</td><td>220 = 55 × 2²</td><td>2⁵⁵ mod 221 = 128</td><td>128² = 16384 ≡ 30</td><td>never reached 220 → <b>composite</b> (221 = 13 × 17)</td></tr>
+<tr><td>561</td><td>560 = 35 × 2⁴</td><td>2³⁵ mod 561 = 263</td><td>263 → 166 → 67 → 1</td><td>reached 1 without −1 → <b>composite</b>; 67 is a non-trivial √1</td></tr></table>
+<h4>(b) Fermat test on 561</h4>
+<p>From the last chain, 2⁵⁶⁰ = (2³⁵)^(2⁴) ≡ 1 (mod 561). So 561 <b>passes</b> the Fermat test although 561 = 3 × 11 × 17. 561 is a <b>Carmichael number</b> (it passes for every base coprime to it). Miller–Rabin catches it because it also checks the square-root condition: if n were prime, the only square roots of 1 would be ±1, but 67² ≡ 1 with 67 ≢ ±1.</p>
+<h4>(c) Fermat factorization of 7171</h4>
+<p>√7171 ≈ 84.7 → start x = 85.</p>
+<table class="num compact"><tr><th>x</th><th>x²</th><th>x² − 7171</th><th>square?</th></tr>
+<tr><td>85</td><td>7225</td><td>54</td><td>no</td></tr>
+<tr><td>86</td><td>7396</td><td>225</td><td><b>15² ✓</b></td></tr></table>
+<p>7171 = (86 − 15)(86 + 15) = <b>71 × 101</b>.</p>
+<div class="box answer"><p>29 prime; 221 and 561 composite; 561 is a Carmichael number that fools Fermat; 7171 = 71 × 101.</p></div>
+<div class="box warn"><p>Stopping Miller–Rabin early: n is declared "probably prime" only if T = ±1 at the start or T = n − 1 at some squaring. Also mention that t rounds give error ≤ (1/4)ᵗ.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q10 -->
+<section class="topic" id="q10">
+<h2><span class="num">Q10</span> Diffie–Hellman key exchange and the man-in-the-middle attack (numerical) <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit IV + Unit III</span><span class="chip">Diffie–Hellman</span><span class="chip">Discrete log</span><span class="chip">MITM</span></div>
+<div class="box question"><p>Users A and B use Diffie–Hellman with prime q = 353 and primitive root α = 3. A's private key is 97 and B's is 233.<br>(a) Compute both public keys and the shared secret. (b) An attacker E with private key 13 intercepts the exchange. Show the keys E shares with A and with B. (c) How is this attack prevented?</p></div>
+<div class="box approach"><p>Public key = α^private mod q. Shared key = (other's public)^own private. For MITM, E replaces both public keys with α^13.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a)</h4>
+<ol class="steps">
+  <li>Y<sub>A</sub> = 3⁹⁷ mod 353 = <b>40</b>. (97 = 1100001₂; by square-and-multiply.)</li>
+  <li>Y<sub>B</sub> = 3²³³ mod 353 = <b>248</b>.</li>
+  <li>A computes K = Y<sub>B</sub>^X<sub>A</sub> = 248⁹⁷ mod 353 = <b>160</b>; B computes K = Y<sub>A</sub>^X<sub>B</sub> = 40²³³ mod 353 = <b>160</b>. Both equal α^(97·233) mod 353 ✓.</li>
+  <li>An eavesdropper sees 353, 3, 40 and 248 but must solve the discrete logarithm 3ˣ ≡ 40 (mod 353) to find 97.</li>
+</ol>
+<h4>(b) Man-in-the-middle</h4>
+<ol class="steps">
+  <li>E computes Y<sub>E</sub> = 3¹³ mod 353 = <b>175</b> and sends 175 to both A (pretending to be B) and B (pretending to be A).</li>
+  <li>A computes 175⁹⁷ mod 353 = <b>204</b>; E computes the same as 40¹³ mod 353 = 204 → key K<sub>AE</sub> = 204.</li>
+  <li>B computes 175²³³ mod 353 = <b>221</b>; E computes 248¹³ mod 353 = 221 → key K<sub>BE</sub> = 221.</li>
+  <li>E decrypts A's messages with 204, reads/changes them, re-encrypts with 221 for B. Neither A nor B notices.</li>
+</ol>
+<h4>(c) Prevention</h4>
+<p>Authenticate the public values: sign them with long-term private keys and exchange certificates (station-to-station protocol, authenticated DH in TLS and IKE).</p>
+<div class="box answer"><p>Y<sub>A</sub> = 40, Y<sub>B</sub> = 248, K = 160; under attack K<sub>AE</sub> = 204, K<sub>BE</sub> = 221.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q11 -->
+<section class="topic" id="q11">
+<h2><span class="num">Q11</span> ElGamal: encryption, decryption and digital signature <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III + Unit IV</span><span class="chip">Primitive root</span><span class="chip">ElGamal encryption</span><span class="chip">ElGamal signature</span></div>
+<div class="box question"><p>Take p = 19, e₁ = 2 and private key d = 5.<br>(a) Show that 2 is a primitive root of 19 and find the public key. (b) Encrypt P = 11 with r = 3 and decrypt. (c) Sign the message M = 14 with r = 5 and verify the signature.</p></div>
+<div class="box approach"><p>Encryption: C₁ = e₁ʳ, C₂ = P·e₂ʳ (mod p). Signature arithmetic for S₂ is mod (p − 1) = 18, not mod p.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a)</h4>
+<p>Powers of 2 mod 19: 2, 4, 8, 16, 13, 7, 14, 9, 18, 17, 15, 11, 3, 6, 12, 5, 10, 1 — all 18 non-zero residues appear, so the order of 2 is 18 = φ(19): <b>2 is a primitive root</b>.<br>e₂ = 2⁵ mod 19 = 32 − 19 = <b>13</b>. Public key (e₁, e₂, p) = (2, 13, 19); private d = 5.</p>
+<h4>(b)</h4>
+<ol class="steps">
+  <li>C₁ = 2³ mod 19 = <b>8</b>.</li>
+  <li>e₂ʳ = 13³ = 2197 ≡ 12 (2197 − 115 × 19); C₂ = 11 × 12 = 132 ≡ <b>18</b>.</li>
+  <li>Decrypt: C₁ᵈ = 8⁵ mod 19: 8² = 64 ≡ 7, 8⁴ ≡ 49 ≡ 11, 8⁵ ≡ 88 ≡ 12. 12⁻¹ mod 19 = 8 (96 = 5 × 19 + 1).</li>
+  <li>P = 18 × 8 = 144 ≡ <b>11</b> ✓.</li>
+</ol>
+<h4>(c) Signature (M = 14, r = 5)</h4>
+<ol class="steps">
+  <li>gcd(5, 18) = 1 ✓ (r must be invertible mod p − 1). r⁻¹ mod 18 = 11 (55 = 3 × 18 + 1).</li>
+  <li>S₁ = 2⁵ mod 19 = <b>13</b>.</li>
+  <li>S₂ = (M − d·S₁) × r⁻¹ mod 18 = (14 − 65) × 11 = −561 ≡ −561 + 32 × 18 = <b>15</b>.</li>
+  <li>Verify: V₁ = e₁ᴹ = 2¹⁴ mod 19 = <b>6</b>. V₂ = e₂^S₁ × S₁^S₂ = 13¹³ × 13¹⁵ = 13²⁸ mod 19. Since 13 = 2⁵, 13²⁸ = 2¹⁴⁰ and 140 mod 18 = 14 → 2¹⁴ ≡ <b>6</b>. V₁ = V₂ ✓ signature valid.</li>
+</ol>
+<div class="box answer"><p>e₂ = 13; ciphertext (8, 18) → 11; signature (13, 15) verifies (V₁ = V₂ = 6).</p></div>
+<div class="box warn"><p>Computing S₂ mod 19 instead of mod 18; reusing the same r for two messages (reveals d).</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q12 -->
+<section class="topic" id="q12">
+<h2><span class="num">Q12</span> Elliptic curves: list points, add, double and ECDH key exchange <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Quadratic residues</span><span class="chip">Point addition</span><span class="chip">ECDH</span></div>
+<div class="box question"><p>Consider E₁₁(1, 6): y² ≡ x³ + x + 6 (mod 11) with base point G = (2, 7).<br>(a) Find all points on the curve. (b) Compute 2G and 3G. (c) A chooses private key 3 and B chooses 4. Find their public keys and the shared secret.</p></div>
+<div class="box approach"><p>(a) For each x compute x³ + x + 6 mod 11 and check whether it is a square mod 11 (squares: 0, 1, 3, 4, 5, 9). (b) λ formulas with modular inverses. (c) Shared = n<sub>A</sub>(n<sub>B</sub>G) — compute by doubling and adding.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Points</h4>
+<p>Squares mod 11: 1²=1, 2²=4, 3²=9, 4²=5, 5²=3 → QR = {1, 3, 4, 5, 9} (roots: 1→±1, 3→±5, 4→±2, 5→±4, 9→±3).</p>
+<table class="num compact"><tr><th>x</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td></tr>
+<tr><th>x³+x+6</th><td>6</td><td>8</td><td>5</td><td>3</td><td>8</td><td>4</td><td>8</td><td>4</td><td>9</td><td>7</td><td>4</td></tr>
+<tr><th>QR?</th><td>no</td><td>no</td><td>y=4,7</td><td>y=5,6</td><td>no</td><td>y=2,9</td><td>no</td><td>y=2,9</td><td>y=3,8</td><td>no</td><td>y=2,9</td></tr></table>
+<p>Points: (2,4) (2,7) (3,5) (3,6) (5,2) (5,9) (7,2) (7,9) (8,3) (8,8) (10,2) (10,9) and O → <b>13 points</b>.</p>
+<h4>(b) 2G and 3G</h4>
+<p><b>2G</b>: λ = (3x² + a)/(2y) = (12 + 1)/14 ≡ 2/3 (mod 11); 3⁻¹ = 4 → λ = 8. x₃ = 64 − 4 = 60 ≡ 5; y₃ = 8(2 − 5) − 7 = −31 ≡ 2 → <b>2G = (5, 2)</b>.</p>
+<p><b>3G = 2G + G</b>: λ = (7 − 2)/(2 − 5) = 5/(−3) ≡ 5 × 8⁻¹ = 5 × 7 = 35 ≡ 2. x₃ = 4 − 5 − 2 = −3 ≡ 8; y₃ = 2(5 − 8) − 2 = −8 ≡ 3 → <b>3G = (8, 3)</b>.</p>
+<h4>(c) ECDH</h4>
+<ol class="steps">
+  <li>A's public: P<sub>A</sub> = 3G = <b>(8, 3)</b>.</li>
+  <li>B's public: P<sub>B</sub> = 4G = 2(2G) = 2(5, 2): λ = (75 + 1)/4 = 76/4 ≡ 10 × 4⁻¹ = 10 × 3 = 30 ≡ 8; x = 64 − 10 = 54 ≡ 10; y = 8(5 − 10) − 2 = −42 ≡ 2 → <b>(10, 2)</b>.</li>
+  <li>A computes 3·P<sub>B</sub>: 2(10, 2): λ = (300 + 1)/4 ≡ 4/4 = 1; x = 1 − 20 ≡ 3; y = 1(10 − 3) − 2 = 5 → (3, 5). Then (3, 5) + (10, 2): λ = (2 − 5)/(10 − 3) = −3 × 7⁻¹ = −3 × 8 = −24 ≡ 9; x = 81 − 13 = 68 ≡ 2; y = 9(3 − 2) − 5 = 4 → <b>(2, 4)</b>.</li>
+  <li>B computes 4·P<sub>A</sub> = 2(2(8, 3)): 2(8,3): λ = (192 + 1)/6 ≡ 6/6 = 1, x = 1 − 16 ≡ 7, y = 1(8 − 7) − 3 ≡ 9 → (7, 9); 2(7, 9): λ = (147 + 1)/18 ≡ 5 × 7⁻¹ = 5 × 8 = 40 ≡ 7, x = 49 − 14 = 35 ≡ 2, y = 7(7 − 2) − 9 = 26 ≡ 4 → <b>(2, 4)</b> ✓.</li>
+  <li>Shared secret = 12G = (2, 4) (= −G, since the group has order 13).</li>
+</ol>
+<div class="box answer"><p>13 points; 2G = (5, 2), 3G = (8, 3); public keys (8, 3) and (10, 2); shared secret (2, 4).</p></div>
+<div class="box warn"><p>Forgetting that "division" means multiplying by an inverse mod p; sign errors when reducing negatives; using a for b in 3x² + a.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q13 -->
+<section class="topic" id="q13">
+<h2><span class="num">Q13</span> Rabin cryptosystem: encryption and four-root decryption <span class="marks">8 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">Quadratic congruence</span><span class="chip">CRT</span></div>
+<div class="box question"><p>In the Rabin cryptosystem with p = 7 and q = 11, encrypt M = 20 and show the decryption, finding all four possible plaintexts.</p></div>
+<div class="box approach"><p>Check p ≡ q ≡ 3 (mod 4). Roots mod p are ±C^((p+1)/4); combine every pair with CRT.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<ol class="steps">
+  <li>7 ≡ 3 and 11 ≡ 3 (mod 4) ✓. n = 77.</li>
+  <li><b>Encrypt:</b> C = 20² mod 77 = 400 − 385 = <b>15</b>.</li>
+  <li>mod 7: C ≡ 1 → a₁ = 1^((7+1)/4) = 1², a₁ = 1, a₂ = −1 ≡ 6.</li>
+  <li>mod 11: C ≡ 4 → b₁ = 4^((11+1)/4) = 4³ = 64 ≡ 9, b₂ = −9 ≡ 2.</li>
+  <li>CRT constants: M₁ = 11 ≡ 4 (mod 7), 4⁻¹ = 2; M₂ = 7, 7⁻¹ mod 11 = 8. x = (a × 11 × 2 + b × 7 × 8) mod 77 = (22a + 56b) mod 77.</li>
+</ol>
+<table class="num"><tr><th>mod 7</th><th>mod 11</th><th>22a + 56b</th><th>root</th></tr>
+<tr><td>1</td><td>9</td><td>22 + 504 = 526</td><td>64</td></tr>
+<tr><td>1</td><td>2</td><td>22 + 112 = 134</td><td>57</td></tr>
+<tr><td>6</td><td>9</td><td>132 + 504 = 636</td><td><b>20</b></td></tr>
+<tr><td>6</td><td>2</td><td>132 + 112 = 244</td><td>13</td></tr></table>
+<p>Each satisfies x² ≡ 15 (mod 77). The receiver selects 20 using redundancy (e.g. a known header) in the message.</p>
+<div class="box answer"><p>C = 15; candidates 13, 20, 57, 64; plaintext 20.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q14 -->
+<section class="topic" id="q14">
+<h2><span class="num">Q14</span> DES: one complete round with key generation and S-box lookups <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Key schedule</span><span class="chip">Expansion P-box</span><span class="chip">S-boxes</span><span class="chip">Feistel</span></div>
+<div class="box question"><p>For DES with key 133457799BBCDFF1 and plaintext 0123456789ABCDEF (hex), the initial permutation gives L₀ = CC00CCFF and R₀ = F0AAF0AA, and PC-1 gives the 56-bit key F0CCAAF 556678F.<br>(a) Generate round key K₁. (b) Compute f(R₀, K₁) step by step. (c) Find L₁ and R₁.</p></div>
+<div class="box approach"><p>Round key: split C/D, left-shift 1 (round 1), PC-2. Function f: expand 32 → 48, XOR K₁, eight S-boxes (row = outer bits, column = middle bits), P-box. Then the Feistel step.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) K₁</h4>
+<ol class="steps">
+  <li>C₀ = F0CCAAF, D₀ = 556678F (28 bits each).</li>
+  <li>Round 1 shift = 1 bit left (circular): C₁ = E19955F, D₁ = AACCF1E.</li>
+  <li>PC-2 (56 → 48) on C₁‖D₁: <b>K₁ = 1B02EFFC7072</b>.</li>
+</ol>
+<h4>(b) f(R₀, K₁)</h4>
+<ol class="steps">
+  <li>Expansion E(R₀): F0AAF0AA → <b>7A15557A1555</b> (each 4-bit group gets its neighbours' bits).</li>
+  <li>XOR with K₁: 7A15557A1555 ⊕ 1B02EFFC7072 = <b>6117BA866527</b>.</li>
+  <li>Split into 6-bit groups and look up each S-box:</li>
+</ol>
+<table class="num compact"><tr><th>S-box</th><th>6 bits</th><th>row (b₁b₆)</th><th>col (b₂–b₅)</th><th>output</th></tr>
+<tr><td>S1</td><td>011000</td><td>0</td><td>12</td><td>5 = 0101</td></tr>
+<tr><td>S2</td><td>010001</td><td>1</td><td>8</td><td>12 = 1100</td></tr>
+<tr><td>S3</td><td>011110</td><td>0</td><td>15</td><td>8 = 1000</td></tr>
+<tr><td>S4</td><td>111010</td><td>2</td><td>13</td><td>2 = 0010</td></tr>
+<tr><td>S5</td><td>100001</td><td>3</td><td>0</td><td>11 = 1011</td></tr>
+<tr><td>S6</td><td>100110</td><td>2</td><td>3</td><td>5 = 0101</td></tr>
+<tr><td>S7</td><td>010100</td><td>0</td><td>10</td><td>9 = 1001</td></tr>
+<tr><td>S8</td><td>100111</td><td>3</td><td>3</td><td>7 = 0111</td></tr></table>
+<ol class="steps" start="4">
+  <li>S-box output: <b>5C82B597</b>.</li>
+  <li>Straight P-box: f = <b>234AA9BB</b>.</li>
+</ol>
+<h4>(c) Feistel step</h4>
+<p>L₁ = R₀ = <b>F0AAF0AA</b>. R₁ = L₀ ⊕ f = CC00CCFF ⊕ 234AA9BB = <b>EF4A6544</b>.</p>
+<div class="box answer"><p>K₁ = 1B02EFFC7072; f = 234AA9BB; L₁ = F0AAF0AA, R₁ = EF4A6544. (After 16 rounds the ciphertext is 85E813540F0AB405.)</p></div>
+<div class="box warn"><p>Row uses the <b>first and last</b> bit; column the four middle bits. In exams they usually give the S-box table — reading it correctly is the marks. You can check every value with the DES demo in Unit II.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q15 -->
+<section class="topic" id="q15">
+<h2><span class="num">Q15</span> AES: key expansion (w₄–w₈) and a MixColumns computation <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">RotWord/SubWord/RCon</span><span class="chip">GF(2⁸)</span><span class="chip">MixColumns</span></div>
+<div class="box question"><p>The AES-128 key is 2B7E1516 28AED2A6 ABF71588 09CF4F3C.<br>(a) Compute w₄, w₅, w₆, w₇ and w₈. (S-box values needed: S(CF)=8A, S(4F)=84, S(3C)=EB, S(09)=01, S(6C)=50, S(76)=38, S(05)=6B, S(2A)=E5.)<br>(b) Compute the first byte of MixColumns for the column (D4, BF, 5D, 30).</p></div>
+<div class="box approach"><p>Words that are multiples of 4 use t = SubWord(RotWord(w<sub>i−1</sub>)) ⊕ RCon; others are simply w<sub>i−1</sub> ⊕ w<sub>i−4</sub>. MixColumns row 1 is (02, 03, 01, 01); ×02 is xtime, ×03 = xtime ⊕ value.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a) Key expansion</h4>
+<p>w₀ = 2B7E1516, w₁ = 28AED2A6, w₂ = ABF71588, w₃ = 09CF4F3C.</p>
+<table class="compact"><tr><th>i</th><th>Computation</th><th>wᵢ</th></tr>
+<tr><td>4</td><td>RotWord(w₃) = CF4F3C09 → SubWord = 8A84EB01 → ⊕ RCon₁ 01000000 = 8B84EB01 → ⊕ w₀ 2B7E1516</td><td><b>A0FAFE17</b></td></tr>
+<tr><td>5</td><td>w₄ ⊕ w₁ = A0FAFE17 ⊕ 28AED2A6</td><td><b>88542CB1</b></td></tr>
+<tr><td>6</td><td>w₅ ⊕ w₂ = 88542CB1 ⊕ ABF71588</td><td><b>23A33939</b></td></tr>
+<tr><td>7</td><td>w₆ ⊕ w₃ = 23A33939 ⊕ 09CF4F3C</td><td><b>2A6C7605</b></td></tr>
+<tr><td>8</td><td>RotWord(w₇) = 6C76052A → SubWord = 50386BE5 → ⊕ RCon₂ 02000000 = 52386BE5 → ⊕ w₄ A0FAFE17</td><td><b>F2C295F2</b></td></tr></table>
+<p>Round key 1 = w₄w₅w₆w₇ = A0FAFE17 88542CB1 23A33939 2A6C7605.</p>
+<h4>(b) MixColumns: s′₀ = 02·D4 ⊕ 03·BF ⊕ 01·5D ⊕ 01·30</h4>
+<ol class="steps">
+  <li>02·D4: D4 = 1101 0100 → shift left 1010 1000 = A8; MSB was 1 → A8 ⊕ 1B = <b>B3</b>.</li>
+  <li>02·BF: BF = 1011 1111 → 0111 1110 = 7E; MSB 1 → 7E ⊕ 1B = 65. 03·BF = 65 ⊕ BF = <b>DA</b>.</li>
+  <li>B3 ⊕ DA = 69; 69 ⊕ 5D = 34; 34 ⊕ 30 = <b>04</b>.</li>
+</ol>
+<p>(The full column becomes 04, 66, 81, E5.)</p>
+<div class="box answer"><p>w₄ = A0FAFE17, w₅ = 88542CB1, w₆ = 23A33939, w₇ = 2A6C7605, w₈ = F2C295F2; first MixColumns byte = 04.</p></div>
+<div class="box warn"><p>Adding instead of XOR-ing; forgetting the conditional ⊕ 1B; using RCon₁ for w₈ (it is RCon₂ = 02).</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q16 -->
+<section class="topic" id="q16">
+<h2><span class="num">Q16</span> SHA-512: padding, number of blocks and the birthday bound <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">SHA-512</span><span class="chip">Merkle–Damgård</span><span class="chip">Birthday attack</span></div>
+<div class="box question"><p>(a) Find the number of padding bits and of 1024-bit blocks for messages of length 1500, 896, 1919 and 2048 bits. (b) Write the SHA-512 word-expansion and round equations. (c) Why is SHA-512 considered collision-resistant while MD5 is not?</p></div>
+<div class="box approach"><p>Zeros = (−|M| − 129) mod 1024; total = |M| + 1 + zeros + 128.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>(a)</h4>
+<table class="num"><tr><th>|M|</th><th>zeros = (−|M| − 129) mod 1024</th><th>total bits</th><th>blocks</th></tr>
+<tr><td>1500</td><td>(−1629) mod 1024 = 419</td><td>1500 + 1 + 419 + 128 = 2048</td><td>2</td></tr>
+<tr><td>896</td><td>(−1025) mod 1024 = 1023</td><td>896 + 1 + 1023 + 128 = 2048</td><td>2</td></tr>
+<tr><td>1919</td><td>(−2048) mod 1024 = 0</td><td>1919 + 1 + 0 + 128 = 2048</td><td>2</td></tr>
+<tr><td>2048</td><td>(−2177) mod 1024 = 895</td><td>2048 + 1 + 895 + 128 = 3072</td><td>3</td></tr></table>
+<p>Note: even a message that is already a multiple of 1024 (2048) gets a whole extra block, because the 1-bit and 128-bit length are always added.</p>
+<h4>(b)</h4>
+<p>W₀…W₁₅ = the 16 words of the block; for t = 16…79: W<sub>t</sub> = σ₁(W<sub>t−2</sub>) + W<sub>t−7</sub> + σ₀(W<sub>t−15</sub>) + W<sub>t−16</sub>, σ₀ = ROTR¹ ⊕ ROTR⁸ ⊕ SHR⁷, σ₁ = ROTR¹⁹ ⊕ ROTR⁶¹ ⊕ SHR⁶.<br>
+Each of 80 rounds: T₁ = H + Σ₁(E) + Ch(E, F, G) + K<sub>t</sub> + W<sub>t</sub>; T₂ = Σ₀(A) + Maj(A, B, C); then H = G, G = F, F = E, E = D + T₁, D = C, C = B, B = A, A = T₁ + T₂ (all mod 2⁶⁴). Finally add A…H to the previous hash values.</p>
+<h4>(c)</h4>
+<p>By the birthday paradox, a collision is expected after about 2<sup>n/2</sup> hashes. MD5 (n = 128) → 2⁶⁴ work in theory, and Wang et al. found structural attacks that produce collisions in seconds. SHA-512 (n = 512) → 2²⁵⁶ work and no structural attack is known, so it remains collision-resistant.</p>
+<div class="box answer"><p>Blocks: 2, 2, 2, 3 (zeros 419, 1023, 0, 895).</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q17 -->
+<section class="topic" id="q17">
+<h2><span class="num">Q17</span> Digital Signature Algorithm (DSS): signing and verification <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit IV</span><span class="chip">DSA</span><span class="chip">Modular inverse</span><span class="chip">Hashing</span></div>
+<div class="box question"><p>DSA parameters: q = 11, p = 23, e₀ = 2, private key d = 7. Find e₁ and e₂, sign a message whose hash h(M) = 5 using r = 3, and verify the signature.</p></div>
+<div class="box approach"><p>e₁ = e₀^((p−1)/q) mod p. S₁ uses mod p then mod q; S₂ and the verification exponents are mod q.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<ol class="steps">
+  <li>e₁ = 2^((23 − 1)/11) = 2² = <b>4</b> (an element of order 11). e₂ = e₁ᵈ = 4⁷ mod 23: 4² = 16, 4⁴ = 256 ≡ 3, 4⁷ = 3 × 16 × 4 = 192 ≡ <b>8</b>.</li>
+  <li><b>Sign:</b> S₁ = (e₁ʳ mod p) mod q = (4³ = 64 ≡ 18) mod 11 = <b>7</b>.</li>
+  <li>r⁻¹ mod 11 = 4 (12 ≡ 1). S₂ = (h + d·S₁) r⁻¹ mod q = (5 + 49) × 4 = 216 ≡ <b>7</b> (216 − 209). Signature (7, 7).</li>
+  <li><b>Verify:</b> w = S₂⁻¹ mod 11 = 8 (56 ≡ 1). u₁ = h·w = 40 ≡ 7; u₂ = S₁·w = 56 ≡ 1.</li>
+  <li>V = (e₁^u₁ × e₂^u₂ mod p) mod q = (4⁷ × 8¹ mod 23) mod 11 = (8 × 8 = 64 ≡ 18) mod 11 = <b>7</b> = S₁ ✓ valid.</li>
+</ol>
+<div class="box answer"><p>e₁ = 4, e₂ = 8; signature (S₁, S₂) = (7, 7); V = 7 = S₁, so the signature is accepted.</p></div>
+<div class="box warn"><p>DSA signs only — it cannot encrypt. The random r must be fresh and secret for every signature.</p></div>
+</div></details>
+</section>
+
+<!-- ================================================================ Q18 -->
+<section class="topic" id="q18">
+<h2><span class="num">Q18</span> Modes of operation: ECB vs CBC on a toy block cipher, with error propagation <span class="marks">8 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit III</span><span class="chip">ECB</span><span class="chip">CBC</span><span class="chip">XOR</span></div>
+<div class="box question"><p>A toy 4-bit block cipher is E(x) = rotate-left-1(x ⊕ 1010). Encrypt P = 1001 1001 0110 in ECB mode and in CBC mode with IV = 0011. Comment on the results and on what happens if one bit of C₂ is corrupted in CBC.</p></div>
+<div class="box approach"><p>ECB: Cᵢ = E(Pᵢ). CBC: Cᵢ = E(Pᵢ ⊕ Cᵢ₋₁), C₀ = IV. Show each XOR.</p></div>
+<details class="ans sol"><summary>Show full step-by-step solution</summary><div>
+<h4>ECB</h4>
+<p>P₁ = 1001: 1001 ⊕ 1010 = 0011 → rotl → <b>0110</b>. P₂ = 1001 → <b>0110</b> (identical!). P₃ = 0110: ⊕ 1010 = 1100 → rotl → <b>1001</b>. ECB: 0110 0110 1001.</p>
+<h4>CBC (IV = 0011)</h4>
+<table class="num compact"><tr><th>Block</th><th>Pᵢ</th><th>⊕ Cᵢ₋₁</th><th>input</th><th>⊕ key 1010</th><th>rotl → Cᵢ</th></tr>
+<tr><td>1</td><td>1001</td><td>0011 (IV)</td><td>1010</td><td>0000</td><td><b>0000</b></td></tr>
+<tr><td>2</td><td>1001</td><td>0000</td><td>1001</td><td>0011</td><td><b>0110</b></td></tr>
+<tr><td>3</td><td>0110</td><td>0110</td><td>0000</td><td>1010</td><td><b>0101</b></td></tr></table>
+<p>CBC: 0000 0110 0101.</p>
+<h4>Comments</h4>
+<ul><li>In ECB the two identical plaintext blocks gave identical ciphertext blocks — a pattern leak. CBC hides it because each block is mixed with the previous ciphertext.</li>
+<li>Decryption in CBC: Pᵢ = D(Cᵢ) ⊕ Cᵢ₋₁ with D(c) = rotate-right-1(c) ⊕ 1010.</li>
+<li><b>Error propagation:</b> one corrupted bit in C₂ garbles all of P₂ (it passes through D) and flips the same single bit in P₃ (C₂ is XORed into P₃). P₁ and later blocks are unaffected — self-recovering.</li></ul>
+<div class="box answer"><p>ECB 0110 0110 1001; CBC 0000 0110 0101.</p></div>
+</div></details>
+</section>
+
+<div class="box def" data-title="Long theory questions — how marks are given">
+  <p>For 10-mark theory questions examiners typically look for: a definition/introduction (1–2), a labelled diagram (2–3), the working explained in numbered steps (3–4), and advantages/limitations or a comparison (1–2). Each model answer below follows that skeleton. The full explanations and diagrams are in the unit pages (links given).</p>
+</div>
+
+<!-- ================================================================ Q19 -->
+<section class="topic" id="q19">
+<h2><span class="num">Q19</span> Security goals, attacks, services and mechanisms (Unit I combined) <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit I</span><span class="chip">CIA</span><span class="chip">Attacks</span><span class="chip">X.800</span></div>
+<div class="box question"><p>Explain the three security goals. Classify the attacks that threaten each goal and explain the X.800 security services and mechanisms that counter them, with their relationship.</p></div>
+<div class="box approach"><p>Link three lists: goal → attacks → service → mechanism. A single combined table at the end earns the "relationship" marks.</p></div>
+<details class="ans sol"><summary>Show model answer</summary><div>
+<p><b>1. Security goals (CIA).</b> <i>Confidentiality</i>: only authorised parties can read the information. <i>Integrity</i>: information is changed only by authorised parties through authorised means. <i>Availability</i>: information and services are accessible to authorised users when needed. [Draw the CIA triangle.]</p>
+<p><b>2. Attacks.</b> Threats to confidentiality (passive): <i>snooping</i> (intercepting data), <i>traffic analysis</i> (inferring from patterns). Threats to integrity (active): <i>modification</i>, <i>masquerading</i> (impersonation), <i>replaying</i> (resending captured messages), <i>repudiation</i> (denying sending/receiving). Threat to availability (active): <i>denial of service</i>. Passive attacks are hard to detect → prevent with encryption; active attacks are hard to prevent → detect and recover. [Draw the attack taxonomy tree.]</p>
+<p><b>3. Security services (X.800):</b> data confidentiality, data integrity, authentication (peer-entity and data-origin), non-repudiation (proof of origin and of delivery), access control.</p>
+<p><b>4. Security mechanisms:</b> encipherment, data integrity (check values), digital signature, authentication exchange, traffic padding, routing control, notarization, access control.</p>
+<p><b>5. Relationship:</b></p>
+<table class="compact"><tr><th>Attack</th><th>Goal threatened</th><th>Service</th><th>Mechanism(s)</th></tr>
+<tr><td>Snooping</td><td>Confidentiality</td><td>Data confidentiality</td><td>Encipherment, routing control</td></tr>
+<tr><td>Traffic analysis</td><td>Confidentiality</td><td>Traffic-flow confidentiality</td><td>Traffic padding, routing control</td></tr>
+<tr><td>Modification</td><td>Integrity</td><td>Data integrity</td><td>Data integrity, digital signature, encipherment</td></tr>
+<tr><td>Masquerading</td><td>Integrity</td><td>Authentication</td><td>Authentication exchange, digital signature</td></tr>
+<tr><td>Replaying</td><td>Integrity</td><td>Data integrity (with sequence/time)</td><td>Timestamps/nonces, data integrity</td></tr>
+<tr><td>Repudiation</td><td>Integrity</td><td>Non-repudiation</td><td>Digital signature, notarization</td></tr>
+<tr><td>Denial of service</td><td>Availability</td><td>Access control / availability</td><td>Access control, routing control, filtering</td></tr></table>
+<p>See <a href="unit1.html#attacks">Unit I, 1.2–1.3</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q20 -->
+<section class="topic" id="q20">
+<h2><span class="num">Q20</span> DES vs AES: structure of each and performance analysis <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit II</span><span class="chip">Feistel vs SPN</span><span class="chip">AES transformations</span><span class="chip">Security analysis</span></div>
+<div class="box question"><p>Explain the structure of an AES round and its four transformations. Compare AES with DES and analyse why AES is preferred.</p></div>
+<div class="box approach"><p>Diagram of the AES round + one paragraph per transformation + comparison table + 4–5 analysis points (security, implementation, efficiency, flexibility).</p></div>
+<details class="ans sol"><summary>Show model answer</summary><div>
+<p><b>1. AES overview.</b> Rijndael (Daemen &amp; Rijmen), FIPS 197 (2001). Non-Feistel substitution–permutation network; 128-bit block arranged as a 4 × 4 byte state (column-major); key 128/192/256 bits with 10/12/14 rounds. [Diagram: pre-round AddRoundKey → Nr − 1 rounds of SubBytes, ShiftRows, MixColumns, AddRoundKey → last round without MixColumns.]</p>
+<p><b>2. Transformations.</b></p>
+<ul>
+<li><b>SubBytes</b> — every byte replaced by the S-box (multiplicative inverse in GF(2⁸) + affine transform); the only non-linear step → confusion.</li>
+<li><b>ShiftRows</b> — row r rotated left by r bytes → spreads bytes across columns.</li>
+<li><b>MixColumns</b> — each column multiplied by [[02,03,01,01],…] in GF(2⁸) → diffusion inside the column (omitted in the last round).</li>
+<li><b>AddRoundKey</b> — XOR with the 128-bit round key from key expansion (RotWord, SubWord, RCon).</li>
+</ul>
+<p>Decryption uses InvSubBytes, InvShiftRows, InvMixColumns and AddRoundKey in reverse order.</p>
+<p><b>3. Comparison.</b></p>
+<table class="compact"><tr><th>Feature</th><th>DES</th><th>AES</th></tr>
+<tr><td>Structure</td><td>Feistel</td><td>SPN</td></tr><tr><td>Block / key</td><td>64 / 56 bits</td><td>128 / 128–256 bits</td></tr>
+<tr><td>Rounds</td><td>16</td><td>10/12/14</td></tr><tr><td>Non-linearity</td><td>8 S-boxes (6→4)</td><td>1 S-box (8→8), algebraic</td></tr>
+<tr><td>Key schedule</td><td>shifts + PC-2</td><td>RotWord, SubWord, RCon</td></tr><tr><td>Status</td><td>brute-forced (1998)</td><td>no practical attack</td></tr></table>
+<p><b>4. Analysis (why AES).</b> (i) <i>Security</i>: 2¹²⁸ key space; designed against differential and linear cryptanalysis (wide-trail strategy); best attack only ≈ 2¹²⁶. (ii) <i>Diffusion</i>: two rounds make every output byte depend on every input byte. (iii) <i>Implementation</i>: byte-oriented — efficient on 8-bit smart cards, table-based on 32-bit CPUs, AES-NI hardware instructions. (iv) <i>Efficiency</i>: fewer rounds than DES; fast in hardware and software. (v) <i>Flexibility</i>: three key sizes. Limitation: side-channel attacks on careless implementations.</p>
+<p>See <a href="unit2.html#aes">Unit II, 2.7–2.8</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q21 -->
+<section class="topic" id="q21">
+<h2><span class="num">Q21</span> Kerberos: servers, message exchange and limitations <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit IV</span><span class="chip">KDC</span><span class="chip">Tickets</span><span class="chip">Timestamps</span></div>
+<div class="box question"><p>What is Kerberos? Explain its servers and the operation of Kerberos with a neat diagram. Mention the differences between versions 4 and 5.</p></div>
+<div class="box approach"><p>Name the three servers, then the six messages with what is encrypted under which key. Close with v4 vs v5 and limitations.</p></div>
+<details class="ans sol"><summary>Show model answer</summary><div>
+<p><b>1. Definition.</b> Kerberos (MIT) is an authentication protocol and KDC based on symmetric keys and timestamps that gives users single sign-on to network services; the password never travels over the network.</p>
+<p><b>2. Servers.</b> Authentication Server (AS — knows each user's password-derived key), Ticket-Granting Server (TGS — issues service tickets), real server (e.g. file server). [Diagram: Alice, AS and TGS inside the KDC, Bob; six numbered arrows.]</p>
+<p><b>3. Operation.</b></p>
+<ol class="steps">
+<li>Alice → AS: her identity.</li>
+<li>AS → Alice: K<sub>A-AS</sub>[K<sub>A-TGS</sub>, ticket<sub>TGS</sub>], ticket = K<sub>AS-TGS</sub>[Alice, K<sub>A-TGS</sub>]. The workstation derives K<sub>A-AS</sub> from the password to open it.</li>
+<li>Alice → TGS: ticket<sub>TGS</sub>, server name, K<sub>A-TGS</sub>[timestamp].</li>
+<li>TGS → Alice: K<sub>A-TGS</sub>[server, K<sub>A-B</sub>], ticket<sub>B</sub> = K<sub>TGS-B</sub>[Alice, K<sub>A-B</sub>].</li>
+<li>Alice → Bob: ticket<sub>B</sub>, K<sub>A-B</sub>[timestamp].</li>
+<li>Bob → Alice: K<sub>A-B</sub>[timestamp + 1] (mutual authentication).</li>
+</ol>
+<p>For another service, Alice repeats 3–6 with the same TGS ticket (valid for hours). Realms and inter-realm keys allow cross-organisation access.</p>
+<p><b>4. Version 4 vs 5:</b> v4 uses only DES, ad-hoc encoding, short lifetime limits and limited inter-realm support; v5 supports any cipher (AES), ASN.1 encoding, arbitrary ticket lifetimes, forwardable/proxiable tickets, hierarchical realms.</p>
+<p><b>5. Limitations:</b> needs synchronised clocks; KDC is a single point of failure and high-value target; weak passwords allow offline guessing of message 2.</p>
+<p>See <a href="unit4.html#kerberos">Unit IV, 4.6</a> (with an interactive step-through).</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q22 -->
+<section class="topic" id="q22">
+<h2><span class="num">Q22</span> PGP and S/MIME: how e-mail gets every security service <span class="marks">10 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit IV + Units II–III</span><span class="chip">Hashing</span><span class="chip">Signatures</span><span class="chip">Session keys</span><span class="chip">Radix-64</span></div>
+<div class="box question"><p>Explain how PGP provides authentication, confidentiality, compression and e-mail compatibility, with a diagram of the sending side. Compare PGP with S/MIME.</p></div>
+<div class="box approach"><p>This combines all units: hash + private-key signature (authentication), symmetric session key + receiver's public key (confidentiality), ZIP, Radix-64. Order matters: sign → compress → encrypt → encode.</p></div>
+<details class="ans sol"><summary>Show model answer</summary><div>
+<p><b>1. Introduction.</b> PGP (Phil Zimmermann, 1991; OpenPGP RFC 4880) secures e-mail and files. Because e-mail is one-way store-and-forward, all algorithm identifiers, keys and signatures travel inside the message.</p>
+<p><b>2. Sending steps</b> [diagram: M → hash → sign with A's private key → ZIP → encrypt with random session key → session key encrypted with B's public key → Radix-64]:</p>
+<ol class="steps">
+<li><b>Authentication + integrity:</b> SHA hash of M, signed with Alice's private key (RSA/DSA); signature attached.</li>
+<li><b>Compression:</b> ZIP after signing (signature independent of compression; less redundancy before encryption).</li>
+<li><b>Confidentiality:</b> a one-time random session key encrypts the compressed message with AES/3DES/IDEA; the session key is encrypted with Bob's public key (RSA/ElGamal) — hybrid encryption.</li>
+<li><b>E-mail compatibility:</b> Radix-64 converts every 3 bytes to 4 printable characters.</li>
+<li><b>Segmentation</b> for long messages.</li>
+</ol>
+<p><b>3. Receiving:</b> Radix-64 decode → decrypt session key with Bob's private key → decrypt → decompress → verify signature with Alice's public key.</p>
+<p><b>4. Key management:</b> private and public key rings; trust via the web of trust (owner trust: none/partial/full; key legitimacy).</p>
+<p><b>5. PGP vs S/MIME:</b></p>
+<table class="compact"><tr><th></th><th>PGP</th><th>S/MIME</th></tr><tr><td>Trust</td><td>Web of trust</td><td>X.509 CA hierarchy</td></tr><tr><td>Format</td><td>OpenPGP packets, Radix-64</td><td>MIME + CMS (signed-data, enveloped-data…)</td></tr><tr><td>Users</td><td>Individuals, open source</td><td>Organisations, built into Outlook/Apple Mail</td></tr></table>
+<p>See <a href="unit4.html#app-layer">Unit IV, 4.7</a>.</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q23 -->
+<section class="topic" id="q23">
+<h2><span class="num">Q23</span> SSL/TLS: architecture, Handshake protocol and Record protocol <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit IV</span><span class="chip">Cipher suites</span><span class="chip">Key derivation</span><span class="chip">MAC + encryption</span></div>
+<div class="box question"><p>Explain the SSL architecture with its four protocols. Describe the four phases of the Handshake protocol and the operation of the Record protocol. How does TLS differ from SSL?</p></div>
+<div class="box approach"><p>Protocol stack diagram → services → handshake phases (list the messages) → key derivation (pre-master → master → key material) → record steps → TLS differences.</p></div>
+<details class="ans sol"><summary>Show model answer</summary><div>
+<p><b>1. Architecture.</b> SSL sits between the application and TCP. Services: fragmentation, compression, message integrity, confidentiality, framing. Four protocols: Handshake, ChangeCipherSpec, Alert, Record (the Record protocol carries the other three and application data). [Draw the stack.] Session (negotiated parameters, resumable) vs connection (one TCP link, own keys).</p>
+<p><b>2. Handshake protocol.</b></p>
+<ol class="steps">
+<li><b>Phase I — security capabilities:</b> ClientHello (version, client random, session ID, cipher suites, compression) and ServerHello (chosen suite, server random).</li>
+<li><b>Phase II — server authentication and key exchange:</b> Certificate, ServerKeyExchange (for DHE), CertificateRequest (optional), ServerHelloDone.</li>
+<li><b>Phase III — client key exchange:</b> client Certificate (if requested), ClientKeyExchange (pre-master secret encrypted with the server's RSA key, or client's DH value), CertificateVerify.</li>
+<li><b>Phase IV — finish:</b> ChangeCipherSpec + Finished from client, then from server; Finished contains a hash of all handshake messages.</li>
+</ol>
+<p><b>Key derivation:</b> master secret (48 bytes) = hash(pre-master, client random, server random) → key block → client/server write MAC secrets, write keys and IVs.</p>
+<p><b>3. Record protocol:</b> fragment (≤ 2¹⁴ bytes) → compress (optional) → add MAC (with sequence number) → encrypt → add header (content type, version, length).</p>
+<p><b>4. Alert protocol:</b> warning/fatal messages (bad_record_mac, handshake_failure, certificate_expired, close_notify …). <b>ChangeCipherSpec:</b> one byte, activates pending keys.</p>
+<p><b>5. TLS vs SSL:</b> version 3.1+; PRF built from HMAC for key generation; HMAC for record MAC; new alert codes; Fortezza removed; TLS 1.3 adds forward secrecy and one-round-trip handshake.</p>
+<p>See <a href="unit4.html#tls">Unit IV, 4.8</a> (interactive handshake).</p>
+</div></details>
+</section>
+
+<!-- ================================================================ Q24 -->
+<section class="topic" id="q24">
+<h2><span class="num">Q24</span> IPSec: modes, AH and ESP, security associations and IKE <span class="marks">12 marks</span></h2>
+<div class="qmeta"><span class="chip acc">Unit IV</span><span class="chip">Transport/Tunnel</span><span class="chip">AH/ESP</span><span class="chip">SA, SAD, SPD</span><span class="chip">IKE</span></div>
+<div class="box question"><p>Explain IPSec transport and tunnel modes with packet diagrams. Compare AH and ESP. Explain Security Associations and how IKE establishes them.</p></div>
+<div class="box approach"><p>Two packet diagrams, one comparison table, then SA/SAD/SPD and the two IKE phases.</p></div>
+<details class="ans sol"><summary>Show model answer</summary><div>
+<p><b>1. IPSec</b> protects IP packets at the network layer, transparently to applications — the basis of VPNs.</p>
+<p><b>2. Modes.</b> <i>Transport</i>: [IP header | IPSec header | TCP + data | trailer] — protects the payload, host-to-host. <i>Tunnel</i>: [new IP header | IPSec header | original IP header | TCP + data | trailer] — protects the whole original packet and hides real addresses, gateway-to-gateway.</p>
+<p><b>3. AH vs ESP.</b></p>
+<table class="compact"><tr><th></th><th>AH (protocol 51)</th><th>ESP (protocol 50)</th></tr>
+<tr><td>Fields</td><td>next header, payload length, SPI, sequence no., authentication data</td><td>SPI, sequence no., payload, padding, pad length, next header, authentication data</td></tr>
+<tr><td>Integrity/authentication</td><td>✓ (incl. immutable IP header fields)</td><td>✓ (not the outer IP header)</td></tr>
+<tr><td>Confidentiality</td><td>✗</td><td>✓</td></tr><tr><td>Replay protection</td><td>✓</td><td>✓</td></tr><tr><td>NAT friendly</td><td>No</td><td>Yes (with NAT-T)</td></tr></table>
+<p><b>4. Security Association:</b> one-way agreement (protocol, algorithms, keys, sequence counter, lifetime, mode) identified by SPI + destination + protocol. <b>SAD</b> stores active SAs; <b>SPD</b> decides discard / bypass / apply for every packet.</p>
+<p><b>5. IKE</b> (Oakley + SKEME + ISAKMP, UDP 500). <i>Phase I</i>: main mode (6 messages, identities protected) or aggressive mode (3 messages) builds an authenticated IKE SA using Diffie–Hellman and pre-shared keys, signatures or public-key encryption; cookies defeat clogging, nonces defeat replay, authentication defeats MITM. <i>Phase II</i>: quick mode (3 messages) creates the IPSec SAs for AH/ESP, optionally with fresh DH (perfect forward secrecy).</p>
+<p>See <a href="unit4.html#ipsec">Unit IV, 4.9</a> (interactive packet builder).</p>
+</div></details>
+</section>
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

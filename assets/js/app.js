@@ -15,6 +15,7 @@
         { f: "unit2.html", pill: "Unit II", t: "Symmetric Key Cryptography" },
         { f: "unit3.html", pill: "Unit III", t: "Public Key Cryptography & Hashing" },
         { f: "unit4.html", pill: "Unit IV", t: "Digital Signatures, Key Management & Network Security" },
+        { f: "solved.html", pill: "Solved Qs", t: "Solved University-Pattern Questions" },
         { f: "revision.html", pill: "Revision", t: "Revision & Exam Kit" }
       ]
     },
@@ -23,6 +24,7 @@
       pages: [
         { f: "unit1.html", pill: "Unit I", t: "Core Arithmetic & Algebra" },
         { f: "unit2.html", pill: "Unit II", t: "Data Interpretation & Advanced Aptitude" },
+        { f: "solved.html", pill: "Solved Qs", t: "Solved University-Pattern Questions" },
         { f: "revision.html", pill: "Revision", t: "Formula Sheet & Mock Test" }
       ]
     },
@@ -33,6 +35,7 @@
         { f: "unit2.html", pill: "Unit II", t: "Correlation & Regression" },
         { f: "unit3.html", pill: "Unit III", t: "Probability, Distributions & Hypothesis Testing" },
         { f: "unit4.html", pill: "Unit IV", t: "Power BI & Business Intelligence" },
+        { f: "solved.html", pill: "Solved Qs", t: "Solved University-Pattern Questions" },
         { f: "revision.html", pill: "Revision", t: "Revision & Exam Kit" }
       ]
     }
@@ -159,7 +162,8 @@
   var BOX_LABELS = {
     def: ["◆", "Definition"], found: ["▣", "Foundation — read this first"], oos: ["✦", "Beyond the syllabus · optional, for deeper understanding"],
     tip: ["★", "Exam tip"], warn: ["!", "Common mistake"], example: ["✎", "Worked example"], practice: ["?", "Practice — solve it yourself first"],
-    demo: ["▶", "Interactive demo"], summary: ["↺", "Quick recap"], formula: ["Σ", "Formula"]
+    demo: ["▶", "Interactive demo"], summary: ["↺", "Quick recap"], formula: ["Σ", "Formula"],
+    question: ["Q", "Question"], approach: ["→", "How to approach it"], answer: ["✓", "Final answer"]
   };
   function decorateBoxes() {
     document.querySelectorAll(".box").forEach(function (b) {
