@@ -199,5 +199,179 @@
     K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
   };
 
-  /*__UNIT2__*/
+  /* -------------------------------------------------------------- Unit II */
+  const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const pick = a => a[R(0, a.length - 1)];
+
+  D.digen = function (host) {
+    host.innerHTML = `<div class="demo-row"><label>Chart type<select id="t"><option value="bar">Bar chart</option><option value="pie">Pie chart</option><option value="line">Line graph</option><option value="table">Table</option></select></label><button class="btn" id="go">New data set</button></div><div id="g"></div><div id="q"></div>`;
+    function go() {
+      const t = K.q(host, "#t").value, g = K.q(host, "#g"), q = K.q(host, "#q"); g.innerHTML = "";
+      const yrs = ["2019", "2020", "2021", "2022", "2023", "2024"];
+      let qs = [];
+      if (t === "bar" || t === "line") {
+        const a = yrs.map(() => R(4, 20) * 5), b = yrs.map(() => R(4, 20) * 5);
+        if (t === "bar") { g.appendChild(K.barChart({ labels: yrs, values: a, h: 230, fmt: v => K.num(v, 0) })); g.insertAdjacentHTML("beforeend", `<p class="hint" style="text-align:center">Sales of a company (₹ crore)</p>`); }
+        else { g.appendChild(K.lineChart({ labels: yrs, series: [{ values: a, name: "Company X" }, { values: b, name: "Company Y" }], h: 230, yMin: 0 })); g.insertAdjacentHTML("beforeend", K.legend(["Company X", "Company Y"]) + `<p class="hint">Profit (₹ lakh). Hover the points for values.</p>`); }
+        const i = R(1, 5), sum = a.reduce((x, y) => x + y, 0), avg = sum / 6;
+        const growth = a.map((v, k) => k ? (v - a[k - 1]) / a[k - 1] * 100 : null), best = growth.indexOf(Math.max(...growth.slice(1)));
+        qs = [[`% change from ${yrs[i - 1]} to ${yrs[i]} ${t === "line" ? "for X" : ""}?`, `(${a[i]} − ${a[i - 1]})/${a[i - 1]} × 100 = <b>${f(growth[i])}%</b>`],
+          [`Average ${t === "line" ? "profit of X" : "sales"} over the six years?`, `${sum}/6 = <b>${f(avg)}</b>`],
+          [`How many years were above the average?`, `<b>${a.filter(v => v > avg).length}</b> (${yrs.filter((_, k) => a[k] > avg).join(", ")})`],
+          [`Which year showed the highest % growth over the previous year?`, `<b>${yrs[best]}</b> (${f(growth[best])}%)`]];
+        if (t === "line") { const d = a.map((v, k) => Math.abs(v - b[k])), mx = d.indexOf(Math.max(...d)); qs.push([`In which year was the difference between X and Y the greatest?`, `<b>${yrs[mx]}</b> (difference ${d[mx]})`], [`In how many years did Y earn more than X?`, `<b>${a.filter((v, k) => b[k] > v).length}</b>`]); }
+      } else if (t === "pie") {
+        const cats = ["Food", "Rent", "Education", "Transport", "Savings", "Others"]; let p = cats.map(() => R(2, 12)); const s = p.reduce((x, y) => x + y, 0); p = p.map(v => Math.round(v / s * 100)); p[0] += 100 - p.reduce((x, y) => x + y, 0);
+        const tot = R(4, 12) * 10000;
+        const sv = K.pieChart({ labels: cats, values: p, size: 220 }); sv.style.maxWidth = "240px"; sv.style.margin = "auto"; g.appendChild(sv);
+        g.insertAdjacentHTML("beforeend", K.legend(cats.map((c, i) => `${c} ${p[i]}%`)) + `<p class="hint">Monthly expenditure, total ₹${tot.toLocaleString("en-IN")}</p>`);
+        const i = R(0, 5), j = (i + R(1, 5)) % 6;
+        qs = [[`Central angle of ${cats[i]}?`, `${p[i]} × 3.6 = <b>${f(p[i] * 3.6, 1)}°</b>`], [`Amount spent on ${cats[j]}?`, `${p[j]}% of ${tot} = <b>₹${f(p[j] * tot / 100)}</b>`], [`${cats[i]} is what % of ${cats[j]}?`, `${p[i]}/${p[j]} × 100 = <b>${f(100 * p[i] / p[j])}%</b>`], [`Difference between ${cats[i]} and ${cats[j]} in ₹?`, `${Math.abs(p[i] - p[j])}% of ${tot} = <b>₹${f(Math.abs(p[i] - p[j]) * tot / 100)}</b>`]];
+      } else {
+        const prods = ["A", "B", "C", "D"], y4 = yrs.slice(2), data = prods.map(() => y4.map(() => R(5, 30) * 5));
+        const tots = y4.map((_, k) => data.reduce((s, r) => s + r[k], 0));
+        g.innerHTML = tbl(["Product", ...y4], prods.map((p, i) => [p, ...data[i]]).concat([{ cls: "total", cells: ["Total", ...tots] }]));
+        const i = R(0, 3), first = data[i][0], last = data[i][3], ptot = data[i].reduce((x, y) => x + y, 0);
+        const gr = data.map(r => (r[3] - r[0]) / r[0] * 100), bi = gr.indexOf(Math.max(...gr));
+        qs = [[`% increase in ${prods[i]} from ${y4[0]} to ${y4[3]}?`, `(${last} − ${first})/${first} × 100 = <b>${f((last - first) / first * 100)}%</b>`], [`Average production of ${prods[i]}?`, `${ptot}/4 = <b>${f(ptot / 4)}</b>`], [`${prods[i]}'s share of ${y4[3]} total?`, `${last}/${tots[3]} × 100 = <b>${f(100 * last / tots[3])}%</b>`], [`Which product grew most (%) from ${y4[0]} to ${y4[3]}?`, `<b>${prods[bi]}</b> (${f(gr[bi])}%)`]];
+      }
+      q.innerHTML = `<ol class="qlist">${qs.map(x => `<li>${x[0]}<details class="ans"><summary>Show answer</summary><div>${x[1]}</div></details></li>`).join("")}</ol>`;
+    }
+    K.q(host, "#go").addEventListener("click", go); K.q(host, "#t").addEventListener("change", go); go();
+  };
+
+  D.pnc = function (host) {
+    host.innerHTML = `<div class="demo-row"><label>n<input type="number" id="n" value="6" min="0" max="170"></label><label>r<input type="number" id="r" value="3" min="0"></label></div><div class="out" id="o1"></div>
+      <div class="demo-row" style="margin-top:8px"><label class="grow">Word to arrange<input type="text" id="w" value="LEADER" class="wide"></label></div><div class="out" id="o2"></div>
+      <details class="more"><summary>List the selections/arrangements (small n only)</summary><div id="ls"></div></details>`;
+    const fact = n => { let x = 1n; for (let i = 2n; i <= BigInt(n); i++) x *= i; return x; };
+    function go() {
+      const n = Math.max(0, Math.min(170, +K.q(host, "#n").value || 0)), r = Math.max(0, +K.q(host, "#r").value || 0);
+      if (r > n) { K.q(host, "#o1").innerHTML = "r cannot exceed n."; }
+      else {
+        const P = fact(n) / fact(n - r), C = P / fact(r);
+        K.q(host, "#o1").innerHTML = `n! = ${n}! = ${fact(n).toLocaleString("en-IN")}<br><b>ⁿPᵣ</b> = n!/(n − r)! = ${n}!/${n - r}! = ${[...Array(r).keys()].map(i => n - i).join(" × ") || "1"} = <b>${P.toLocaleString("en-IN")}</b> (arrangements — order matters)<br><b>ⁿCᵣ</b> = ⁿPᵣ/r! = ${P.toLocaleString("en-IN")}/${fact(r)} = <b>${C.toLocaleString("en-IN")}</b> (selections — order doesn't matter)<br>With repetition allowed: nʳ = ${(BigInt(n) ** BigInt(r)).toLocaleString("en-IN")} · Circular arrangements of n: (n − 1)! = ${n ? fact(n - 1).toLocaleString("en-IN") : 0}`;
+        const items = "ABCDEFGH".slice(0, n);
+        if (n <= 6 && r <= 4) {
+          const sel = [], arr = [];
+          const comb = (s, start, cur) => { if (cur.length === r) { sel.push(cur); return; } for (let i = start; i < s.length; i++) comb(s, i + 1, cur + s[i]); };
+          const perm = (s, cur) => { if (cur.length === r) { arr.push(cur); return; } for (const c of s) if (!cur.includes(c)) perm(s, cur + c); };
+          comb(items, 0, ""); perm(items, "");
+          K.q(host, "#ls").innerHTML = `<p><b>Combinations of {${[...items].join(", ")}} taken ${r} (${sel.length}):</b> ${sel.join(", ")}</p><p><b>Permutations (${arr.length}):</b> ${arr.join(", ")}</p><p class="hint">Each combination appears r! = ${Number(fact(r))} times among the permutations.</p>`;
+        } else K.q(host, "#ls").innerHTML = `<p class="hint">Choose n ≤ 6 and r ≤ 4 to see the full list.</p>`;
+      }
+      const w = K.q(host, "#w").value.toUpperCase().replace(/[^A-Z]/g, "");
+      if (w) {
+        const cnt = {}; for (const c of w) cnt[c] = (cnt[c] || 0) + 1;
+        const reps = Object.entries(cnt).filter(x => x[1] > 1);
+        let den = 1n; reps.forEach(x => den *= fact(x[1]));
+        const vow = [...w].filter(c => "AEIOU".includes(c)), con = [...w].filter(c => !"AEIOU".includes(c));
+        const vc = {}, cc = {}; vow.forEach(c => vc[c] = (vc[c] || 0) + 1); con.forEach(c => cc[c] = (cc[c] || 0) + 1);
+        const dv = Object.values(vc).reduce((a, m) => a * fact(m), 1n), dc = Object.values(cc).reduce((a, m) => a * fact(m), 1n);
+        const together = vow.length ? fact(con.length + 1) / dc * (fact(vow.length) / dv) : 0n;
+        K.q(host, "#o2").innerHTML = `"${w}" has ${w.length} letters${reps.length ? `; repeated: ${reps.map(x => `${x[0]}×${x[1]}`).join(", ")}` : " (all different)"}.<br>Arrangements = ${w.length}!${reps.length ? "/(" + reps.map(x => x[1] + "!").join(" ") + ")" : ""} = <b>${(fact(w.length) / den).toLocaleString("en-IN")}</b>${vow.length ? `<br>With all vowels (${vow.join("")}) together: treat them as one block → (${con.length} + 1)!${dc > 1n ? "/" + dc : ""} × ${vow.length}!${dv > 1n ? "/" + dv : ""} = <b>${together.toLocaleString("en-IN")}</b>` : ""}`;
+      }
+    }
+    K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.dicegrid = function (host) {
+    host.innerHTML = `<div class="demo-row"><label>Event<select id="e"><option value="sum">Sum equals</option><option value="ge">Sum at least</option><option value="dbl">Doublet (same number)</option><option value="one6">At least one 6</option><option value="prod">Product is even</option></select></label><label>k<input type="number" id="k" value="9" min="2" max="12"></label></div><div class="two-col" style="align-items:center"><div id="g"></div><div class="out" id="o"></div></div>`;
+    function go() {
+      const e = K.q(host, "#e").value, k = +K.q(host, "#k").value;
+      const test = (a, b) => e === "sum" ? a + b === k : e === "ge" ? a + b >= k : e === "dbl" ? a === b : e === "one6" ? a === 6 || b === 6 : (a * b) % 2 === 0;
+      let h = `<div class="cells" style="grid-template-columns:repeat(7,40px)"><div class="cell head"></div>${[1, 2, 3, 4, 5, 6].map(i => `<div class="cell head">${i}</div>`).join("")}`, n = 0;
+      for (let a = 1; a <= 6; a++) { h += `<div class="cell head">${a}</div>`; for (let b = 1; b <= 6; b++) { const t = test(a, b); if (t) n++; h += `<div class="cell ${t ? "hl" : ""}" style="font-size:.7rem">${a},${b}</div>`; } }
+      K.q(host, "#g").innerHTML = h + "</div>";
+      const g = K.gcd(n, 36);
+      K.q(host, "#o").innerHTML = `Favourable outcomes = <b>${n}</b> (highlighted) out of 36.<br>P = ${n}/36 = <b>${n / g}/${36 / g}</b> ≈ ${f(n / 36, 4)}<br><span class="hint">Rows = first die, columns = second die.</span>`;
+    }
+    K.qa(host, "input,select").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.logcalc = function (host) {
+    host.innerHTML = `<div class="demo-row"><label>Base a<input type="number" id="a" value="2"></label><label>Number N<input type="number" id="n" value="32"></label></div><div class="out" id="o"></div>
+      <div class="demo-row" style="margin-top:8px"><label>Digits in a<sup>b</sup>: a<input type="number" id="x" value="2"></label><label>b<input type="number" id="y" value="50"></label></div><div class="out" id="o2"></div>`;
+    function go() {
+      const a = +K.q(host, "#a").value, n = +K.q(host, "#n").value;
+      if (a <= 0 || a === 1 || n <= 0) K.q(host, "#o").innerHTML = `<span class="no">Need a &gt; 0, a ≠ 1 and N &gt; 0.</span>`;
+      else {
+        const v = Math.log(n) / Math.log(a), ri = Math.round(v), exact = Math.abs(v - ri) < 1e-9;
+        K.q(host, "#o").innerHTML = `log<sub>${a}</sub> ${n} = <b>${exact ? ri : f(v, 6)}</b> because ${a}<sup>${exact ? ri : f(v, 4)}</sup> = ${n}.<br>Change of base: log ${n} / log ${a} = ${f(Math.log10(n), 4)} / ${f(Math.log10(a), 4)} = ${f(v, 4)}<br>Check a law: log(${n} × ${a}) = ${f(Math.log10(n * a), 4)} = log ${n} + log ${a} = ${f(Math.log10(n), 4)} + ${f(Math.log10(a), 4)} ✓`;
+      }
+      const x = +K.q(host, "#x").value, y = +K.q(host, "#y").value;
+      if (x > 0 && y >= 0) { const L = y * Math.log10(x), dig = Math.floor(L) + 1; K.q(host, "#o2").innerHTML = `log(${x}<sup>${y}</sup>) = ${y} × log ${x} = ${y} × ${f(Math.log10(x), 4)} = ${f(L, 4)} → characteristic ${Math.floor(L)} → <b>${dig} digits</b>${dig <= 300 && x === Math.round(x) && y <= 1000 ? ` (check: ${(BigInt(x) ** BigInt(y)).toString().length})` : ""}`; }
+    }
+    K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.apgp = function (host) {
+    host.innerHTML = `<div class="demo-row"><div class="seg" id="t"><button class="on" data-v="ap">AP</button><button data-v="gp">GP</button></div><label>First term a<input type="number" id="a" value="3"></label><label id="dl">Common difference d<input type="number" id="d" value="4"></label><label>n<input type="number" id="n" value="10" min="1" max="30"></label></div><div id="g"></div><div class="out" id="o"></div>`;
+    let t = "ap";
+    K.qa(host, "#t button").forEach(b => b.addEventListener("click", () => { t = b.dataset.v; K.qa(host, "#t button").forEach(x => x.classList.toggle("on", x === b)); K.q(host, "#dl").firstChild.textContent = t === "ap" ? "Common difference d" : "Common ratio r"; K.q(host, "#d").value = t === "ap" ? 4 : 2; K.q(host, "#a").value = t === "ap" ? 3 : 2; go(); }));
+    function go() {
+      const a = +K.q(host, "#a").value, d = +K.q(host, "#d").value, n = Math.max(1, Math.min(30, +K.q(host, "#n").value));
+      const terms = [...Array(n).keys()].map(i => t === "ap" ? a + i * d : a * d ** i), S = terms.reduce((x, y) => x + y, 0);
+      const g = K.q(host, "#g"); g.innerHTML = ""; g.appendChild(K.barChart({ labels: terms.map((_, i) => "T" + (i + 1)), values: terms.map(Math.abs), h: 200, fmt: v => K.short(v), showValues: n <= 12 }));
+      K.q(host, "#o").innerHTML = t === "ap"
+        ? `Terms: ${terms.join(", ")}<br>T<sub>n</sub> = a + (n − 1)d = ${a} + ${n - 1} × ${d} = <b>${terms[n - 1]}</b><br>S<sub>n</sub> = n/2 × (first + last) = ${n}/2 × (${a} + ${terms[n - 1]}) = <b>${S}</b><br>The bars grow by the same amount each step (linear growth).`
+        : `Terms: ${terms.map(x => K.num(x, 4)).join(", ")}<br>T<sub>n</sub> = arⁿ⁻¹ = ${a} × ${d}<sup>${n - 1}</sup> = <b>${K.num(terms[n - 1], 4)}</b><br>S<sub>n</sub> = a(rⁿ − 1)/(r − 1) = <b>${d === 1 ? a * n : K.num(a * (d ** n - 1) / (d - 1), 4)}</b>${Math.abs(d) < 1 ? `<br>Sum to infinity = a/(1 − r) = <b>${K.num(a / (1 - d), 4)}</b>` : ""}<br>The bars multiply by the same factor each step (exponential growth).`;
+    }
+    K.qa(host, "input").forEach(i => i.addEventListener("input", go)); go();
+  };
+
+  D.shapes = function (host) {
+    const S = {
+      "Rectangle": [["l", 10], ["b", 6]], "Square": [["a", 8]], "Triangle (3 sides, Heron)": [["a", 13], ["b", 14], ["c", 15]], "Circle": [["r", 7]], "Trapezium": [["a", 10], ["b", 6], ["h", 4]],
+      "Cube": [["a", 5]], "Cuboid": [["l", 10], ["b", 8], ["h", 4]], "Cylinder": [["r", 7], ["h", 10]], "Cone": [["r", 3], ["h", 4]], "Sphere": [["r", 21]], "Hemisphere": [["r", 7]]
+    };
+    host.innerHTML = `<div class="demo-row"><label>Shape<select id="s">${Object.keys(S).map(k => `<option>${k}</option>`).join("")}</select></label><span id="ins" style="display:contents"></span><label>π<select id="pi"><option value="22/7">22/7</option><option value="3.1416">3.1416</option></select></label></div><div class="out" id="o"></div>`;
+    function inputs() { const s = K.q(host, "#s").value; K.q(host, "#ins").innerHTML = S[s].map(p => `<label>${p[0]}<input type="number" data-p="${p[0]}" value="${p[1]}"></label>`).join(""); K.qa(host, "#ins input").forEach(i => i.addEventListener("input", go)); go(); }
+    function go() {
+      const s = K.q(host, "#s").value, v = {}; K.qa(host, "#ins input").forEach(i => v[i.dataset.p] = +i.value);
+      const pi = K.q(host, "#pi").value === "22/7" ? 22 / 7 : 3.1416, P = K.q(host, "#pi").value;
+      let h = "";
+      switch (s) {
+        case "Rectangle": h = `Area = l × b = <b>${f(v.l * v.b)}</b><br>Perimeter = 2(l + b) = <b>${f(2 * (v.l + v.b))}</b><br>Diagonal = √(l² + b²) = <b>${f(Math.hypot(v.l, v.b), 3)}</b>`; break;
+        case "Square": h = `Area = a² = <b>${f(v.a * v.a)}</b><br>Perimeter = 4a = <b>${f(4 * v.a)}</b><br>Diagonal = a√2 = <b>${f(v.a * Math.SQRT2, 3)}</b>`; break;
+        case "Triangle (3 sides, Heron)": { const s2 = (v.a + v.b + v.c) / 2, q = s2 * (s2 - v.a) * (s2 - v.b) * (s2 - v.c); h = q <= 0 ? '<span class="no">These sides do not form a triangle (each side must be less than the sum of the other two).</span>' : `s = (a + b + c)/2 = ${f(s2)}<br>Area = √[s(s − a)(s − b)(s − c)] = √(${f(s2)} × ${f(s2 - v.a)} × ${f(s2 - v.b)} × ${f(s2 - v.c)}) = √${f(q)} = <b>${f(Math.sqrt(q), 3)}</b><br>Perimeter = <b>${f(2 * s2)}</b>`; break; }
+        case "Circle": h = `Area = πr² = ${P} × ${v.r}² = <b>${f(pi * v.r * v.r)}</b><br>Circumference = 2πr = <b>${f(2 * pi * v.r)}</b>`; break;
+        case "Trapezium": h = `Area = ½(a + b)h = ½ × ${v.a + v.b} × ${v.h} = <b>${f((v.a + v.b) * v.h / 2)}</b>`; break;
+        case "Cube": h = `Volume = a³ = <b>${f(v.a ** 3)}</b><br>TSA = 6a² = <b>${f(6 * v.a * v.a)}</b>; lateral = 4a² = ${f(4 * v.a * v.a)}<br>Diagonal = a√3 = ${f(v.a * Math.sqrt(3), 3)}`; break;
+        case "Cuboid": h = `Volume = lbh = <b>${f(v.l * v.b * v.h)}</b><br>TSA = 2(lb + bh + hl) = <b>${f(2 * (v.l * v.b + v.b * v.h + v.h * v.l))}</b><br>Four walls = 2(l + b)h = ${f(2 * (v.l + v.b) * v.h)}<br>Diagonal = √(l² + b² + h²) = ${f(Math.sqrt(v.l ** 2 + v.b ** 2 + v.h ** 2), 3)}`; break;
+        case "Cylinder": h = `Volume = πr²h = <b>${f(pi * v.r * v.r * v.h)}</b> (= ${f(pi * v.r * v.r * v.h / 1000, 3)} litres if cm)<br>CSA = 2πrh = <b>${f(2 * pi * v.r * v.h)}</b><br>TSA = 2πr(r + h) = <b>${f(2 * pi * v.r * (v.r + v.h))}</b>`; break;
+        case "Cone": { const l = Math.hypot(v.r, v.h); h = `Slant height l = √(r² + h²) = ${f(l, 3)}<br>Volume = ⅓πr²h = <b>${f(pi * v.r * v.r * v.h / 3)}</b><br>CSA = πrl = <b>${f(pi * v.r * l)}</b><br>TSA = πr(l + r) = <b>${f(pi * v.r * (l + v.r))}</b>`; break; }
+        case "Sphere": h = `Volume = (4/3)πr³ = <b>${f(4 / 3 * pi * v.r ** 3)}</b><br>Surface area = 4πr² = <b>${f(4 * pi * v.r * v.r)}</b>`; break;
+        case "Hemisphere": h = `Volume = (2/3)πr³ = <b>${f(2 / 3 * pi * v.r ** 3)}</b><br>CSA = 2πr² = <b>${f(2 * pi * v.r * v.r)}</b><br>TSA = 3πr² = <b>${f(3 * pi * v.r * v.r)}</b>`; break;
+      }
+      K.q(host, "#o").innerHTML = h;
+    }
+    K.q(host, "#s").addEventListener("change", inputs); K.q(host, "#pi").addEventListener("change", go); inputs();
+  };
+
+  D.approx = function (host) {
+    const gens = [
+      () => { const a = R(30, 99) * 100 + R(-30, 30), b = R(11, 39) / 10 + (Math.random() < .5 ? 0.02 : -0.02); return [`${a} × ${b.toFixed(2)}`, a * b]; },
+      () => { const p = pick([12.5, 25, 33.33, 37.5, 62.5, 16.66, 20, 75]) + pick([-0.04, 0.03, 0.02]), n = R(12, 96) * 25 + R(-3, 3); return [`${p.toFixed(2)}% of ${n}`, p * n / 100]; },
+      () => { const s = R(15, 60); const n = s * s + R(-4, 4); return [`√${n}`, Math.sqrt(n)]; },
+      () => { const a = R(200, 999), b = R(11, 49); return [`${a} ÷ ${b}`, a / b]; },
+      () => { const a = R(1000, 9999), b = R(1000, 9999), c = R(100, 999); return [`${a} + ${b} − ${c}`, a + b - c]; }
+    ];
+    let t0 = 0, cur = null, score = 0, n = 0, timer = null;
+    host.innerHTML = `<div class="demo-row"><button class="btn" id="st">Start / next question</button><span id="tm" style="padding-bottom:8px;font-family:var(--mono)"></span><span id="sc" class="hint" style="padding-bottom:8px"></span></div><div id="q"></div>`;
+    function next() {
+      const [expr, val] = pick(gens)();
+      const opts = [val, val * (1 + pick([0.18, 0.25, 0.35])), val * (1 - pick([0.18, 0.22, 0.3])), val * (1 + pick([0.5, 0.6, -0.45]))].map(x => Math.round(x * 100) / 100).sort(() => Math.random() - .5);
+      cur = { expr, val: Math.round(val * 100) / 100, opts };
+      K.q(host, "#q").innerHTML = `<div class="out" style="font-size:1.2rem">≈ ? &nbsp; <b>${expr}</b></div><div class="demo-row">${opts.map(o => `<button class="btn ghost" data-v="${o}">${o.toLocaleString("en-IN")}</button>`).join("")}</div><div id="fb"></div>`;
+      K.qa(host, "#q [data-v]").forEach(b => b.addEventListener("click", () => {
+        if (!cur) return; const ok = +b.dataset.v === cur.val, secs = ((performance.now() - t0) / 1000).toFixed(1); n++; if (ok) score++;
+        K.q(host, "#fb").innerHTML = `<div class="out">${ok ? '<span class="ok">Correct</span>' : `<span class="no">The closest is ${cur.val.toLocaleString("en-IN")}</span>`} in ${secs} s. Tip: round the numbers (and use fraction equivalents for %) — the options are far apart, so an estimate is enough.</div>`;
+        K.q(host, "#sc").textContent = `Score ${score}/${n}`; cur = null; clearInterval(timer);
+      }));
+      t0 = performance.now(); clearInterval(timer);
+      timer = setInterval(() => { K.q(host, "#tm").textContent = ((performance.now() - t0) / 1000).toFixed(1) + " s"; }, 100);
+    }
+    K.q(host, "#st").addEventListener("click", next);
+  };
 })();

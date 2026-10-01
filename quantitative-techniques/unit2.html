@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit II · Data Interpretation &amp; Advanced Aptitude — Quantitative Techniques</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="quant" data-page="unit2.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Unit II · 14 hours · CO3, CO4</div>
+  <h1>Data Interpretation &amp; Advanced Aptitude</h1>
+  <p class="lead">Reading tables and charts quickly and accurately, judging whether data is sufficient, counting arrangements and selections, probability, logarithms, number sequences, the geometry of everyday shapes, and the strategies that make you faster in a timed test.</p>
+  <div class="meta"><span class="chip acc">Tables · bar · pie · line</span><span class="chip acc">Data sufficiency</span><span class="chip acc">P &amp; C</span><span class="chip acc">Probability</span><span class="chip acc">Logarithms</span><span class="chip acc">AP &amp; GP</span><span class="chip acc">Areas &amp; volumes</span><span class="chip acc">Strategies</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="di">
+<h2><span class="num">2.1</span> Data interpretation (DI)</h2>
+<div class="box found">
+  <p>DI questions are mostly <b>percentages, ratios and averages</b> (Unit I) applied to data shown in a table or chart. The skill is reading the right numbers quickly and approximating smartly.</p>
+</div>
+<div class="concept">
+  <h3>How to approach any DI set</h3>
+  <div class="f-exp">A DI set gives one data display and 4–6 questions on it. Each question needs one or two numbers from the display and a quick calculation.</div>
+  <div class="f-use">Every placement test, bank/SSC exam, CAT; also real-life reading of business reports and dashboards.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>Read the title, units and legends first</b> (₹ crore? '000 units? percentages of what total?).</li>
+      <li>Read the question; identify exactly which values are needed.</li>
+      <li><b>Approximate</b> when options are far apart; compute exactly only when they are close.</li>
+      <li>For "percentage change" always divide by the <b>earlier/base</b> value.</li>
+      <li>Watch for traps: % of total vs absolute value; "approximately"; different units in one chart.</li>
+    </ol></div>
+  <div class="f-lim">A chart read wrongly gives a confidently wrong answer — always re-check the scale.</div>
+</div>
+
+<h3>A. Tabular data</h3>
+<div class="box example" data-title="DI set 1 — Production ('000 units) of five products">
+<table class="num"><tr><th>Product</th><th>2021</th><th>2022</th><th>2023</th><th>2024</th></tr>
+<tr><td>A</td><td>120</td><td>135</td><td>150</td><td>165</td></tr><tr><td>B</td><td>80</td><td>90</td><td>85</td><td>100</td></tr><tr><td>C</td><td>150</td><td>140</td><td>160</td><td>175</td></tr><tr><td>D</td><td>60</td><td>75</td><td>90</td><td>85</td></tr><tr><td>E</td><td>90</td><td>100</td><td>115</td><td>125</td></tr>
+<tr class="total"><td>Total</td><td>500</td><td>540</td><td>600</td><td>650</td></tr></table>
+<ol class="steps">
+  <li><b>Total production in 2023?</b> 150 + 85 + 160 + 90 + 115 = <b>600 thousand</b>.</li>
+  <li><b>% increase in A from 2021 to 2024?</b> (165 − 120)/120 × 100 = <b>37.5 %</b>.</li>
+  <li><b>Average production of C over the 4 years?</b> 625/4 = <b>156.25 thousand</b>.</li>
+  <li><b>Which product grew most (in %) from 2021 to 2024?</b> A 37.5 %, B 25 %, C 16.7 %, D 25/60 = <b>41.7 %</b>, E 38.9 % → <b>D</b>.</li>
+  <li><b>Ratio of B's total to D's total?</b> 355 : 310 = <b>71 : 62</b>.</li>
+  <li><b>C's share of 2024 production?</b> 175/650 × 100 ≈ <b>26.9 %</b>.</li>
+</ol>
+</div>
+
+<h3>B. Bar charts</h3>
+<figure class="fig">
+<svg viewBox="0 0 560 260" width="540" role="img" aria-label="Sales bar chart">
+ <line x1="50" x2="540" y1="220" y2="220" class="dg-line"/><line x1="50" x2="50" y1="20" y2="220" class="dg-line"/>
+ <g class="dg-ts"><text x="44" y="224" text-anchor="end">0</text><text x="44" y="179" text-anchor="end">20</text><text x="44" y="135" text-anchor="end">40</text><text x="44" y="91" text-anchor="end">60</text><text x="44" y="47" text-anchor="end">80</text></g>
+ <g><rect x="70" y="132" width="50" height="88" class="dg-acc"/><rect x="150" y="143" width="50" height="77" class="dg-acc"/><rect x="230" y="110" width="50" height="110" class="dg-acc"/><rect x="310" y="88" width="50" height="132" class="dg-acc"/><rect x="390" y="61.6" width="50" height="158.4" class="dg-acc"/><rect x="470" y="22" width="50" height="198" class="dg-acc"/></g>
+ <g class="dg-tb"><text x="95" y="126" text-anchor="middle">40</text><text x="175" y="137" text-anchor="middle">35</text><text x="255" y="104" text-anchor="middle">50</text><text x="335" y="82" text-anchor="middle">60</text><text x="415" y="56" text-anchor="middle">72</text><text x="495" y="17" text-anchor="middle">90</text></g>
+ <g class="dg-ts"><text x="95" y="238" text-anchor="middle">2019</text><text x="175" y="238" text-anchor="middle">2020</text><text x="255" y="238" text-anchor="middle">2021</text><text x="335" y="238" text-anchor="middle">2022</text><text x="415" y="238" text-anchor="middle">2023</text><text x="495" y="238" text-anchor="middle">2024</text></g>
+ <text class="dg-ts" x="300" y="256" text-anchor="middle">Sales of a company (₹ crore)</text>
+</svg>
+</figure>
+<div class="box example" data-title="DI set 2 — questions on the bar chart">
+<ol class="steps">
+  <li><b>% growth from 2023 to 2024?</b> (90 − 72)/72 × 100 = <b>25 %</b>.</li>
+  <li><b>In which year did sales fall?</b> 2020 (40 → 35, a fall of <b>12.5 %</b>).</li>
+  <li><b>Average annual sales?</b> 347/6 ≈ <b>₹57.8 crore</b>.</li>
+  <li><b>How many years were above the average?</b> 2022, 2023, 2024 → <b>3</b>.</li>
+  <li><b>Highest year-on-year % growth?</b> 2021: 15/35 = <b>42.9 %</b> (others: 20 %, 20 %, 25 %).</li>
+</ol>
+</div>
+
+<h3>C. Pie charts</h3>
+<div class="concept">
+  <h3>Reading a pie chart</h3>
+  <div class="f-exp">A pie shows parts of a <b>whole</b> (100 % = 360°). Each sector's central angle = (percentage × 360)/100 = <b>3.6° per 1 %</b>.</div>
+  <div class="f-use">Budgets, market share, composition of expenses or population.</div>
+  <div class="f-imp">Value of a sector = (sector % / 100) × total, or (angle/360) × total.</div>
+  <div class="f-lim">You cannot compare two pies' sectors directly if their totals differ — convert to values first.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 520 240" width="500" role="img" aria-label="Budget pie chart">
+ <g transform="translate(120,120)">
+  <path d="M0,0 L0,-100 A100,100 0 0,1 95.1,30.9 Z" style="fill:#4c6ef5"/>
+  <path d="M0,0 L95.1,30.9 A100,100 0 0,1 -30.9,95.1 Z" style="fill:#f08c00"/>
+  <path d="M0,0 L-30.9,95.1 A100,100 0 0,1 -95.1,30.9 Z" style="fill:#12b886"/>
+  <path d="M0,0 L-95.1,30.9 A100,100 0 0,1 -100,0 Z" style="fill:#e64980"/>
+  <path d="M0,0 L-100,0 A100,100 0 0,1 -48.2,-87.6 Z" style="fill:#7950f2"/>
+  <path d="M0,0 L-48.2,-87.6 A100,100 0 0,1 0,-100 Z" style="fill:#15aabf"/>
+ </g>
+ <g class="dg-t">
+  <rect x="270" y="30" width="12" height="12" style="fill:#4c6ef5"/><text x="290" y="41">Food 30 %</text>
+  <rect x="270" y="58" width="12" height="12" style="fill:#f08c00"/><text x="290" y="69">Rent 25 %</text>
+  <rect x="270" y="86" width="12" height="12" style="fill:#12b886"/><text x="290" y="97">Education 15 %</text>
+  <rect x="270" y="114" width="12" height="12" style="fill:#e64980"/><text x="290" y="125">Transport 5 %</text>
+  <rect x="270" y="142" width="12" height="12" style="fill:#7950f2"/><text x="290" y="153">Savings 17 %</text>
+  <rect x="270" y="170" width="12" height="12" style="fill:#15aabf"/><text x="290" y="181">Others 8 %</text>
+  <text x="270" y="215" class="dg-ts">Monthly budget of a family: total ₹60,000</text>
+ </g>
+</svg>
+</figure>
+<div class="box example" data-title="DI set 3 — questions on the pie chart">
+<ol class="steps">
+  <li><b>Central angle for Rent?</b> 25 × 3.6 = <b>90°</b>.</li>
+  <li><b>Amount spent on Education?</b> 15 % of 60,000 = <b>₹9,000</b>.</li>
+  <li><b>By how much does Food exceed Transport?</b> (30 − 5) % of 60,000 = <b>₹15,000</b>.</li>
+  <li><b>Savings as a % of Food?</b> 17/30 × 100 ≈ <b>56.7 %</b>.</li>
+  <li><b>If income rises 10 % and the savings share stays the same, new savings?</b> 17 % of 66,000 = <b>₹11,220</b>.</li>
+</ol>
+</div>
+
+<h3>D. Line graphs</h3>
+<figure class="fig">
+<svg viewBox="0 0 560 260" width="540" role="img" aria-label="Profit line graph">
+ <line x1="50" x2="540" y1="220" y2="220" class="dg-line"/><line x1="50" x2="50" y1="20" y2="220" class="dg-line"/>
+ <g class="dg-ts"><text x="44" y="224" text-anchor="end">10</text><text x="44" y="174" text-anchor="end">20</text><text x="44" y="124" text-anchor="end">30</text><text x="44" y="74" text-anchor="end">40</text></g>
+ <polyline points="90,170 200,145 310,160 420,120 530,95" style="fill:none;stroke:#4c6ef5;stroke-width:2.5"/>
+ <polyline points="90,195 200,170 310,130 420,140 530,110" style="fill:none;stroke:#f08c00;stroke-width:2.5;stroke-dasharray:6 4"/>
+ <g style="fill:#4c6ef5"><circle cx="90" cy="170" r="4"/><circle cx="200" cy="145" r="4"/><circle cx="310" cy="160" r="4"/><circle cx="420" cy="120" r="4"/><circle cx="530" cy="95" r="4"/></g>
+ <g style="fill:#f08c00"><circle cx="90" cy="195" r="4"/><circle cx="200" cy="170" r="4"/><circle cx="310" cy="130" r="4"/><circle cx="420" cy="140" r="4"/><circle cx="530" cy="110" r="4"/></g>
+ <g class="dg-ts"><text x="90" y="160" text-anchor="middle">20</text><text x="200" y="135" text-anchor="middle">25</text><text x="310" y="176" text-anchor="middle">22</text><text x="420" y="110" text-anchor="middle">30</text><text x="530" y="85" text-anchor="middle">35</text>
+ <text x="90" y="211" text-anchor="middle">15</text><text x="200" y="186" text-anchor="middle">20</text><text x="310" y="122" text-anchor="middle">28</text><text x="420" y="156" text-anchor="middle">26</text><text x="530" y="126" text-anchor="middle">32</text></g>
+ <g class="dg-ts"><text x="90" y="238" text-anchor="middle">2020</text><text x="200" y="238" text-anchor="middle">2021</text><text x="310" y="238" text-anchor="middle">2022</text><text x="420" y="238" text-anchor="middle">2023</text><text x="530" y="238" text-anchor="middle">2024</text></g>
+ <text class="dg-ts" x="300" y="256" text-anchor="middle">Profit (₹ lakh): Company X (solid) and Company Y (dashed)</text>
+</svg>
+</figure>
+<div class="box example" data-title="DI set 4 — questions on the line graph">
+<ol class="steps">
+  <li><b>In which year did Y earn more than X?</b> <b>2022</b> (28 vs 22).</li>
+  <li><b>Total profit of X over 5 years?</b> 20 + 25 + 22 + 30 + 35 = <b>₹132 lakh</b>; Y = <b>₹121 lakh</b>.</li>
+  <li><b>% increase in Y's profit from 2020 to 2024?</b> (32 − 15)/15 × 100 ≈ <b>113.3 %</b>.</li>
+  <li><b>In which year was the gap between X and Y the largest?</b> Gaps: 5, 5, 6, 4, 3 → <b>2022</b>.</li>
+  <li><b>Average profit of X?</b> 132/5 = <b>₹26.4 lakh</b>.</li>
+</ol>
+</div>
+<div class="demo box" data-demo="digen" data-title="DI practice generator — new chart, new questions every click"></div>
+
+<h3>E. Data sufficiency</h3>
+<div class="concept">
+  <h3>Data sufficiency (DS)</h3>
+  <div class="f-exp">A DS question asks <b>whether</b> the given statements provide enough information to answer — not for the answer itself. Standard options:
+    <ol type="A"><li>Statement I alone is sufficient, II alone is not.</li><li>Statement II alone is sufficient, I alone is not.</li><li>Each statement alone is sufficient.</li><li>Both together are sufficient, neither alone is.</li><li>Both together are not sufficient.</li></ol></div>
+  <div class="f-use">Tests logical reasoning about data — common in bank, MBA and placement tests; mirrors real decisions ("do we have enough data to decide?").</div>
+  <div class="f-imp">
+    <ol class="steps"><li>Check statement I alone — can you get a <b>unique</b> answer?</li><li>Check statement II alone (forget I).</li><li>Only if neither works alone, combine them.</li><li>Don't fully solve — stop once you know a unique answer exists.</li></ol></div>
+  <div class="f-lim">The trap is using information from one statement while judging the other, or assuming facts not given (e.g. that x is positive).</div>
+</div>
+<div class="box example" data-title="Worked DS examples">
+  <ol class="steps">
+    <li><b>What is x?</b> I: 2x + 3 = 11. II: x² = 16. → I gives x = 4 (unique); II gives ±4 (not unique) → <b>A</b>.</li>
+    <li><b>What is the speed of the train?</b> I: it crosses a pole in 10 s. II: its length is 200 m. → Neither alone; together 200/10 = 20 m/s → <b>D</b>.</li>
+    <li><b>Is the integer n even?</b> I: n² is even. II: n + 1 is odd. → Each alone proves n even → <b>C</b>.</li>
+    <li><b>What is A's age?</b> I: A is 5 years older than B. II: B is half as old as C. → Still three unknowns → <b>E</b>.</li>
+  </ol>
+</div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>What is the profit %? I: CP is ₹400. II: SP is ₹500.
+      <details class="ans"><summary>Show answer</summary><div><b>D</b> — both needed (25 %).</div></details></li>
+    <li>What is the area of the rectangle? I: perimeter is 30 cm. II: the diagonal is 13 cm.
+      <details class="ans"><summary>Show answer</summary><div>l + b = 15, l² + b² = 169 → 2lb = 225 − 169 = 56 → area 28. Both needed → <b>D</b>.</div></details></li>
+    <li>Is x &gt; y? I: x − y = 3. II: x = y + 3.
+      <details class="ans"><summary>Show answer</summary><div>Each alone gives x = y + 3 → <b>C</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="pnc">
+<h2><span class="num">2.2</span> Permutations and combinations</h2>
+<div class="concept">
+  <h3>Fundamental principles of counting</h3>
+  <div class="f-exp"><b>Multiplication (AND) rule:</b> if one task can be done in m ways and, after it, another in n ways, both together can be done in <b>m × n</b> ways. <b>Addition (OR) rule:</b> if a task can be done in m ways OR (exclusively) in n ways, it can be done in <b>m + n</b> ways.</div>
+  <div class="f-use">The basis of every counting question: outfits, passwords, routes, number plates.</div>
+  <div class="f-imp">3 shirts and 4 trousers → 3 × 4 = <b>12</b> outfits. Travel by one of 3 buses or 2 trains → 3 + 2 = <b>5</b> ways. A 4-digit PIN with digits 0–9 → 10⁴ = <b>10,000</b>.</div>
+  <div class="f-lim">The addition rule needs the options to be mutually exclusive.</div>
+</div>
+<div class="concept">
+  <h3>Factorial and permutations (arrangements — order matters)</h3>
+  <div class="f-exp"><b>n!</b> = n × (n − 1) × … × 2 × 1; 0! = 1. A <b>permutation</b> is an arrangement in which <b>order matters</b> (ABC ≠ BCA).
+  <div class="box formula" data-title="Permutation formulas">
+    <span class="eq">ⁿP<sub>r</sub> = <span class="fr"><span>n!</span><span>(n − r)!</span></span> (r of n distinct items, no repetition) &nbsp;&nbsp; n<sup>r</sup> (with repetition)</span>
+    <span class="eq">Identical items: <span class="fr"><span>n!</span><span>p! q! r! …</span></span> &nbsp;&nbsp; Circular: (n − 1)! &nbsp;&nbsp; Necklace/garland: (n − 1)!/2</span>
+  </div></div>
+  <div class="f-use">Arranging people in seats, forming numbers and words, ranking, scheduling.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>4-digit numbers from 1–9 without repetition:</b> ⁹P₄ = 9 × 8 × 7 × 6 = <b>3,024</b>; with repetition 9⁴ = <b>6,561</b>.</li>
+      <li><b>Arrangements of LEADER</b> (E twice): 6!/2! = <b>360</b>. MISSISSIPPI: 11!/(4! 4! 2!) = <b>34,650</b>.</li>
+      <li><b>INDIA with vowels together:</b> vowels I, I, A form one block → units N, D, [IIA] → 3! = 6; inside the block 3!/2! = 3 → <b>18</b> (out of 5!/2! = 60).</li>
+      <li><b>6 people around a round table:</b> (6 − 1)! = <b>120</b>; 6 beads on a necklace: 5!/2 = <b>60</b>.</li>
+      <li><b>5 boys and 3 girls in a row, no two girls together:</b> arrange boys 5! = 120; 6 gaps for girls → ⁶P₃ = 120 → <b>14,400</b>.</li>
+    </ol></div>
+  <div class="f-lim">Forgetting to divide for identical items, or treating circular arrangements like linear ones, are common errors.</div>
+</div>
+<div class="concept">
+  <h3>Combinations (selections — order does not matter)</h3>
+  <div class="f-exp">A <b>combination</b> is a <b>selection</b> where order does not matter ({A, B, C} = {C, A, B}).
+  <div class="box formula" data-title="Combination formulas">
+    <span class="eq">ⁿC<sub>r</sub> = <span class="fr"><span>n!</span><span>r! (n − r)!</span></span> = <span class="fr"><span>ⁿP<sub>r</sub></span><span>r!</span></span> &nbsp;&nbsp; ⁿC<sub>r</sub> = ⁿC<sub>n−r</sub> &nbsp;&nbsp; ⁿC₀ = ⁿC<sub>n</sub> = 1 &nbsp;&nbsp; ⁿC<sub>r</sub> + ⁿC<sub>r−1</sub> = ⁿ⁺¹C<sub>r</sub></span>
+  </div></div>
+  <div class="f-use">Committees, teams, choosing questions in an exam, lottery, handshakes, lines through points.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li>¹⁰C₃ = 10 × 9 × 8/(3 × 2 × 1) = <b>120</b>. ¹⁰C₈ = ¹⁰C₂ = <b>45</b> (use the smaller r).</li>
+      <li><b>Committee of 3 men and 2 women from 6 men and 5 women:</b> ⁶C₃ × ⁵C₂ = 20 × 10 = <b>200</b>.</li>
+      <li><b>Committee of 4 from 5 men and 4 women with at least one woman:</b> total − none = ⁹C₄ − ⁵C₄ = 126 − 5 = <b>121</b>.</li>
+      <li><b>Handshakes among 10 people:</b> ¹⁰C₂ = <b>45</b>. <b>Diagonals of a hexagon:</b> ⁶C₂ − 6 = <b>9</b>.</li>
+      <li><b>Choose 5 questions out of 8 when Q1 is compulsory:</b> ⁷C₄ = <b>35</b>.</li>
+    </ol></div>
+  <div class="f-lim">Ask "does order matter?" — if swapping two chosen items gives a different outcome, use permutations.</div>
+</div>
+<div class="demo box" data-demo="pnc" data-title="Interactive calculator — permutations, combinations and word arrangements"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>In how many ways can the letters of BANANA be arranged?
+      <details class="ans"><summary>Show answer</summary><div>6!/(3! 2!) = <b>60</b> (A ×3, N ×2).</div></details></li>
+    <li>How many 3-digit even numbers can be formed from 1, 2, 3, 4, 5 without repetition?
+      <details class="ans"><summary>Show answer</summary><div>Units digit 2 or 4 (2 ways) × 4 × 3 = <b>24</b>.</div></details></li>
+    <li>A team of 11 is chosen from 15 players. In how many ways if a particular player must be included?
+      <details class="ans"><summary>Show answer</summary><div>¹⁴C₁₀ = ¹⁴C₄ = <b>1,001</b>.</div></details></li>
+    <li>How many triangles can be formed from 10 points, no three collinear?
+      <details class="ans"><summary>Show answer</summary><div>¹⁰C₃ = <b>120</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="probability">
+<h2><span class="num">2.3</span> Probability (basics)</h2>
+<div class="concept">
+  <h3>Basic probability</h3>
+  <div class="f-exp">Probability measures how likely an event is, from 0 (impossible) to 1 (certain):
+  <span class="eq">P(E) = <span class="fr"><span>number of favourable outcomes</span><span>total number of equally likely outcomes</span></span></span>
+  Key terms: experiment, outcome, sample space, event, mutually exclusive, independent (see the Data Analytics notes for the full theory).</div>
+  <div class="f-use">Games, lotteries, risk, quality control, insurance.</div>
+  <div class="f-imp">
+    <ul>
+      <li><b>Complement:</b> P(not E) = 1 − P(E). "At least one" → 1 − P(none).</li>
+      <li><b>Addition:</b> P(A or B) = P(A) + P(B) − P(A and B).</li>
+      <li><b>Independent events:</b> P(A and B) = P(A) × P(B).</li>
+      <li><b>Odds in favour</b> a : b → P = a/(a + b).</li>
+    </ul>
+    <b>Sample spaces:</b> one coin 2, two coins 4, three coins 8 (2ⁿ); one die 6, two dice 36; a pack has 52 cards (4 suits × 13; 26 red, 26 black; 12 face cards; 4 aces).</div>
+  <div class="f-lim">The classical formula needs equally likely outcomes — "win or lose" is not 50–50!</div>
+</div>
+<div class="box example" data-title="Worked examples">
+  <ol class="steps">
+    <li><b>Two dice: P(sum = 9)?</b> (3,6), (4,5), (5,4), (6,3) → 4/36 = <b>1/9</b>.</li>
+    <li><b>Three coins: P(at least one head)?</b> 1 − 1/8 = <b>7/8</b>.</li>
+    <li><b>A card is drawn: P(face card)?</b> 12/52 = <b>3/13</b>. P(red king) = 2/52 = 1/26.</li>
+    <li><b>Bag: 4 red, 5 blue. Two balls drawn. P(both blue)?</b> ⁵C₂/⁹C₂ = 10/36 = <b>5/18</b>. P(one of each) = (4 × 5)/36 = <b>5/9</b>.</li>
+    <li><b>A leap year has 366 days = 52 weeks + 2 days. P(53 Sundays)?</b> The 2 extra days are one of 7 equally likely pairs (Sun–Mon, …, Sat–Sun); 2 contain Sunday → <b>2/7</b>.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="dicegrid" data-title="Interactive — the 36 outcomes of two dice"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>A number is chosen from 1 to 50. P(it is a multiple of 3 or 5)?
+      <details class="ans"><summary>Show answer</summary><div>16 + 10 − 3 = 23 → <b>23/50</b>.</div></details></li>
+    <li>P(getting a doublet when two dice are thrown)?
+      <details class="ans"><summary>Show answer</summary><div>6/36 = <b>1/6</b>.</div></details></li>
+    <li>A and B solve a problem with probabilities ½ and ⅓. P(the problem is solved)?
+      <details class="ans"><summary>Show answer</summary><div>1 − (½)(⅔) = <b>2/3</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="logarithms">
+<h2><span class="num">2.4</span> Logarithms (basics)</h2>
+<div class="concept">
+  <h3>Definition</h3>
+  <div class="f-exp">A logarithm is an <b>exponent</b>. If <span class="math">aˣ = N</span> (a &gt; 0, a ≠ 1, N &gt; 0), then <span class="math">log<sub>a</sub> N = x</span> — "the power to which a must be raised to give N". <b>Common log</b>: base 10 (log); <b>natural log</b>: base e ≈ 2.718 (ln).</div>
+  <div class="f-use">Solving exponential equations (compound interest time, population growth), number of digits of huge numbers, decibel/Richter/pH scales, algorithm complexity in computing (log₂ n).</div>
+  <div class="f-imp">log₂ 32 = 5 (2⁵ = 32); log₁₀ 1000 = 3; log₁₀ 0.001 = −3; log₅ 1 = 0; log₇ 7 = 1.</div>
+  <div class="f-lim">log of zero or a negative number is undefined (for real numbers); the base cannot be 1.</div>
+</div>
+<div class="concept">
+  <h3>Laws of logarithms</h3>
+  <div class="f-exp">
+  <div class="box formula" data-title="Laws">
+    <span class="eq">log<sub>a</sub>(mn) = log<sub>a</sub> m + log<sub>a</sub> n &nbsp;&nbsp; log<sub>a</sub>(m/n) = log<sub>a</sub> m − log<sub>a</sub> n &nbsp;&nbsp; log<sub>a</sub>(mⁿ) = n log<sub>a</sub> m</span>
+    <span class="eq">log<sub>a</sub> a = 1 &nbsp;&nbsp; log<sub>a</sub> 1 = 0 &nbsp;&nbsp; a<sup>log<sub>a</sub> x</sup> = x &nbsp;&nbsp; log<sub>b</sub> a = <span class="fr"><span>log a</span><span>log b</span></span> (change of base) &nbsp;&nbsp; log<sub>a</sub> b × log<sub>b</sub> a = 1</span>
+  </div></div>
+  <div class="f-use">Turn multiplication into addition and powers into multiplication — that is why logs were invented (log tables before calculators).</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li>Given log 2 = 0.3010, log 3 = 0.4771: log 12 = 2 log 2 + log 3 = <b>1.0791</b>; log 5 = log 10 − log 2 = <b>0.6990</b>; log 1.5 = log 3 − log 2 = <b>0.1761</b>.</li>
+      <li><b>Solve log<sub>x</sub> 81 = 4:</b> x⁴ = 81 → <b>x = 3</b>.</li>
+      <li><b>Solve log(x + 1) + log(x − 1) = log 3:</b> log(x² − 1) = log 3 → x² = 4 → <b>x = 2</b> (x = −2 rejected: log of a negative).</li>
+      <li><b>Number of digits in 2⁵⁰:</b> log 2⁵⁰ = 50 × 0.3010 = 15.05 → characteristic 15 → <b>16 digits</b>.</li>
+      <li><b>Simplify</b> log 8 + log 25 = log 200? No: log(8 × 25) = log 200 ≈ 2.301. And log₂ 8 × log₈ 2 = <b>1</b>.</li>
+    </ol></div>
+  <div class="f-lim">log(m + n) ≠ log m + log n — a frequent mistake.</div>
+</div>
+<div class="demo box" data-demo="logcalc" data-title="Interactive — logarithms, laws and number of digits"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Find log₃ 243 and log₄ (1/16).
+      <details class="ans"><summary>Show answer</summary><div>3⁵ = 243 → <b>5</b>; 4⁻² = 1/16 → <b>−2</b>.</div></details></li>
+    <li>If log 2 = 0.3010, find log 32 and log 0.125.
+      <details class="ans"><summary>Show answer</summary><div>log 32 = 5 × 0.3010 = <b>1.505</b>; log 0.125 = log (1/8) = −3 × 0.3010 = <b>−0.903</b>.</div></details></li>
+    <li>Solve 2ˣ = 64 and 3^(x − 1) = 27.
+      <details class="ans"><summary>Show answer</summary><div><b>x = 6</b>; x − 1 = 3 → <b>x = 4</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="sequences">
+<h2><span class="num">2.5</span> Sequences and series: AP and GP</h2>
+<div class="concept">
+  <h3>Arithmetic progression (AP)</h3>
+  <div class="f-exp">A sequence in which each term is obtained by <b>adding a fixed number d</b> (common difference) to the previous term: a, a + d, a + 2d, … (3, 7, 11, 15, … with d = 4). A <b>series</b> is the sum of the terms of a sequence.
+  <div class="box formula" data-title="AP formulas">
+    <span class="eq">n<sup>th</sup> term T<sub>n</sub> = a + (n − 1)d &nbsp;&nbsp; S<sub>n</sub> = <span class="fr"><span>n</span><span>2</span></span>[2a + (n − 1)d] = <span class="fr"><span>n</span><span>2</span></span>(first + last)</span>
+    <span class="eq">Arithmetic mean of a and b = <span class="fr"><span>a + b</span><span>2</span></span> &nbsp;&nbsp; number of terms n = <span class="fr"><span>last − first</span><span>d</span></span> + 1</span>
+  </div></div>
+  <div class="f-use">Salary with fixed annual increments, EMI-like instalments, seats in rows of a theatre, savings increasing by a fixed amount.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>20th term and sum of 20 terms of 3, 7, 11, …:</b> T₂₀ = 3 + 19 × 4 = <b>79</b>; S₂₀ = 10 × (3 + 79) = <b>820</b>.</li>
+      <li><b>How many terms in 7, 11, …, 99?</b> (99 − 7)/4 + 1 = <b>24</b>.</li>
+      <li><b>Sum of all 2-digit multiples of 3:</b> 12, 15, …, 99 → n = 30 → 15 × (12 + 99) = <b>1,665</b>.</li>
+      <li><b>Insert 3 arithmetic means between 2 and 18:</b> 5 terms → d = (18 − 2)/4 = 4 → <b>6, 10, 14</b>.</li>
+      <li><b>Salary ₹20,000 rising by ₹1,500 each year:</b> 10th year = 20,000 + 9 × 1,500 = <b>₹33,500</b>; total over 10 years = 5 × (20,000 + 33,500) = <b>₹2,67,500</b>.</li>
+    </ol></div>
+  <div class="f-lim">Only for constant differences — growth by a percentage is a GP, not an AP.</div>
+</div>
+<div class="concept">
+  <h3>Geometric progression (GP)</h3>
+  <div class="f-exp">Each term is obtained by <b>multiplying by a fixed number r</b> (common ratio): a, ar, ar², … (2, 6, 18, 54, … with r = 3).
+  <div class="box formula" data-title="GP formulas">
+    <span class="eq">T<sub>n</sub> = arⁿ⁻¹ &nbsp;&nbsp; S<sub>n</sub> = <span class="fr"><span>a(rⁿ − 1)</span><span>r − 1</span></span> (r ≠ 1) &nbsp;&nbsp; S<sub>∞</sub> = <span class="fr"><span>a</span><span>1 − r</span></span> (|r| &lt; 1) &nbsp;&nbsp; GM of a, b = √(ab)</span>
+  </div></div>
+  <div class="f-use">Compound interest, population growth, depreciation, bacteria doubling, recurring decimals.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>8th term of 2, 6, 18, …:</b> 2 × 3⁷ = <b>4,374</b>; sum of 6 terms = 2(3⁶ − 1)/2 = <b>728</b>.</li>
+      <li><b>1 + ½ + ¼ + … to infinity</b> = 1/(1 − ½) = <b>2</b>.</li>
+      <li><b>0.333… as a fraction:</b> 0.3 + 0.03 + … = 0.3/(1 − 0.1) = <b>1/3</b>.</li>
+      <li><b>GM of 4 and 16</b> = √64 = <b>8</b> (AM = 10; note AM ≥ GM).</li>
+      <li><b>Bacteria double every hour, starting with 100:</b> after 10 hours 100 × 2¹⁰ = <b>1,02,400</b>.</li>
+    </ol></div>
+  <div class="f-lim">The infinite sum exists only when |r| &lt; 1.</div>
+</div>
+<div class="box oos" data-title="Beyond the syllabus · HP and AM–GM–HM">
+  <p>A <b>harmonic progression</b> is a sequence whose reciprocals form an AP (1, ½, ⅓, …). For positive a, b: AM ≥ GM ≥ HM, and GM² = AM × HM. The average speed for equal distances, 2xy/(x + y), is the harmonic mean!</p>
+</div>
+<div class="demo box" data-demo="apgp" data-title="Interactive — AP and GP generator"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Which term of the AP 5, 9, 13, … is 101?
+      <details class="ans"><summary>Show answer</summary><div>5 + (n − 1)4 = 101 → n = <b>25</b>.</div></details></li>
+    <li>Find the sum of the first 50 odd numbers.
+      <details class="ans"><summary>Show answer</summary><div>n² = <b>2,500</b>.</div></details></li>
+    <li>The 3rd term of a GP is 12 and the 6th term is 96. Find a and r.
+      <details class="ans"><summary>Show answer</summary><div>r³ = 96/12 = 8 → r = 2; a = 12/4 = <b>3</b>.</div></details></li>
+    <li>Sum to infinity of 8 + 4 + 2 + …
+      <details class="ans"><summary>Show answer</summary><div>8/(1 − ½) = <b>16</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="geometry">
+<h2><span class="num">2.6</span> Geometry (basics): areas and volumes</h2>
+<div class="box found" data-title="Foundation — lines and angles">
+  <ul>
+    <li><b>Complementary</b> angles add to 90°; <b>supplementary</b> add to 180°; angles on a straight line add to 180°, around a point to 360°.</li>
+    <li><b>Vertically opposite</b> angles are equal.</li>
+    <li>When a transversal cuts two <b>parallel lines</b>: corresponding angles are equal, alternate interior angles are equal, co-interior angles add to 180°.</li>
+    <li>Triangle: angles add to <b>180°</b>; an exterior angle = sum of the two opposite interior angles.</li>
+    <li>Polygon with n sides: interior angles add to <b>(n − 2) × 180°</b>; each exterior angle of a regular polygon = 360°/n (hexagon: 120° interior, 60° exterior).</li>
+  </ul>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 760 170" width="740" role="img" aria-label="Basic shapes">
+ <g transform="translate(10,10)"><polygon points="10,130 140,130 60,20" class="dg-acc"/><line x1="60" y1="20" x2="60" y2="130" class="dg-dash"/><text class="dg-ts" x="64" y="85">h</text><text class="dg-ts" x="70" y="145" text-anchor="middle">base b · area ½bh</text></g>
+ <g transform="translate(170,10)"><rect x="10" y="40" width="120" height="90" class="dg-acc"/><line x1="10" y1="130" x2="130" y2="40" class="dg-dash"/><text class="dg-ts" x="70" y="145" text-anchor="middle">l × b · diagonal √(l²+b²)</text></g>
+ <g transform="translate(330,10)"><circle cx="70" cy="80" r="55" class="dg-acc"/><line x1="70" y1="80" x2="125" y2="80" class="dg-line"/><text class="dg-ts" x="95" y="74">r</text><path d="M70,80 L70,25 A55,55 0 0,1 117.6,52.5 Z" class="dg-warn"/><text class="dg-ts" x="70" y="150" text-anchor="middle">πr² · sector θ/360·πr²</text></g>
+ <g transform="translate(490,10)"><ellipse cx="60" cy="35" rx="45" ry="12" class="dg-acc"/><line x1="15" y1="35" x2="15" y2="120" class="dg-line"/><line x1="105" y1="35" x2="105" y2="120" class="dg-line"/><path d="M15,120 A45,12 0 0,0 105,120" class="dg-line"/><text class="dg-ts" x="60" y="150" text-anchor="middle">cylinder πr²h</text></g>
+ <g transform="translate(620,10)"><polygon points="60,20 15,120 105,120" class="dg-acc"/><ellipse cx="60" cy="120" rx="45" ry="10" class="dg-plain"/><line x1="60" y1="20" x2="60" y2="120" class="dg-dash"/><text class="dg-ts" x="60" y="150" text-anchor="middle">cone ⅓πr²h</text></g>
+</svg>
+</figure>
+<div class="concept">
+  <h3>2-D shapes (area and perimeter)</h3>
+  <div class="f-exp">Area measures the surface inside a shape (square units); perimeter measures the boundary length.</div>
+  <div class="f-use">Flooring, painting, fencing, land measurement, tiles.</div>
+  <div class="f-imp">
+    <table>
+      <tr><th>Shape</th><th>Area</th><th>Perimeter / other</th></tr>
+      <tr><td>Triangle</td><td>½ × base × height; Heron: √[s(s − a)(s − b)(s − c)], s = (a + b + c)/2</td><td>a + b + c</td></tr>
+      <tr><td>Equilateral triangle (side a)</td><td>(√3/4)a²</td><td>height (√3/2)a</td></tr>
+      <tr><td>Right triangle</td><td>½ × the two legs</td><td>Pythagoras: hyp² = a² + b² (3-4-5, 5-12-13, 8-15-17, 7-24-25)</td></tr>
+      <tr><td>Rectangle</td><td>l × b</td><td>2(l + b); diagonal √(l² + b²)</td></tr>
+      <tr><td>Square</td><td>a² = d²/2</td><td>4a; diagonal a√2</td></tr>
+      <tr><td>Parallelogram</td><td>base × height</td><td>2(a + b)</td></tr>
+      <tr><td>Rhombus</td><td>½ d₁d₂</td><td>4a</td></tr>
+      <tr><td>Trapezium</td><td>½(sum of parallel sides) × height</td><td>sum of sides</td></tr>
+      <tr><td>Circle</td><td>πr²</td><td>circumference 2πr</td></tr>
+      <tr><td>Semicircle</td><td>½πr²</td><td>πr + 2r</td></tr>
+      <tr><td>Sector (angle θ)</td><td>(θ/360)πr²</td><td>arc length (θ/360) × 2πr</td></tr>
+    </table></div>
+  <div class="f-lim">Units: 1 m² = 10,000 cm²; 1 hectare = 10,000 m². Convert before calculating.</div>
+</div>
+<div class="concept">
+  <h3>3-D solids (volume and surface area)</h3>
+  <div class="f-exp">Volume measures space inside (cubic units); surface area measures the outer surface. CSA = curved (lateral) surface area, TSA = total surface area.</div>
+  <div class="f-use">Tanks, containers, packaging, construction, melting and recasting problems (volume stays the same).</div>
+  <div class="f-imp">
+    <table>
+      <tr><th>Solid</th><th>Volume</th><th>Surface area</th></tr>
+      <tr><td>Cube (edge a)</td><td>a³</td><td>TSA 6a²; lateral 4a²; diagonal a√3</td></tr>
+      <tr><td>Cuboid (l, b, h)</td><td>lbh</td><td>TSA 2(lb + bh + hl); walls of a room 2(l + b)h; diagonal √(l² + b² + h²)</td></tr>
+      <tr><td>Cylinder (r, h)</td><td>πr²h</td><td>CSA 2πrh; TSA 2πr(r + h)</td></tr>
+      <tr><td>Cone (r, h, slant l = √(r² + h²))</td><td>⅓πr²h</td><td>CSA πrl; TSA πr(l + r)</td></tr>
+      <tr><td>Sphere (r)</td><td>(4/3)πr³</td><td>4πr²</td></tr>
+      <tr><td>Hemisphere (r)</td><td>(2/3)πr³</td><td>CSA 2πr²; TSA 3πr²</td></tr>
+    </table>
+    1 litre = 1000 cm³; 1 m³ = 1000 litres.</div>
+  <div class="f-lim">Use π = 22/7 when radii are multiples of 7 (options are usually designed for it), otherwise 3.14.</div>
+</div>
+<div class="box example" data-title="Worked examples">
+  <ol class="steps">
+    <li><b>Triangle with sides 13, 14, 15:</b> s = 21 → √(21 × 8 × 7 × 6) = √7056 = <b>84</b>.</li>
+    <li><b>Circle of radius 7 cm:</b> area 22/7 × 49 = <b>154 cm²</b>; circumference 2 × 22/7 × 7 = <b>44 cm</b>.</li>
+    <li><b>Cylinder r = 7, h = 10:</b> V = 22/7 × 49 × 10 = <b>1,540 cm³</b> (1.54 litres); CSA = 2 × 22/7 × 7 × 10 = <b>440 cm²</b>.</li>
+    <li><b>Cone r = 3, h = 4:</b> l = 5; V = ⅓π × 9 × 4 = 12π ≈ <b>37.7</b>; CSA = 15π ≈ <b>47.1</b>.</li>
+    <li><b>Sphere r = 21:</b> V = 4/3 × 22/7 × 9261 = <b>38,808</b>; SA = 4 × 22/7 × 441 = <b>5,544</b>.</li>
+    <li><b>Room 10 × 8 × 4 m: area of the four walls</b> = 2(10 + 8) × 4 = <b>144 m²</b>.</li>
+    <li><b>If the radius of a circle increases by 10 %, area increases by</b> 10 + 10 + 1 = <b>21 %</b> (successive %).</li>
+    <li><b>A sphere of radius 6 cm is melted into a cylinder of radius 4 cm. Height?</b> 4/3 π 216 = π 16 h → h = 288/16 = <b>18 cm</b>.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="shapes" data-title="Interactive calculator — areas and volumes with formulas"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>The diagonal of a square is 10√2 cm. Area?
+      <details class="ans"><summary>Show answer</summary><div>Side 10 → <b>100 cm²</b>.</div></details></li>
+    <li>How many cubes of edge 2 cm fit in a cuboid 8 × 6 × 4 cm?
+      <details class="ans"><summary>Show answer</summary><div>192/8 = <b>24</b>.</div></details></li>
+    <li>A wheel of radius 35 cm makes how many revolutions to cover 1.1 km?
+      <details class="ans"><summary>Show answer</summary><div>Circumference 2 × 22/7 × 35 = 220 cm; 110000/220 = <b>500</b>.</div></details></li>
+    <li>Each interior angle of a regular octagon?
+      <details class="ans"><summary>Show answer</summary><div>(8 − 2) × 180/8 = <b>135°</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="strategies">
+<h2><span class="num">2.7</span> Problem-solving strategies</h2>
+<div class="concept">
+  <h3>Approximation techniques</h3>
+  <div class="f-exp">When options are not close together, replace awkward numbers with nearby round ones and estimate — the nearest option is the answer.</div>
+  <div class="f-use">DI calculations, simplification, percentage questions under time pressure.</div>
+  <div class="f-imp">
+    <ul>
+      <li>4,987 × 1.98 ≈ 5,000 × 2 = 10,000 → pick 9,874.26 from options 8,640, 9,874.26, 11,200, 12,100.</li>
+      <li>49.9 % of 801 ≈ 50 % of 800 = <b>400</b>.</li>
+      <li>√1520 ≈ 39 (39² = 1521); ∛9260 ≈ 21 (21³ = 9261).</li>
+      <li>Fractions instead of %: 37.5 % of 640 = 3/8 × 640 = <b>240</b>; 16.66 % = 1/6; 14.28 % = 1/7.</li>
+      <li>Round in opposite directions to cancel errors: 298 × 52 ≈ 300 × 50 = 15,000 (actual 15,496).</li>
+    </ul></div>
+  <div class="f-lim">Do not approximate when options differ by less than about 5 %; compute exactly then.</div>
+</div>
+<div class="concept">
+  <h3>Time-saving tricks</h3>
+  <div class="f-exp">Small habits that save seconds on every question.</div>
+  <div class="f-use">All timed aptitude tests.</div>
+  <div class="f-imp">
+    <ul>
+      <li>Learn tables up to 20, squares up to 30, cubes up to 15, fraction–% equivalents (Unit I).</li>
+      <li>Use the <b>LCM/unit method</b> in work and pipe problems instead of fractions.</li>
+      <li>Use <b>successive %</b> (a + b + ab/100) for compound changes, areas and discounts.</li>
+      <li>Use <b>ratios instead of actual values</b> where possible (speed ratio ↔ time ratio).</li>
+      <li>Attempt in rounds: easy questions first, mark and return to time-consuming ones.</li>
+      <li>Write the given data neatly; convert units first (km/h → m/s).</li>
+    </ul></div>
+  <div class="f-lim">Tricks without understanding fail on twisted questions — learn the method, then the trick.</div>
+</div>
+<div class="concept">
+  <h3>Elimination methods</h3>
+  <div class="f-exp">In multiple-choice tests you can often <b>rule out</b> wrong options without solving fully.</div>
+  <div class="f-use">Speed and accuracy — also a check on your own answer.</div>
+  <div class="f-imp">
+    <ul>
+      <li><b>Unit-digit check:</b> 347 × 26 must end in 2 (7 × 6 = 42) → eliminate options not ending in 2.</li>
+      <li><b>Divisibility check:</b> if the answer must be a multiple of 9 (digit sum), discard others.</li>
+      <li><b>Range / sign check:</b> a probability must be between 0 and 1; a discounted price must be below MP; an average lies between min and max.</li>
+      <li><b>Back-solving (plugging in options):</b> "a number when increased by 20 % becomes 96" → try the options: 80 × 1.2 = 96 ✓.</li>
+      <li><b>Parity (odd/even):</b> sum of two odd numbers is even, etc.</li>
+      <li><b>Extreme values:</b> test with simple numbers (e.g. assume total = 100) to check a formula.</li>
+    </ul></div>
+  <div class="f-lim">Elimination narrows choices; if two options survive, compute properly.</div>
+</div>
+<div class="demo box" data-demo="approx" data-title="Timed drill — approximate and eliminate"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="unit2-review">
+<h2><span class="num">2.8</span> Unit II review and quick test</h2>
+<div class="box summary"><ul>
+  <li>DI: read units/titles; % change on base; pie: 1 % = 3.6°.</li>
+  <li>DS: test I alone, II alone, then together; options A–E.</li>
+  <li>nPr = n!/(n − r)!; nCr = n!/[r!(n − r)!]; identical n!/(p!q!); circular (n − 1)!.</li>
+  <li>P = favourable/total; "at least one" = 1 − P(none).</li>
+  <li>log(mn) = log m + log n; log mⁿ = n log m; change of base; digits = ⌊log N⌋ + 1.</li>
+  <li>AP: a + (n − 1)d, n/2(a + l). GP: arⁿ⁻¹, a(rⁿ − 1)/(r − 1), a/(1 − r).</li>
+  <li>Areas/volumes table; π = 22/7 for multiples of 7.</li>
+  <li>Approximate, use fractions for %, eliminate by unit digit/divisibility/range, back-solve.</li>
+</ul></div>
+<div class="quiz">
+  <div class="mcq" data-ans="b"><p class="q">1. A sector of 54° in a pie chart represents:</p><ol><li>12 %</li><li>15 %</li><li>18 %</li><li>20 %</li></ol><p class="why">54/3.6.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">2. ⁸C₃ =</p><ol><li>24</li><li>336</li><li>56</li><li>40</li></ol><p class="why">8 × 7 × 6 / 6.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">3. Arrangements of the letters of APPLE:</p><ol><li>120</li><li>24</li><li>30</li><li>60</li></ol><p class="why">5!/2!.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">4. P(sum = 7) with two dice:</p><ol><li>1/6</li><li>7/36</li><li>1/12</li><li>5/36</li></ol><p class="why">6 of 36.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">5. log₂ 64 + log₃ 9 =</p><ol><li>6</li><li>7</li><li>8</li><li>9</li></ol><p class="why">6 + 2.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">6. Sum of 1 + 2 + … + 100:</p><ol><li>5000</li><li>5050</li><li>5100</li><li>10100</li></ol><p class="why">100 × 101/2.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">7. Volume of a cube of edge 6 cm:</p><ol><li>36</li><li>144</li><li>180</li><li>216</li></ol><p class="why">6³.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">8. 24.95 % of 1203 is approximately:</p><ol><li>300</li><li>250</li><li>350</li><li>400</li></ol><p class="why">¼ × 1200.</p></div>
+</div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>
