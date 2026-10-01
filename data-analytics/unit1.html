@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit I · Introduction to Data Analytics — Data Analytics</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="da" data-page="unit1.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Unit I · 14 hours · CO1</div>
+  <h1>Introduction to Data Analytics</h1>
+  <p class="lead">What data analytics is, where it came from, the four types of analytics (descriptive → prescriptive), why organisations invest in it, how it is applied in business, text and web, and the skills you need to do it.</p>
+  <div class="meta"><span class="chip acc">Evolution</span><span class="chip acc">Overview &amp; lifecycle</span><span class="chip acc">4 types of analytics</span><span class="chip acc">Benefits</span><span class="chip acc">Business applications</span><span class="chip acc">Text &amp; web analytics</span><span class="chip acc">Skills</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="data-basics">
+<h2><span class="num">1.0</span> Foundations: data, information and knowledge</h2>
+<div class="box found">
+  <p>Before "analytics" we need a clear idea of what <b>data</b> is and the forms it takes. This section fills that gap.</p>
+</div>
+<div class="concept">
+  <h3>Data, information, knowledge, wisdom (DIKW)</h3>
+  <div class="f-exp"><b>Data</b> are raw facts and figures with no context ("37", "Bengaluru", "2025-03-14"). <b>Information</b> is data organised and given context ("37 °C was the maximum temperature in Bengaluru on 14 March 2025"). <b>Knowledge</b> is information combined with experience to understand patterns ("March temperatures have risen 2 °C in ten years"). <b>Wisdom</b> is knowing what to do ("install more cooling capacity before summer"). Analytics is the process that climbs this pyramid.</div>
+  <div class="f-use">A retailer's billing records (data) → daily sales report (information) → "sales dip every monsoon" (knowledge) → "run a monsoon discount campaign" (wisdom/decision).</div>
+  <div class="f-imp">Each step adds processing: cleaning and organising (data → information), analysis and pattern finding (information → knowledge), judgement and context (knowledge → wisdom).</div>
+  <div class="f-lim">Poor-quality data at the bottom ruins every level above ("garbage in, garbage out").</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 520 260" width="460" role="img" aria-label="DIKW pyramid">
+ <polygon class="dg-acc" points="260,10 320,70 200,70"/><text class="dg-tb" x="260" y="58" text-anchor="middle">Wisdom</text>
+ <polygon class="dg-good" points="200,74 320,74 380,134 140,134"/><text class="dg-tb" x="260" y="110" text-anchor="middle">Knowledge</text>
+ <polygon class="dg-warn" points="140,138 380,138 440,198 80,198"/><text class="dg-tb" x="260" y="174" text-anchor="middle">Information</text>
+ <polygon class="dg-box" points="80,202 440,202 500,255 20,255"/><text class="dg-tb" x="260" y="234" text-anchor="middle">Data</text>
+ <text class="dg-ts" x="455" y="60">"what to do"</text><text class="dg-ts" x="395" y="110">"how / patterns"</text><text class="dg-ts" x="455" y="174">"what, when"</text><text class="dg-ts" x="505" y="240" text-anchor="end">raw facts</text>
+</svg>
+<figcaption>Fig 1.1 — The DIKW pyramid: analytics turns raw data into decisions.</figcaption>
+</figure>
+
+<h3>Types of data</h3>
+<table>
+  <tr><th>By structure</th><th>Meaning</th><th>Examples</th></tr>
+  <tr><td><b>Structured</b></td><td>Fixed rows and columns (schema)</td><td>Excel sheets, SQL tables of sales, marks, bank transactions</td></tr>
+  <tr><td><b>Semi-structured</b></td><td>Has tags/keys but no rigid table</td><td>JSON, XML, e-mails (header fields + free body), log files</td></tr>
+  <tr><td><b>Unstructured</b></td><td>No predefined format (~80 % of all data)</td><td>Text reviews, images, audio, video, social-media posts</td></tr>
+</table>
+<table>
+  <tr><th>By nature (measurement scale)</th><th>Meaning</th><th>Example</th><th>Allowed operations</th></tr>
+  <tr><td><b>Nominal</b> (qualitative)</td><td>Names/categories, no order</td><td>Gender, city, blood group</td><td>Count, mode</td></tr>
+  <tr><td><b>Ordinal</b> (qualitative)</td><td>Categories with order, unequal gaps</td><td>Grades A/B/C, ratings 1–5 stars, rank</td><td>+ median, ranks (Spearman)</td></tr>
+  <tr><td><b>Interval</b> (quantitative)</td><td>Equal gaps, no true zero</td><td>Temperature in °C, calendar year</td><td>+ mean, difference</td></tr>
+  <tr><td><b>Ratio</b> (quantitative)</td><td>Equal gaps and a true zero</td><td>Sales ₹, height, age, weight</td><td>+ ratio ("twice as much")</td></tr>
+</table>
+<p>Quantitative data are <b>discrete</b> (countable: number of customers) or <b>continuous</b> (measurable: time, weight). Sources are <b>primary</b> (collected by you: surveys, experiments, sensors) or <b>secondary</b> (already existing: government data, company databases, web).</p>
+<div class="box tip">The measurement scale decides which statistic you may use: e.g. Pearson's r needs interval/ratio data, Spearman's rank works on ordinal data (Unit II), Chi-square works on nominal counts (Unit III).</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="evolution">
+<h2><span class="num">1.1</span> Evolution of data analytics</h2>
+<p>People have analysed data for centuries; what changed is the <b>volume</b> of data and the <b>tools</b>. Click through the timeline.</p>
+<div class="demo box" data-demo="timeline" data-title="Interactive timeline — how analytics evolved"></div>
+<table>
+  <tr><th>Era</th><th>Key development</th><th>Typical question answered</th></tr>
+  <tr><td>Pre-1950s — manual &amp; statistical</td><td>Census, actuarial tables, statistics (Pearson 1890s, Fisher's ANOVA 1920s), punched-card tabulators (Hollerith, 1890 US census)</td><td>"How many people / what is the average?"</td></tr>
+  <tr><td>1950s–1970s — early computing</td><td>Mainframes, operations research, the first decision-support systems; Codd's relational model (1970); SQL</td><td>"What were last quarter's totals?"</td></tr>
+  <tr><td>1980s–1990s — Business Intelligence</td><td>Data warehouses (Inmon, Kimball), OLAP cubes, ETL, the term "business intelligence" popularised (Gartner, 1989); spreadsheets (Excel 1985)</td><td>"Sales by region by month — slice and dice"</td></tr>
+  <tr><td>1990s–2000s — data mining</td><td>Knowledge discovery in databases, CRISP-DM (1996), market-basket analysis, web analytics (Google Analytics 2005)</td><td>"Which products are bought together?"</td></tr>
+  <tr><td>2005–2015 — Big Data</td><td>Hadoop (2006), NoSQL, the "3 Vs" (volume, velocity, variety), cloud computing, data science as a profession</td><td>"Analyse billions of clicks every day"</td></tr>
+  <tr><td>2015–today — AI and augmented analytics</td><td>Machine learning, real-time streaming, self-service BI (Power BI 2015, Tableau), natural-language querying, generative AI copilots</td><td>"What will happen, and what should we do?"</td></tr>
+</table>
+<div class="box oos" data-title="Beyond the syllabus · the 5 Vs of big data">
+  <p><b>Volume</b> (size), <b>Velocity</b> (speed of arrival), <b>Variety</b> (structured + unstructured), <b>Veracity</b> (trustworthiness), <b>Value</b> (usefulness). Useful vocabulary when writing about the evolution of analytics.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="overview">
+<h2><span class="num">1.2</span> Data analytics overview</h2>
+<div class="concept">
+  <h3>What is data analytics?</h3>
+  <div class="f-exp"><b>Data analytics</b> is the science of examining raw data — collecting, cleaning, transforming and modelling it — to discover useful information, draw conclusions and <b>support decision-making</b>. It combines statistics, computing and business knowledge.</div>
+  <div class="f-use">Netflix recommending shows, banks flagging fraudulent card swipes, Swiggy estimating delivery time, a college analysing which subjects students fail in most.</div>
+  <div class="f-imp">Uses tools such as Excel, SQL, Python/R, Power BI/Tableau, and techniques from descriptive statistics to machine learning.</div>
+  <div class="f-lim">Analytics shows correlation, not automatically causation; results depend on data quality and on asking the right question.</div>
+</div>
+<table>
+  <tr><th>Term</th><th>Focus</th></tr>
+  <tr><td><b>Data analysis</b></td><td>The act of inspecting a particular data set (one step).</td></tr>
+  <tr><td><b>Data analytics</b></td><td>The whole discipline and process — including tools, techniques and acting on results.</td></tr>
+  <tr><td><b>Business intelligence (BI)</b></td><td>Reporting and dashboards on historical data, mostly descriptive (Unit IV).</td></tr>
+  <tr><td><b>Data science</b></td><td>Broader: analytics + programming + machine learning + building data products.</td></tr>
+</table>
+
+<h3>The data analytics process (lifecycle)</h3>
+<figure class="fig">
+<svg viewBox="0 0 760 170" width="740" role="img" aria-label="Analytics lifecycle">
+ <rect class="dg-acc" x="5" y="50" width="110" height="56" rx="10"/><text class="dg-tb" x="60" y="74" text-anchor="middle">1. Define</text><text class="dg-ts" x="60" y="92" text-anchor="middle">the question</text>
+ <rect class="dg-acc" x="130" y="50" width="110" height="56" rx="10"/><text class="dg-tb" x="185" y="74" text-anchor="middle">2. Collect</text><text class="dg-ts" x="185" y="92" text-anchor="middle">data</text>
+ <rect class="dg-acc" x="255" y="50" width="110" height="56" rx="10"/><text class="dg-tb" x="310" y="74" text-anchor="middle">3. Clean</text><text class="dg-ts" x="310" y="92" text-anchor="middle">&amp; prepare</text>
+ <rect class="dg-acc" x="380" y="50" width="110" height="56" rx="10"/><text class="dg-tb" x="435" y="74" text-anchor="middle">4. Analyse</text><text class="dg-ts" x="435" y="92" text-anchor="middle">&amp; model</text>
+ <rect class="dg-acc" x="505" y="50" width="110" height="56" rx="10"/><text class="dg-tb" x="560" y="74" text-anchor="middle">5. Interpret</text><text class="dg-ts" x="560" y="92" text-anchor="middle">&amp; visualise</text>
+ <rect class="dg-good" x="630" y="50" width="120" height="56" rx="10"/><text class="dg-tb" x="690" y="74" text-anchor="middle">6. Act &amp;</text><text class="dg-ts" x="690" y="92" text-anchor="middle">monitor</text>
+ <path class="dg-line" d="M115 78 H128" marker-end="url(#arr)"/><path class="dg-line" d="M240 78 H253" marker-end="url(#arr)"/><path class="dg-line" d="M365 78 H378" marker-end="url(#arr)"/><path class="dg-line" d="M490 78 H503" marker-end="url(#arr)"/><path class="dg-line" d="M615 78 H628" marker-end="url(#arr)"/>
+ <path class="dg-dash" d="M690 106 V140 H60 V110" marker-end="url(#arr)"/><text class="dg-ts" x="375" y="158" text-anchor="middle">iterate: new questions arise from results</text>
+</svg>
+<figcaption>Fig 1.2 — The analytics lifecycle. Cleaning typically takes 60–80 % of an analyst's time.</figcaption>
+</figure>
+<ol class="steps">
+  <li><b>Define the objective</b> — a clear, measurable business question ("Why did repeat purchases fall 10 % in Q2?").</li>
+  <li><b>Collect data</b> — internal (sales, CRM, ERP) and external (surveys, social media, government data).</li>
+  <li><b>Clean and prepare</b> — remove duplicates and errors, handle missing values, fix formats, combine sources (Power Query — Unit IV).</li>
+  <li><b>Analyse</b> — descriptive statistics, correlation/regression (Unit II), hypothesis tests (Unit III), machine-learning models.</li>
+  <li><b>Interpret and visualise</b> — charts and dashboards that tell a clear story.</li>
+  <li><b>Act and monitor</b> — make the decision, measure its effect, repeat.</li>
+</ol>
+<div class="box oos" data-title="Beyond the syllabus · CRISP-DM">
+  <p>The industry-standard process model (1996): Business understanding → Data understanding → Data preparation → Modelling → Evaluation → Deployment, with feedback loops. It maps almost one-to-one to the six steps above.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="types">
+<h2><span class="num">1.3</span> Types of data analytics</h2>
+<p>Analytics is classified by the <b>question it answers</b>. Each type builds on the previous one and adds both <b>value</b> and <b>difficulty</b> (Gartner's analytics ascendancy model).</p>
+<figure class="fig">
+<svg viewBox="0 0 620 330" width="580" role="img" aria-label="Analytics ascendancy">
+ <path class="dg-line" d="M50 300 H600" marker-end="url(#arr)"/><path class="dg-line" d="M50 300 V20" marker-end="url(#arr)"/>
+ <text class="dg-ts" x="560" y="320" text-anchor="end">Difficulty / complexity →</text>
+ <text class="dg-ts" x="40" y="160" text-anchor="middle" transform="rotate(-90 40 160)">Value →</text>
+ <rect class="dg-box" x="70" y="230" width="120" height="56" rx="8"/><text class="dg-tb" x="130" y="254" text-anchor="middle">Descriptive</text><text class="dg-ts" x="130" y="272" text-anchor="middle">What happened?</text>
+ <rect class="dg-warn" x="195" y="170" width="120" height="56" rx="8"/><text class="dg-tb" x="255" y="194" text-anchor="middle">Diagnostic</text><text class="dg-ts" x="255" y="212" text-anchor="middle">Why did it happen?</text>
+ <rect class="dg-acc" x="320" y="110" width="130" height="56" rx="8"/><text class="dg-tb" x="385" y="134" text-anchor="middle">Predictive</text><text class="dg-ts" x="385" y="152" text-anchor="middle">What will happen?</text>
+ <rect class="dg-good" x="455" y="40" width="140" height="66" rx="8"/><text class="dg-tb" x="525" y="64" text-anchor="middle">Prescriptive</text><text class="dg-ts" x="525" y="82" text-anchor="middle">What should we do?</text><text class="dg-ts" x="525" y="97" text-anchor="middle">(How can we make it happen?)</text>
+ <text class="dg-ta" x="130" y="222" text-anchor="middle">hindsight</text><text class="dg-ta" x="255" y="162" text-anchor="middle">insight</text><text class="dg-ta" x="385" y="102" text-anchor="middle">foresight</text><text class="dg-ta" x="525" y="32" text-anchor="middle">optimisation</text>
+</svg>
+<figcaption>Fig 1.3 — The four types of analytics: value rises with difficulty.</figcaption>
+</figure>
+
+<div class="concept">
+  <h3>1. Descriptive analytics — "What happened?"</h3>
+  <div class="f-exp">Summarises <b>historical data</b> to show what has happened. It is the foundation of all analytics and the most common type (≈ 80 % of business reporting).</div>
+  <div class="f-use">Monthly sales report; number of website visitors last week; average marks per subject; a Power BI dashboard of revenue by region; KPIs such as profit margin and churn rate.</div>
+  <div class="f-imp">Techniques: aggregation (sum, count, average), measures of central tendency and dispersion (mean, median, standard deviation), percentages and growth rates, data visualisation (bar, line, pie charts), reports and dashboards. Tools: Excel, SQL, Power BI, Tableau.</div>
+  <div class="f-lim">Tells <i>what</i> but not <i>why</i>; looks backward only; can hide detail behind averages.</div>
+</div>
+<div class="concept">
+  <h3>2. Diagnostic analytics — "Why did it happen?"</h3>
+  <div class="f-exp">Digs into the data to find <b>causes and relationships</b> behind what descriptive analytics showed.</div>
+  <div class="f-use">Sales fell in March — drilling down shows the fall is in one region, where a competitor opened a store; a hospital investigating why readmissions rose; finding that delivery delays correlate with rainfall.</div>
+  <div class="f-imp">Techniques: drill-down and drill-through (Unit IV), data discovery, <b>correlation and regression</b> (Unit II), root-cause analysis, comparison of segments, hypothesis testing (Unit III).</div>
+  <div class="f-lim">Correlation ≠ causation; needs domain knowledge to interpret; limited to explaining the past.</div>
+</div>
+<div class="concept">
+  <h3>3. Predictive analytics — "What is likely to happen?"</h3>
+  <div class="f-exp">Uses historical patterns with statistical and machine-learning models to <b>forecast future outcomes</b> and estimate probabilities.</div>
+  <div class="f-use">Sales/demand forecasting for festive seasons; credit scoring (probability a borrower defaults); predicting customer churn; predicting machine failure; weather forecasts; IPL score prediction.</div>
+  <div class="f-imp">Techniques: <b>regression</b> (Unit II), time-series forecasting, classification (decision trees, logistic regression), probability distributions (Unit III), neural networks. Tools: Python (scikit-learn), R, Azure ML, Power BI forecasting.</div>
+  <div class="f-lim">Predictions are probabilities, not certainties; assume the future resembles the past (failed during COVID-19); models can be biased by biased data.</div>
+</div>
+<div class="concept">
+  <h3>4. Prescriptive analytics — "What should we do?"</h3>
+  <div class="f-exp">Recommends the <b>best action</b> to achieve a goal, by combining predictions with optimisation and simulation of alternative decisions.</div>
+  <div class="f-use">Airline dynamic pricing; Google Maps choosing the fastest route; inventory reorder quantities; Amazon's product recommendations; optimal staff rostering in hospitals.</div>
+  <div class="f-imp">Techniques: optimisation (linear programming), simulation (Monte Carlo), decision trees/analysis, recommendation engines, reinforcement learning, business rules.</div>
+  <div class="f-lim">Most complex and expensive; needs high-quality data and accurate predictive models; recommendations must still be checked by humans (ethics, context).</div>
+</div>
+<table>
+  <tr><th>Basis</th><th>Descriptive</th><th>Diagnostic</th><th>Predictive</th><th>Prescriptive</th></tr>
+  <tr><td>Question</td><td>What happened?</td><td>Why?</td><td>What will happen?</td><td>What should we do?</td></tr>
+  <tr><td>Time focus</td><td>Past</td><td>Past</td><td>Future</td><td>Future (action)</td></tr>
+  <tr><td>Techniques</td><td>Reports, KPIs, charts</td><td>Drill-down, correlation</td><td>Regression, ML, forecasting</td><td>Optimisation, simulation</td></tr>
+  <tr><td>Example (retail)</td><td>Sales fell 12 % in Q2</td><td>Because a key product was out of stock</td><td>Q3 demand will be 15 % higher</td><td>Order 4,000 units by 10 July</td></tr>
+  <tr><td>Complexity / value</td><td>Low</td><td>Medium</td><td>High</td><td>Highest</td></tr>
+</table>
+<div class="demo box" data-demo="classify" data-title="Interactive drill — classify the analytics type"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="importance">
+<h2><span class="num">1.4</span> Importance and benefits of data analytics</h2>
+<div class="concept">
+  <h3>Why organisations invest in analytics</h3>
+  <div class="f-exp">Analytics replaces gut feeling with evidence: <b>data-driven decision making</b>.</div>
+  <div class="f-use">See the benefits below — each is a heading you can use in an answer.</div>
+  <div class="f-imp">
+    <ol>
+      <li><b>Better, faster decisions</b> — managers see facts in real-time dashboards.</li>
+      <li><b>Understanding customers</b> — segmentation, preferences, lifetime value → personalised marketing.</li>
+      <li><b>Operational efficiency and cost reduction</b> — find bottlenecks, optimise inventory and routes (e.g. UPS saves millions of litres of fuel through route analytics).</li>
+      <li><b>Increased revenue</b> — pricing optimisation, cross-selling, demand forecasting.</li>
+      <li><b>Risk management and fraud detection</b> — spotting unusual transactions in real time.</li>
+      <li><b>Competitive advantage</b> — spotting market trends earlier than competitors.</li>
+      <li><b>Product and service improvement</b> — feature usage and feedback analysis.</li>
+      <li><b>Performance measurement</b> — KPIs and goals tracked objectively.</li>
+    </ol></div>
+  <div class="f-lim">Challenges: poor data quality, data silos, privacy and security (India's Digital Personal Data Protection Act 2023), shortage of skilled people, cost of tools, and misinterpretation of results.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="applications">
+<h2><span class="num">1.5</span> Applications of analytics in business</h2>
+<table>
+  <tr><th>Area</th><th>Application</th><th>Type</th></tr>
+  <tr><td><b>Marketing</b></td><td>Customer segmentation, campaign ROI, market-basket analysis ("customers who bought bread also bought butter"), sentiment of social media</td><td>Descriptive, diagnostic</td></tr>
+  <tr><td><b>Sales &amp; retail</b></td><td>Demand forecasting, store layout, dynamic pricing, recommendation engines (Flipkart, Amazon)</td><td>Predictive, prescriptive</td></tr>
+  <tr><td><b>Finance &amp; banking</b></td><td>Credit scoring, fraud detection (UPI anomaly detection), risk analysis, algorithmic trading</td><td>Predictive</td></tr>
+  <tr><td><b>Human resources</b></td><td>Attrition prediction, hiring analytics, performance and training analysis</td><td>Diagnostic, predictive</td></tr>
+  <tr><td><b>Operations &amp; supply chain</b></td><td>Inventory optimisation, logistics routing, supplier performance, predictive maintenance</td><td>Prescriptive</td></tr>
+  <tr><td><b>Healthcare</b></td><td>Disease prediction, hospital resource planning, drug discovery, CoWIN vaccination dashboards</td><td>All four</td></tr>
+  <tr><td><b>Telecom</b></td><td>Churn prediction, network optimisation, usage-based plans</td><td>Predictive</td></tr>
+  <tr><td><b>Sports</b></td><td>Player performance, strategy (IPL team analytics), injury prevention</td><td>Descriptive, predictive</td></tr>
+  <tr><td><b>Government</b></td><td>Tax fraud detection (GST analytics), traffic management, census and welfare targeting</td><td>Diagnostic</td></tr>
+  <tr><td><b>Education</b></td><td>Identifying at-risk students, course feedback analysis</td><td>Predictive</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="text-analytics">
+<h2><span class="num">1.6</span> Text analytics</h2>
+<div class="concept">
+  <h3>What text analytics is</h3>
+  <div class="f-exp"><b>Text analytics</b> (text mining) is the process of converting <b>unstructured text</b> — reviews, e-mails, tweets, chat logs, documents — into structured data and insights using natural language processing (NLP), statistics and machine learning.</div>
+  <div class="f-use">Sentiment of product reviews on Amazon/Flipkart, classifying customer-support tickets, detecting spam, analysing brand mentions on social media, summarising legal documents, resume screening, chatbots.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>Collect text</b> — reviews, surveys, social-media APIs, documents.</li>
+      <li><b>Pre-process</b>: lower-casing; <b>tokenisation</b> (split into words); remove punctuation and <b>stop words</b> ("the", "is", "and"); <b>stemming</b> (cut words to a root: "running" → "run") or <b>lemmatisation</b> (dictionary form: "better" → "good").</li>
+      <li><b>Represent as numbers</b> — <b>bag of words</b> (word counts), <b>TF-IDF</b> (term frequency × inverse document frequency: words frequent in this document but rare overall get high weight), word embeddings.</li>
+      <li><b>Analyse</b>: <b>sentiment analysis</b> (positive/negative/neutral), <b>topic modelling</b> (themes), <b>named-entity recognition</b> (people, places, brands), <b>classification</b> and <b>clustering</b>, keyword frequency / word clouds.</li>
+      <li><b>Visualise and act</b> — dashboards of sentiment over time, alerts for complaints.</li>
+    </ol></div>
+  <div class="f-lim">Sarcasm, slang, emojis, spelling errors and mixed languages (Hinglish/Kanglish) confuse algorithms; context and ambiguity ("this phone is sick!"); needs large labelled data for accuracy; privacy concerns.</div>
+</div>
+<div class="demo box" data-demo="textan" data-title="Interactive demo — a mini text-analytics pipeline"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="web-analytics">
+<h2><span class="num">1.7</span> Web analytics</h2>
+<div class="concept">
+  <h3>What web analytics is</h3>
+  <div class="f-exp"><b>Web analytics</b> is the collection, measurement, analysis and reporting of website and app usage data to understand and optimise visitor behaviour. Two kinds: <b>on-site</b> (behaviour on your own site — Google Analytics, Microsoft Clarity) and <b>off-site</b> (your audience and reputation across the web — social mentions, search visibility).</div>
+  <div class="f-use">An e-commerce site finds that 70 % of users abandon the cart at the payment page; a news site sees which articles keep readers longest; a college website checks which pages admission seekers visit.</div>
+  <div class="f-imp">
+    <p><b>How data is collected:</b> a JavaScript <b>page tag</b> sends an event for every page view/click; cookies identify returning visitors; server log files record requests; UTM parameters tag campaign links.</p>
+    <p><b>Key metrics:</b></p>
+    <table class="compact">
+      <tr><th>Metric</th><th>Meaning / formula</th></tr>
+      <tr><td>Page views</td><td>Total pages loaded</td></tr>
+      <tr><td>Sessions (visits)</td><td>A group of interactions by one user within a time window (ends after 30 min inactivity)</td></tr>
+      <tr><td>Users / unique visitors</td><td>Distinct people (by cookie/device)</td></tr>
+      <tr><td>Pages per session</td><td>Page views ÷ sessions</td></tr>
+      <tr><td>Average session duration</td><td>Total session time ÷ sessions</td></tr>
+      <tr><td><b>Bounce rate</b></td><td>Single-page sessions ÷ total sessions × 100</td></tr>
+      <tr><td><b>Conversion rate</b></td><td>Sessions with a goal (purchase, sign-up) ÷ sessions × 100</td></tr>
+      <tr><td>Click-through rate (CTR)</td><td>Clicks ÷ impressions × 100</td></tr>
+      <tr><td>Exit rate</td><td>Exits from a page ÷ views of that page</td></tr>
+      <tr><td>Traffic sources</td><td>Direct, organic search, paid, referral, social</td></tr>
+    </table>
+    <p><b>Process:</b> define goals and KPIs → collect data → report → analyse (funnels, segments) → test changes (<b>A/B testing</b>: show two versions to random halves and compare conversion) → implement.</p>
+  </div>
+  <div class="f-lim">Ad-blockers and cookie consent hide part of the traffic; bots inflate numbers; cannot explain <i>why</i> users behave as they do (needs surveys/usability tests); privacy regulations (GDPR, DPDP Act).</div>
+</div>
+<div class="demo box" data-demo="webmetrics" data-title="Interactive demo — compute web metrics from a session log"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="skills">
+<h2><span class="num">1.8</span> Skills for business analytics</h2>
+<div class="concept">
+  <h3>The analyst's skill set</h3>
+  <div class="f-exp">A business analyst sits between data and decision-makers, so needs three groups of skills: <b>technical</b>, <b>analytical/business</b> and <b>soft</b> skills.</div>
+  <div class="f-use">Job roles: data analyst, business analyst, BI developer, MIS executive, marketing analyst, data scientist.</div>
+  <div class="f-imp">
+    <table>
+      <tr><th>Group</th><th>Skills</th></tr>
+      <tr><td><b>Technical</b></td><td>Excel (pivot tables, lookups), <b>SQL</b> (querying databases), a programming language (<b>Python</b> with pandas, or <b>R</b>), <b>BI tools</b> (Power BI, Tableau), data cleaning, basic machine learning, cloud platforms, data modelling</td></tr>
+      <tr><td><b>Statistical / analytical</b></td><td>Descriptive statistics, probability, correlation &amp; regression, hypothesis testing, critical thinking, problem solving, attention to detail</td></tr>
+      <tr><td><b>Business</b></td><td>Domain knowledge (finance, retail, HR …), understanding KPIs, framing business questions, project management</td></tr>
+      <tr><td><b>Soft skills</b></td><td><b>Communication</b> and <b>data storytelling</b> (explaining results to non-technical managers), visualisation design, teamwork, curiosity, ethics and data privacy awareness</td></tr>
+    </table></div>
+  <div class="f-lim">Tools change quickly — continuous learning is itself a required skill.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="unit1-review">
+<h2><span class="num">1.9</span> Unit I review and self-test</h2>
+<div class="box summary"><ul>
+  <li>DIKW: data → information → knowledge → wisdom. Structured / semi-structured / unstructured; nominal / ordinal / interval / ratio.</li>
+  <li>Evolution: statistics → computers &amp; SQL → BI &amp; warehouses → data mining → big data → AI/augmented analytics.</li>
+  <li>Process: define → collect → clean → analyse → visualise → act.</li>
+  <li>Descriptive (what), diagnostic (why), predictive (what will), prescriptive (what should).</li>
+  <li>Text analytics: tokenise, stop words, stemming, TF-IDF, sentiment, topics, NER. Web analytics: sessions, bounce rate, conversion rate, CTR, A/B testing.</li>
+  <li>Skills: technical (SQL, Excel, Python, Power BI), statistical, business, communication.</li>
+</ul></div>
+<div class="quiz">
+  <div class="mcq" data-ans="c"><p class="q">1. "Which customers are likely to leave next month?" is an example of:</p><ol><li>Descriptive</li><li>Diagnostic</li><li>Predictive</li><li>Prescriptive</li></ol><p class="why">It forecasts a future outcome.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">2. Recommending the optimal price for each flight seat is:</p><ol><li>Descriptive</li><li>Diagnostic</li><li>Predictive</li><li>Prescriptive</li></ol><p class="why">It recommends an action.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">3. A JSON file is an example of:</p><ol><li>structured data</li><li>semi-structured data</li><li>unstructured data</li><li>metadata only</li></ol><p class="why">It has keys/tags but no fixed table.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">4. Star ratings (1–5) are measured on which scale?</p><ol><li>Ordinal</li><li>Nominal</li><li>Ratio</li><li>Interval</li></ol><p class="why">Ordered categories with unequal gaps.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">5. Removing "the", "is", "and" from text is called:</p><ol><li>stemming</li><li>tokenisation</li><li>stop-word removal</li><li>lemmatisation</li></ol><p class="why">Stop words carry little meaning.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">6. 400 of 1,000 sessions viewed only one page. The bounce rate is:</p><ol><li>60 %</li><li>40 %</li><li>4 %</li><li>2.5 %</li></ol><p class="why">400/1000 × 100.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">7. Drill-down to find why sales fell in one region is:</p><ol><li>Predictive</li><li>Prescriptive</li><li>Descriptive</li><li>Diagnostic</li></ol><p class="why">Finding causes.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">8. The step that usually takes the most time in analytics is:</p><ol><li>data cleaning and preparation</li><li>visualisation</li><li>defining the question</li><li>presenting</li></ol><p class="why">Often 60–80 % of the effort.</p></div>
+</div>
+<h3>Likely exam questions</h3>
+<table>
+  <tr><th>Marks</th><th>Question</th></tr>
+  <tr><td>2</td><td>Define data analytics. · What is descriptive analytics? · Define bounce rate. · What is text analytics? · Expand BI, NLP, KPI, TF-IDF.</td></tr>
+  <tr><td>5</td><td>Explain the evolution of data analytics. · Explain the importance/benefits of analytics. · Explain web analytics and its metrics. · Explain the skills required for business analytics. · Differentiate predictive and prescriptive analytics.</td></tr>
+  <tr><td>10</td><td>Explain the types of data analytics with examples and a diagram. · Discuss applications of analytics in business. · Explain text analytics: process, techniques, applications and challenges. · Explain the data analytics process.</td></tr>
+</table>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="stats-core.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

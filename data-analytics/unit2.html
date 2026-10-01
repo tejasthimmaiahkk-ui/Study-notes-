@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit II · Correlation &amp; Regression — Data Analytics</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="da" data-page="unit2.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Unit II · 14 hours · CO2</div>
+  <h1>Correlation &amp; Regression</h1>
+  <p class="lead">Do two variables move together, how strongly, and can we use one to predict the other? We first rebuild the basic statistics you need (mean, deviation, standard deviation), then learn Karl Pearson's and Spearman's coefficients and the regression lines — each with complete working tables.</p>
+  <div class="meta"><span class="chip acc">Types of correlation</span><span class="chip acc">Karl Pearson (3 methods)</span><span class="chip acc">Probable error</span><span class="chip acc">Spearman's rank</span><span class="chip acc">Regression lines</span><span class="chip acc">Regression coefficients</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="stats-basics">
+<h2><span class="num">2.0</span> Foundation: the statistics you need first</h2>
+<div class="box found">
+  <p>Every formula in this unit uses Σ (sigma) notation, means, deviations and standard deviations. If any of these feel shaky, work through this section carefully — it makes the rest mechanical.</p>
+</div>
+<div class="concept">
+  <h3>Σ notation and the arithmetic mean</h3>
+  <div class="f-exp"><b>Σ</b> (capital sigma) means "add up". ΣX = X₁ + X₂ + … + X<sub>N</sub>. ΣX² means square each value then add; (ΣX)² means add first then square — they are different! The <b>arithmetic mean</b> is <span class="math">X̄ = ΣX / N</span>.</div>
+  <div class="f-use">The mean is the "centre" from which we measure how far each value deviates.</div>
+  <div class="f-imp">X = 4, 8, 6, 2, 10: ΣX = 30, N = 5, X̄ = 6. ΣX² = 16 + 64 + 36 + 4 + 100 = 220, but (ΣX)² = 900.</div>
+  <div class="f-lim">The mean is pulled by extreme values (outliers).</div>
+</div>
+<div class="concept">
+  <h3>Deviation, variance and standard deviation</h3>
+  <div class="f-exp">A <b>deviation</b> is the distance of a value from the mean: x = X − X̄ (lowercase x is the standard notation for a deviation). Deviations always sum to zero: Σx = 0. To measure spread we square them: <b>variance</b> σ² = Σx²/N and <b>standard deviation</b> σ = √(Σx²/N).</div>
+  <div class="f-use">σ measures how spread out data are; σ<sub>x</sub> and σ<sub>y</sub> appear in the correlation and regression formulas.</div>
+  <div class="f-imp">
+    <table class="num compact" style="width:auto;margin:auto"><tr><th>X</th><th>x = X − 6</th><th>x²</th></tr>
+    <tr><td>4</td><td>−2</td><td>4</td></tr><tr><td>8</td><td>2</td><td>4</td></tr><tr><td>6</td><td>0</td><td>0</td></tr><tr><td>2</td><td>−4</td><td>16</td></tr><tr><td>10</td><td>4</td><td>16</td></tr>
+    <tr class="total"><td>30</td><td>0</td><td>40</td></tr></table>
+    σ² = 40/5 = 8, σ = √8 = <b>2.828</b>. Shortcut (no mean needed): σ = √(ΣX²/N − (ΣX/N)²) = √(220/5 − 36) = √8 ✓.</div>
+  <div class="f-lim">In sampling (Unit III) we divide by N − 1 instead of N to get an unbiased estimate — be careful which one a question wants.</div>
+</div>
+<div class="concept">
+  <h3>Bivariate data, covariance and the scatter diagram</h3>
+  <div class="f-exp"><b>Bivariate data</b> are pairs (X, Y) measured on the same items (height and weight of each student). The <b>covariance</b> measures how they vary together: <span class="math">Cov(X, Y) = Σxy / N</span>, where xy is the product of the two deviations. Positive when both tend to be above (or below) their means together; negative when one is above while the other is below.</div>
+  <div class="f-use">The <b>scatter diagram</b> — plotting each pair as a point — is the first, visual method of studying correlation.</div>
+  <div class="f-imp">If points rise from left to right → positive correlation; fall → negative; no pattern → no correlation; points close to a straight line → strong.</div>
+  <div class="f-lim">Covariance depends on units (₹ vs thousands of ₹), so its size is not comparable — we standardise it by dividing by σ<sub>x</sub>σ<sub>y</sub>, which gives Pearson's r.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="correlation-intro">
+<h2><span class="num">2.1</span> Introduction, meaning and types of correlation</h2>
+<div class="concept">
+  <h3>Meaning of correlation</h3>
+  <div class="f-exp"><b>Correlation</b> is a statistical technique that measures the <b>degree and direction</b> of the relationship between two (or more) variables. The <b>coefficient of correlation</b> (r) is a number between −1 and +1 summarising it.
+  <br>Definition (Croxton &amp; Cowden): "When the relationship is of a quantitative nature, the appropriate statistical tool for discovering and measuring the relationship and expressing it in a brief formula is known as correlation."</div>
+  <div class="f-use">Price and demand; advertising spend and sales; study hours and marks; rainfall and crop yield; temperature and ice-cream sales.</div>
+  <div class="f-imp">Methods of studying correlation: (1) scatter diagram, (2) Karl Pearson's coefficient, (3) Spearman's rank correlation, (4) concurrent deviation (OOS).</div>
+  <div class="f-lim"><b>Correlation does not imply causation.</b> Ice-cream sales and drowning deaths are correlated because both rise in summer (a third variable). Correlation may also be <b>spurious</b> (purely by chance).</div>
+</div>
+
+<h3>Types of correlation</h3>
+<table>
+  <tr><th>Basis</th><th>Type</th><th>Meaning</th><th>Example</th></tr>
+  <tr><td rowspan="2">Direction</td><td><b>Positive</b></td><td>Both move in the same direction</td><td>Income and expenditure; height and weight</td></tr>
+  <tr><td><b>Negative</b></td><td>They move in opposite directions</td><td>Price and demand; speed and travel time</td></tr>
+  <tr><td rowspan="2">Ratio of change</td><td><b>Linear</b></td><td>Constant ratio of change — points lie on a straight line</td><td>Y = 2X + 5</td></tr>
+  <tr><td><b>Non-linear (curvilinear)</b></td><td>Ratio of change varies — points follow a curve</td><td>Fertiliser and yield (rises then falls)</td></tr>
+  <tr><td rowspan="3">Number of variables</td><td><b>Simple</b></td><td>Only two variables</td><td>Sales and advertising</td></tr>
+  <tr><td><b>Multiple</b></td><td>One variable with two or more others together</td><td>Yield with rainfall and fertiliser jointly</td></tr>
+  <tr><td><b>Partial</b></td><td>Two variables, keeping the effect of others constant</td><td>Yield and rainfall, temperature held constant</td></tr>
+</table>
+
+<h3>Degrees of correlation</h3>
+<table class="num">
+  <tr><th>Degree</th><th>Positive</th><th>Negative</th></tr>
+  <tr><td>Perfect</td><td>+1</td><td>−1</td></tr>
+  <tr><td>High</td><td>+0.75 to &lt; +1</td><td>−0.75 to &gt; −1</td></tr>
+  <tr><td>Moderate</td><td>+0.50 to +0.75</td><td>−0.50 to −0.75</td></tr>
+  <tr><td>Low</td><td>0 to +0.50</td><td>0 to −0.50</td></tr>
+  <tr><td>Absence</td><td colspan="2">0</td></tr>
+</table>
+<figure class="fig">
+<svg viewBox="0 0 760 170" width="740" role="img" aria-label="Scatter types">
+ <g transform="translate(10,10)"><rect class="dg-box" width="140" height="130" rx="6"/><g class="dg-fill-acc"><circle cx="20" cy="110" r="4"/><circle cx="40" cy="95" r="4"/><circle cx="55" cy="85" r="4"/><circle cx="75" cy="65" r="4"/><circle cx="95" cy="50" r="4"/><circle cx="115" cy="28" r="4"/></g><text class="dg-ts" x="70" y="150" text-anchor="middle">Perfect positive (r = +1)</text></g>
+ <g transform="translate(160,10)"><rect class="dg-box" width="140" height="130" rx="6"/><g class="dg-fill-acc"><circle cx="20" cy="100" r="4"/><circle cx="35" cy="108" r="4"/><circle cx="50" cy="80" r="4"/><circle cx="68" cy="85" r="4"/><circle cx="80" cy="60" r="4"/><circle cx="100" cy="66" r="4"/><circle cx="118" cy="35" r="4"/></g><text class="dg-ts" x="70" y="150" text-anchor="middle">High positive</text></g>
+ <g transform="translate(310,10)"><rect class="dg-box" width="140" height="130" rx="6"/><g class="dg-fill-acc"><circle cx="25" cy="40" r="4"/><circle cx="40" cy="100" r="4"/><circle cx="60" cy="60" r="4"/><circle cx="75" cy="25" r="4"/><circle cx="90" cy="95" r="4"/><circle cx="110" cy="55" r="4"/><circle cx="120" cy="105" r="4"/></g><text class="dg-ts" x="70" y="150" text-anchor="middle">No correlation (r ≈ 0)</text></g>
+ <g transform="translate(460,10)"><rect class="dg-box" width="140" height="130" rx="6"/><g class="dg-fill-acc"><circle cx="20" cy="30" r="4"/><circle cx="38" cy="38" r="4"/><circle cx="52" cy="58" r="4"/><circle cx="70" cy="54" r="4"/><circle cx="85" cy="80" r="4"/><circle cx="105" cy="88" r="4"/><circle cx="120" cy="108" r="4"/></g><text class="dg-ts" x="70" y="150" text-anchor="middle">High negative</text></g>
+ <g transform="translate(610,10)"><rect class="dg-box" width="140" height="130" rx="6"/><g class="dg-fill-acc"><circle cx="15" cy="110" r="4"/><circle cx="35" cy="70" r="4"/><circle cx="55" cy="40" r="4"/><circle cx="72" cy="30" r="4"/><circle cx="90" cy="40" r="4"/><circle cx="108" cy="70" r="4"/><circle cx="125" cy="110" r="4"/></g><text class="dg-ts" x="70" y="150" text-anchor="middle">Non-linear (curvilinear)</text></g>
+</svg>
+<figcaption>Fig 2.1 — Scatter diagrams for different kinds of correlation.</figcaption>
+</figure>
+<div class="concept">
+  <h3>Scatter diagram method</h3>
+  <div class="f-exp">Plot each (X, Y) pair as a dot and judge the pattern visually.</div>
+  <div class="f-use">First look at any data set; detects non-linear patterns and outliers that a single number hides.</div>
+  <div class="f-imp">X-axis: independent variable; Y-axis: dependent variable. Judge direction from slope and strength from how tightly the dots cluster around a line.</div>
+  <div class="f-lim">Gives no exact numerical measure; judgement is subjective.</div>
+</div>
+<div class="demo box" data-demo="scatterR" data-title="Interactive demo — drag the points and watch r change"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="pearson">
+<h2><span class="num">2.2</span> Karl Pearson's coefficient of correlation (individual series)</h2>
+<div class="concept">
+  <h3>Definition and formulas</h3>
+  <div class="f-exp">Karl Pearson (1896) defined the coefficient of correlation as the covariance divided by the product of the standard deviations — the most widely used measure of <b>linear</b> correlation. Also called the <b>product-moment correlation coefficient</b>.
+  <div class="box formula" data-title="Karl Pearson's r">
+    <span class="eq">r = <span class="fr"><span>Cov(X, Y)</span><span>σ<sub>x</sub> σ<sub>y</sub></span></span> = <span class="fr"><span>Σxy</span><span>N σ<sub>x</sub> σ<sub>y</sub></span></span></span>
+  </div></div>
+  <div class="f-use">Measuring the strength of linear relations between quantitative variables (interval/ratio scale) — marks vs study hours, sales vs advertising.</div>
+  <div class="f-imp">Three computational methods give the same r:
+  <div class="box formula" data-title="Method 1 — actual mean (deviations from actual means)">
+    <span class="eq">r = <span class="fr"><span>Σxy</span><span class="sqrt"><span>Σx² × Σy²</span></span></span> &nbsp;&nbsp;where x = X − X̄, y = Y − Ȳ</span>
+  </div>
+  <div class="box formula" data-title="Method 2 — direct method (original values)">
+    <span class="eq">r = <span class="fr"><span>NΣXY − ΣX·ΣY</span><span><span class="sqrt"><span>NΣX² − (ΣX)²</span></span> × <span class="sqrt"><span>NΣY² − (ΣY)²</span></span></span></span></span>
+  </div>
+  <div class="box formula" data-title="Method 3 — assumed mean (short-cut)">
+    <span class="eq">r = <span class="fr"><span>NΣdxdy − Σdx·Σdy</span><span><span class="sqrt"><span>NΣdx² − (Σdx)²</span></span> × <span class="sqrt"><span>NΣdy² − (Σdy)²</span></span></span></span> &nbsp;&nbsp;dx = X − A, dy = Y − B</span>
+  </div>
+  Use Method 1 when the means are whole numbers, Method 3 when they are fractions, Method 2 when values are small.</div>
+  <div class="f-lim">Measures only <b>linear</b> relationships (r can be ≈ 0 for a perfect U-shaped relation); strongly affected by outliers; assumes both variables are quantitative and roughly normally distributed; time-consuming by hand.</div>
+</div>
+
+<div class="box example" data-title="Worked example 1 — Method 1 (actual mean)">
+<p>Calculate Karl Pearson's coefficient for: X = 12, 9, 8, 10, 11, 13, 7 and Y = 14, 8, 6, 9, 11, 12, 3.</p>
+<p><b>Step 1.</b> Means: X̄ = 70/7 = <b>10</b>, Ȳ = 63/7 = <b>9</b> (whole numbers → Method 1 is convenient).</p>
+<p><b>Step 2.</b> Deviations, squares and products:</p>
+<table class="num compact">
+  <tr><th>X</th><th>Y</th><th>x = X − 10</th><th>y = Y − 9</th><th>x²</th><th>y²</th><th>xy</th></tr>
+  <tr><td>12</td><td>14</td><td>2</td><td>5</td><td>4</td><td>25</td><td>10</td></tr>
+  <tr><td>9</td><td>8</td><td>−1</td><td>−1</td><td>1</td><td>1</td><td>1</td></tr>
+  <tr><td>8</td><td>6</td><td>−2</td><td>−3</td><td>4</td><td>9</td><td>6</td></tr>
+  <tr><td>10</td><td>9</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+  <tr><td>11</td><td>11</td><td>1</td><td>2</td><td>1</td><td>4</td><td>2</td></tr>
+  <tr><td>13</td><td>12</td><td>3</td><td>3</td><td>9</td><td>9</td><td>9</td></tr>
+  <tr><td>7</td><td>3</td><td>−3</td><td>−6</td><td>9</td><td>36</td><td>18</td></tr>
+  <tr class="total"><td>70</td><td>63</td><td>0</td><td>0</td><td>28</td><td>84</td><td>46</td></tr>
+</table>
+<p><b>Step 3.</b> r = 46 / √(28 × 84) = 46 / √2352 = 46 / 48.497 = <b>+0.9485</b>.</p>
+<p><b>Interpretation:</b> high degree of positive correlation.</p>
+</div>
+
+<div class="box example" data-title="Worked example 1 again — Method 2 (direct)">
+<p>ΣX = 70, ΣY = 63, ΣX² = 728, ΣY² = 651, ΣXY = 676, N = 7.</p>
+<p>r = (7 × 676 − 70 × 63) / [√(7 × 728 − 70²) × √(7 × 651 − 63²)] = (4732 − 4410) / [√196 × √588] = 322 / (14 × 24.249) = 322 / 339.48 = <b>0.9485</b> ✓</p>
+</div>
+
+<div class="box example" data-title="Worked example 1 again — Method 3 (assumed means A = 11, B = 10)">
+<table class="num compact">
+  <tr><th>X</th><th>Y</th><th>dx = X − 11</th><th>dy = Y − 10</th><th>dx²</th><th>dy²</th><th>dxdy</th></tr>
+  <tr><td>12</td><td>14</td><td>1</td><td>4</td><td>1</td><td>16</td><td>4</td></tr>
+  <tr><td>9</td><td>8</td><td>−2</td><td>−2</td><td>4</td><td>4</td><td>4</td></tr>
+  <tr><td>8</td><td>6</td><td>−3</td><td>−4</td><td>9</td><td>16</td><td>12</td></tr>
+  <tr><td>10</td><td>9</td><td>−1</td><td>−1</td><td>1</td><td>1</td><td>1</td></tr>
+  <tr><td>11</td><td>11</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+  <tr><td>13</td><td>12</td><td>2</td><td>2</td><td>4</td><td>4</td><td>4</td></tr>
+  <tr><td>7</td><td>3</td><td>−4</td><td>−7</td><td>16</td><td>49</td><td>28</td></tr>
+  <tr class="total"><td></td><td></td><td>−7</td><td>−7</td><td>35</td><td>91</td><td>53</td></tr>
+</table>
+<p>r = (7 × 53 − (−7)(−7)) / [√(7 × 35 − 49) × √(7 × 91 − 49)] = (371 − 49) / [√196 × √588] = 322 / 339.48 = <b>0.9485</b> ✓ — same answer, as it must be.</p>
+</div>
+
+<div class="box example" data-title="Worked example 2 — negative correlation">
+<p>X = 2, 4, 6, 8, 10; Y = 10, 8, 7, 4, 1. X̄ = 6, Ȳ = 6. x = −4, −2, 0, 2, 4; y = 4, 2, 1, −2, −5.</p>
+<p>Σxy = −16 − 4 + 0 − 4 − 20 = −44; Σx² = 40; Σy² = 16 + 4 + 1 + 4 + 25 = 50.</p>
+<p>r = −44 / √(40 × 50) = −44 / 44.72 = <b>−0.984</b> → very high negative correlation.</p>
+</div>
+
+<div class="concept">
+  <h3>Properties of Pearson's r</h3>
+  <div class="f-exp">
+    <ol>
+      <li><b>−1 ≤ r ≤ +1</b>. r = +1 perfect positive, −1 perfect negative, 0 no linear correlation.</li>
+      <li><b>Independent of change of origin and scale</b>: if U = (X − A)/h and V = (Y − B)/k (h, k &gt; 0), then r<sub>UV</sub> = r<sub>XY</sub>. (That is why Method 3 works.)</li>
+      <li>r is the <b>geometric mean of the two regression coefficients</b>: r = ±√(b<sub>yx</sub> × b<sub>xy</sub>) (Section 2.6).</li>
+      <li><b>Symmetric</b>: r<sub>xy</sub> = r<sub>yx</sub>.</li>
+      <li>r is a <b>pure number</b> — no units.</li>
+      <li>If X and Y are independent, r = 0 (but r = 0 does not prove independence — the relation may be non-linear).</li>
+      <li>r² is the <b>coefficient of determination</b>: the proportion of variation in Y explained by X (r = 0.9 → 81 %).</li>
+    </ol></div>
+  <div class="f-use">Properties 2 and 3 are favourite 2–5 mark questions; property 7 is used to interpret regression models.</div>
+  <div class="f-imp">Example of property 2: multiplying all X values by 10 (₹ → paise) does not change r.</div>
+  <div class="f-lim">If h and k have opposite signs, the sign of r flips.</div>
+</div>
+<div class="demo box" data-demo="pearson" data-title="Interactive calculator — Karl Pearson's r with full working table"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Heights of fathers (X) and sons (Y) in inches: X = 65, 66, 67, 67, 68, 69, 70, 72; Y = 67, 68, 65, 68, 72, 72, 69, 71. Find r.
+      <details class="ans"><summary>Show answer</summary><div>X̄ = 68, Ȳ = 69. Σxy = 24, Σx² = 36, Σy² = 44. r = 24/√(36 × 44) = 24/39.80 = <b>0.603</b> (moderate positive).</div></details></li>
+    <li>X = 10, 12, 18, 8, 13, 20, 22, 15, 5, 17; Y = 88, 90, 94, 86, 87, 92, 96, 94, 88, 85. Find r.
+      <details class="ans"><summary>Show answer</summary><div>X̄ = 14, Ȳ = 90. Σxy = 118, Σx² = 264, Σy² = 130. r = 118/√(264 × 130) = 118/185.26 = <b>0.637</b>.</div></details></li>
+    <li>X = 1, 3, 4, 5, 7, 8 and Y = 2, 6, 8, 10, 14, 16. Find r without a full table.
+      <details class="ans"><summary>Show answer</summary><div>Y = 2X exactly — a perfect linear relation → <b>r = +1</b>.</div></details></li>
+    <li>Given N = 10, Σx² = 200, Σy² = 262.5, Σxy = −92.5 (deviations from means). Find r.
+      <details class="ans"><summary>Show answer</summary><div>r = −92.5/√(200 × 262.5) = −92.5/229.13 = <b>−0.404</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="probable-error">
+<h2><span class="num">2.3</span> Probable error of the coefficient of correlation</h2>
+<div class="concept">
+  <h3>Probable error (P.E.)</h3>
+  <div class="f-exp">r is usually computed from a <b>sample</b>. The probable error tells us how reliable r is — the range within which the population correlation (ρ) is likely to lie, and whether r is significant.
+  <div class="box formula" data-title="Probable error">
+    <span class="eq">P.E.<sub>r</sub> = 0.6745 × <span class="fr"><span>1 − r²</span><span>√N</span></span> &nbsp;&nbsp;&nbsp;&nbsp; (S.E.<sub>r</sub> = <span class="fr"><span>1 − r²</span><span>√N</span></span>, P.E. = 0.6745 × S.E.)</span>
+  </div></div>
+  <div class="f-use">Deciding whether an observed correlation is real or due to chance; setting limits for the population coefficient.</div>
+  <div class="f-imp"><b>Interpretation rules:</b>
+    <ol>
+      <li>If <b>r &lt; P.E.</b> → correlation is <b>not significant</b> (no evidence of correlation).</li>
+      <li>If <b>r &gt; 6 × P.E.</b> → correlation is <b>significant</b> (definite).</li>
+      <li>In between → nothing definite can be concluded.</li>
+      <li><b>Limits</b> of the population correlation: <b>ρ = r ± P.E.</b></li>
+    </ol>
+    0.6745 is used because in a normal distribution 50 % of values lie within ±0.6745 standard errors of the mean.</div>
+  <div class="f-lim">Valid only when the sample is random, N is reasonably large, and data come from a normal population; it is an older method (t-tests on r are used today).</div>
+</div>
+<div class="box example" data-title="Worked example — continuing worked example 1 (r = 0.9485, N = 7)">
+  <ol class="steps">
+    <li>r² = 0.8997; 1 − r² = 0.1003; √7 = 2.6458.</li>
+    <li>P.E. = 0.6745 × 0.1003 / 2.6458 = <b>0.0256</b>.</li>
+    <li>6 × P.E. = 0.1534. Since r = 0.9485 &gt; 0.1534 → correlation is <b>significant</b>.</li>
+    <li>Limits: 0.9485 ± 0.0256 → <b>0.9229 to 0.9741</b>.</li>
+  </ol>
+</div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>r = 0.8, N = 25. Find P.E. and comment.
+      <details class="ans"><summary>Show answer</summary><div>P.E. = 0.6745 × 0.36/5 = 0.0486; 6 P.E. = 0.291 &lt; 0.8 → significant. Limits 0.7514 to 0.8486.</div></details></li>
+    <li>r = 0.2, N = 16. Is it significant?
+      <details class="ans"><summary>Show answer</summary><div>P.E. = 0.6745 × 0.96/4 = 0.1619; 6 P.E. = 0.971. r lies between P.E. and 6 P.E. → nothing definite (not significant).</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="spearman">
+<h2><span class="num">2.4</span> Spearman's rank correlation (individual series)</h2>
+<div class="concept">
+  <h3>Rank correlation coefficient</h3>
+  <div class="f-exp">Developed by Charles Spearman (1904). Instead of the actual values, we use their <b>ranks</b> (positions). It measures how similar two <b>rankings</b> are — ideal for qualitative characteristics that can be ordered but not measured (beauty, honesty, taste, judges' preferences).
+  <div class="box formula" data-title="Spearman's rank correlation">
+    <span class="eq">R = 1 − <span class="fr"><span>6 ΣD²</span><span>N(N² − 1)</span></span> &nbsp;&nbsp;&nbsp; D = R₁ − R₂ (difference of ranks)</span>
+  </div></div>
+  <div class="f-use">Agreement between two judges in a competition; ranking of products by price vs quality; ranks of students in two subjects; market research on preferences.</div>
+  <div class="f-imp"><b>Three cases:</b>
+    <ol class="steps">
+      <li><b>Ranks are given</b> — compute D = R₁ − R₂, D², ΣD², apply the formula.</li>
+      <li><b>Ranks not given</b> (actual values given) — assign ranks: rank 1 to the highest value (or lowest — but use the same rule for both series), then proceed as case 1.</li>
+      <li><b>Equal (tied) ranks</b> — give each tied item the <b>average</b> of the ranks they would occupy (two items tied for 3rd and 4th each get 3.5). Then add a <b>correction factor</b> for every group of m tied items:
+        <span class="eq">R = 1 − <span class="fr"><span>6 [ ΣD² + Σ (m³ − m)/12 ]</span><span>N(N² − 1)</span></span></span></li>
+    </ol>
+    Check: ΣD must always be 0.</div>
+  <div class="f-lim">Loses information (only order, not size of differences); not suitable for grouped (frequency) data; becomes tedious for large N (&gt; 30); with many ties the formula is approximate.</div>
+</div>
+<table>
+  <tr><th>Basis</th><th>Karl Pearson's r</th><th>Spearman's R</th></tr>
+  <tr><td>Data</td><td>Quantitative (actual values)</td><td>Ranks — qualitative or quantitative</td></tr>
+  <tr><td>Relation measured</td><td>Linear</td><td>Monotonic (consistently increasing/decreasing)</td></tr>
+  <tr><td>Effect of outliers</td><td>Large</td><td>Small</td></tr>
+  <tr><td>Calculation</td><td>Lengthy</td><td>Simple</td></tr>
+  <tr><td>Range</td><td>−1 to +1</td><td>−1 to +1</td></tr>
+</table>
+
+<div class="box example" data-title="Worked example 1 — ranks given">
+<p>Two judges rank 7 contestants: Judge A: 1, 2, 3, 4, 5, 6, 7; Judge B: 2, 1, 4, 3, 6, 7, 5.</p>
+<table class="num compact"><tr><th>R₁</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><th>Total</th></tr><tr><th>R₂</th><td>2</td><td>1</td><td>4</td><td>3</td><td>6</td><td>7</td><td>5</td><td></td></tr><tr><th>D</th><td>−1</td><td>1</td><td>−1</td><td>1</td><td>−1</td><td>−1</td><td>2</td><td>0 ✓</td></tr><tr><th>D²</th><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>4</td><td><b>10</b></td></tr></table>
+<p>R = 1 − 6 × 10 / (7 × 48) = 1 − 60/336 = 1 − 0.1786 = <b>0.821</b> → high agreement between the judges.</p>
+</div>
+
+<div class="box example" data-title="Worked example 2 — ranks not given, with ties">
+<p>Marks in two tests: X = 48, 33, 40, 9, 16, 16, 65, 24, 16, 57; Y = 13, 13, 24, 6, 15, 4, 20, 9, 6, 19. (Rank 1 = highest.)</p>
+<table class="num compact">
+  <tr><th>X</th><th>R₁</th><th>Y</th><th>R₂</th><th>D</th><th>D²</th></tr>
+  <tr><td>48</td><td>3</td><td>13</td><td>5.5</td><td>−2.5</td><td>6.25</td></tr>
+  <tr><td>33</td><td>5</td><td>13</td><td>5.5</td><td>−0.5</td><td>0.25</td></tr>
+  <tr><td>40</td><td>4</td><td>24</td><td>1</td><td>3</td><td>9</td></tr>
+  <tr><td>9</td><td>10</td><td>6</td><td>8.5</td><td>1.5</td><td>2.25</td></tr>
+  <tr><td>16</td><td>8</td><td>15</td><td>4</td><td>4</td><td>16</td></tr>
+  <tr><td>16</td><td>8</td><td>4</td><td>10</td><td>−2</td><td>4</td></tr>
+  <tr><td>65</td><td>1</td><td>20</td><td>2</td><td>−1</td><td>1</td></tr>
+  <tr><td>24</td><td>6</td><td>9</td><td>7</td><td>−1</td><td>1</td></tr>
+  <tr><td>16</td><td>8</td><td>6</td><td>8.5</td><td>−0.5</td><td>0.25</td></tr>
+  <tr><td>57</td><td>2</td><td>19</td><td>3</td><td>−1</td><td>1</td></tr>
+  <tr class="total"><td></td><td></td><td></td><td></td><td>0</td><td>41</td></tr>
+</table>
+<ol class="steps">
+  <li><b>Ties in X:</b> 16 appears 3 times, occupying ranks 7, 8, 9 → each gets 8. (m = 3)</li>
+  <li><b>Ties in Y:</b> 13 appears twice (ranks 5, 6 → 5.5, m = 2); 6 appears twice (ranks 8, 9 → 8.5, m = 2).</li>
+  <li>Correction factor = (3³ − 3)/12 + (2³ − 2)/12 + (2³ − 2)/12 = 2 + 0.5 + 0.5 = <b>3</b>.</li>
+  <li>R = 1 − 6(41 + 3) / (10 × 99) = 1 − 264/990 = 1 − 0.2667 = <b>0.733</b>.</li>
+</ol>
+</div>
+<div class="demo box" data-demo="spearman" data-title="Interactive calculator — Spearman's rank correlation (handles ties)"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Ten competitors are ranked by two judges: A: 1, 6, 5, 10, 3, 2, 4, 9, 7, 8; B: 3, 5, 8, 4, 7, 10, 2, 1, 6, 9. Find R.
+      <details class="ans"><summary>Show answer</summary><div>D = −2, 1, −3, 6, −4, −8, 2, 8, 1, −1; ΣD² = 4 + 1 + 9 + 36 + 16 + 64 + 4 + 64 + 1 + 1 = 200. R = 1 − 1200/990 = <b>−0.212</b> — the judges' tastes slightly disagree.</div></details></li>
+    <li>X = 80, 78, 75, 75, 68, 67, 60, 59; Y = 12, 13, 14, 14, 14, 16, 15, 17. Find R.
+      <details class="ans"><summary>Show answer</summary><div>R₁ = 1, 2, 3.5, 3.5, 5, 6, 7, 8; R₂ = 8, 7, 5, 5, 5, 2, 3, 1. ΣD² = 159.5. CF = (2³−2)/12 + (3³−3)/12 = 0.5 + 2 = 2.5. R = 1 − 6(162)/(8 × 63) = 1 − 1.9286 = <b>−0.929</b>.</div></details></li>
+    <li>If R = 0.8 and ΣD² = 33, find N.
+      <details class="ans"><summary>Show answer</summary><div>0.8 = 1 − 198/(N³ − N) → N³ − N = 990 → N = <b>10</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="regression-intro">
+<h2><span class="num">2.5</span> Introduction to regression</h2>
+<div class="concept">
+  <h3>Meaning and definition</h3>
+  <div class="f-exp">The word <b>regression</b> was used by Sir Francis Galton (1877): heights of sons of tall fathers tended to "regress" (go back) towards the average height. Today <b>regression analysis</b> means estimating the <b>average relationship</b> between variables so that the unknown value of one (the <b>dependent</b> variable) can be <b>predicted</b> from the known value of another (the <b>independent</b> variable).<br>Definition (M.M. Blair): "Regression analysis is a mathematical measure of the average relationship between two or more variables in terms of the original units of the data."</div>
+  <div class="f-use">Predicting sales from advertising budget; estimating house price from area; forecasting demand from price; predicting marks from study hours; salary from experience.</div>
+  <div class="f-imp">A <b>regression line</b> is the line of best fit through the scatter of points. Simple linear regression uses one independent variable and a straight line Y = a + bX, where <b>b</b> (slope) = change in Y for a one-unit change in X, and <b>a</b> (intercept) = value of Y when X = 0.</div>
+  <div class="f-lim">Assumes a linear relationship that stays the same; predictions far outside the observed range (extrapolation) are unreliable; does not prove causation.</div>
+</div>
+<table>
+  <tr><th>Basis</th><th>Correlation</th><th>Regression</th></tr>
+  <tr><td>Meaning</td><td>Degree and direction of relationship</td><td>Nature of the relationship — an equation to estimate one variable from another</td></tr>
+  <tr><td>Purpose</td><td>Measure association</td><td>Prediction / estimation</td></tr>
+  <tr><td>Variables</td><td>Both treated alike (symmetric)</td><td>Dependent and independent are distinguished</td></tr>
+  <tr><td>Coefficient</td><td>r<sub>xy</sub> = r<sub>yx</sub></td><td>b<sub>yx</sub> ≠ b<sub>xy</sub> in general</td></tr>
+  <tr><td>Range</td><td>−1 to +1</td><td>Coefficients can be any value (but b<sub>yx</sub>·b<sub>xy</sub> ≤ 1)</td></tr>
+  <tr><td>Units</td><td>Pure number</td><td>In units of the data</td></tr>
+  <tr><td>Origin and scale</td><td>Independent of both</td><td>Independent of origin, <b>not</b> of scale</td></tr>
+  <tr><td>Cause and effect</td><td>Not implied</td><td>Studied in a cause → effect setting</td></tr>
+  <tr><td>Nonsense results</td><td>Spurious correlation possible</td><td>No "nonsense regression" concept</td></tr>
+</table>
+
+<div class="concept">
+  <h3>The method of least squares</h3>
+  <div class="f-exp">Among all possible straight lines, the "best" is the one that makes the sum of the <b>squared vertical distances</b> (errors, residuals) between the points and the line as small as possible: minimise Σ(Y − Ŷ)².</div>
+  <div class="f-use">Every regression calculator, Excel's trendline and Power BI's trend line use it.</div>
+  <div class="f-imp">For Y = a + bX, minimising gives two <b>normal equations</b>:
+    <span class="eq">ΣY = Na + bΣX &nbsp;&nbsp;&nbsp;&nbsp; ΣXY = aΣX + bΣX²</span>
+    Solve them simultaneously for a and b. The line always passes through (X̄, Ȳ).</div>
+  <div class="f-lim">Squaring makes the method sensitive to outliers.</div>
+</div>
+<div class="box example" data-title="Worked example — normal equations">
+<p>Fit Y = a + bX to X = 1, 2, 3, 4, 5 and Y = 2, 4, 5, 4, 5.</p>
+<table class="num compact"><tr><th>X</th><th>Y</th><th>X²</th><th>XY</th></tr><tr><td>1</td><td>2</td><td>1</td><td>2</td></tr><tr><td>2</td><td>4</td><td>4</td><td>8</td></tr><tr><td>3</td><td>5</td><td>9</td><td>15</td></tr><tr><td>4</td><td>4</td><td>16</td><td>16</td></tr><tr><td>5</td><td>5</td><td>25</td><td>25</td></tr><tr class="total"><td>15</td><td>20</td><td>55</td><td>66</td></tr></table>
+<ol class="steps">
+  <li>Normal equations: 20 = 5a + 15b … (i); 66 = 15a + 55b … (ii).</li>
+  <li>(i) × 3: 60 = 15a + 45b. Subtract from (ii): 6 = 10b → <b>b = 0.6</b>.</li>
+  <li>From (i): 20 = 5a + 9 → <b>a = 2.2</b>.</li>
+  <li>Regression line: <b>Y = 2.2 + 0.6X</b>. Estimate for X = 6: Y = 2.2 + 3.6 = 5.8.</li>
+</ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="regression-lines">
+<h2><span class="num">2.6</span> Regression equations and regression coefficients</h2>
+<div class="concept">
+  <h3>Two regression lines</h3>
+  <div class="f-exp">There are <b>two</b> regression lines (unless r = ±1):
+  <ul><li><b>Y on X</b>: used to estimate Y for a given X (X independent). Minimises vertical errors.</li>
+  <li><b>X on Y</b>: used to estimate X for a given Y. Minimises horizontal errors.</li></ul>
+  <div class="box formula" data-title="Regression equations (deviations-from-mean form)">
+    <span class="eq">Y on X: &nbsp; Y − Ȳ = b<sub>yx</sub>(X − X̄), &nbsp;&nbsp; b<sub>yx</sub> = r <span class="fr"><span>σ<sub>y</sub></span><span>σ<sub>x</sub></span></span> = <span class="fr"><span>Σxy</span><span>Σx²</span></span></span>
+    <span class="eq">X on Y: &nbsp; X − X̄ = b<sub>xy</sub>(Y − Ȳ), &nbsp;&nbsp; b<sub>xy</sub> = r <span class="fr"><span>σ<sub>x</sub></span><span>σ<sub>y</sub></span></span> = <span class="fr"><span>Σxy</span><span>Σy²</span></span></span>
+    <span class="eq">With assumed means: b<sub>yx</sub> = <span class="fr"><span>NΣdxdy − ΣdxΣdy</span><span>NΣdx² − (Σdx)²</span></span></span>
+  </div></div>
+  <div class="f-use">If a manager wants sales (Y) for a given advertising budget (X), use Y on X. To find the budget needed for a target sales figure, use X on Y.</div>
+  <div class="f-imp">Both lines intersect at the point of means (X̄, Ȳ). The closer |r| is to 1, the closer the two lines; if r = 0 they are perpendicular (Y = Ȳ and X = X̄).</div>
+  <div class="f-lim">Using the wrong line (e.g. Y on X to estimate X) gives a biased estimate.</div>
+</div>
+
+<div class="concept">
+  <h3>Properties of regression coefficients</h3>
+  <div class="f-exp">
+    <ol>
+      <li><b>r = ±√(b<sub>yx</sub> × b<sub>xy</sub>)</b> — r is the geometric mean of the two coefficients.</li>
+      <li>Both coefficients and r have the <b>same sign</b>.</li>
+      <li>If one coefficient is greater than 1, the other must be less than 1 (since b<sub>yx</sub>·b<sub>xy</sub> = r² ≤ 1).</li>
+      <li>The <b>arithmetic mean</b> of the coefficients is ≥ r: (b<sub>yx</sub> + b<sub>xy</sub>)/2 ≥ r (for positive r).</li>
+      <li>Coefficients are <b>independent of change of origin but not of scale</b>.</li>
+      <li>The two lines pass through (X̄, Ȳ).</li>
+    </ol></div>
+  <div class="f-use">Used to check which given line is Y on X, and to find r and missing σ values.</div>
+  <div class="f-imp">Example: b<sub>yx</sub> = 0.8, b<sub>xy</sub> = 0.45 → r = √0.36 = 0.6.</div>
+  <div class="f-lim">If a computed product b<sub>yx</sub>·b<sub>xy</sub> exceeds 1, the assumption about which line is which was wrong.</div>
+</div>
+
+<div class="box example" data-title="Worked example 1 — both regression equations from data (same data as Pearson example)">
+<p>From the table: X̄ = 10, Ȳ = 9, Σx² = 28, Σy² = 84, Σxy = 46.</p>
+<ol class="steps">
+  <li>b<sub>yx</sub> = 46/28 = <b>1.643</b>; b<sub>xy</sub> = 46/84 = <b>0.548</b>.</li>
+  <li>Y on X: Y − 9 = 1.643(X − 10) → <b>Y = 1.643X − 7.43</b>.</li>
+  <li>X on Y: X − 10 = 0.548(Y − 9) → <b>X = 0.548Y + 5.07</b>.</li>
+  <li>Check: r = √(1.643 × 0.548) = √0.900 = 0.9487 ✓ (matches 0.9485 apart from rounding).</li>
+  <li>Estimate Y when X = 15: Y = 9 + 1.643 × 5 = <b>17.21</b>.</li>
+</ol>
+</div>
+<div class="box example" data-title="Worked example 2 — from summary statistics">
+<p>X̄ = 20, Ȳ = 25, σ<sub>x</sub> = 4, σ<sub>y</sub> = 5, r = 0.8. Find both lines and Y when X = 30.</p>
+<ol class="steps">
+  <li>b<sub>yx</sub> = 0.8 × 5/4 = 1.0; b<sub>xy</sub> = 0.8 × 4/5 = 0.64.</li>
+  <li>Y on X: Y − 25 = 1.0(X − 20) → <b>Y = X + 5</b>. At X = 30: <b>Y = 35</b>.</li>
+  <li>X on Y: X − 20 = 0.64(Y − 25) → <b>X = 0.64Y + 4</b>.</li>
+</ol>
+</div>
+<div class="box example" data-title="Worked example 3 — two lines given: find means, identify lines, find r">
+<p>The two regression lines are 8X − 10Y + 66 = 0 and 40X − 18Y = 214. Find X̄, Ȳ, r and σ<sub>y</sub> if σ<sub>x</sub> = 3.</p>
+<ol class="steps">
+  <li><b>Means</b> (lines meet at (X̄, Ȳ)): 8X − 10Y = −66 and 40X − 18Y = 214. Multiply the first by 5: 40X − 50Y = −330. Subtract: 32Y = 544 → <b>Ȳ = 17</b>; then 8X = 170 − 66 = 104 → <b>X̄ = 13</b>.</li>
+  <li><b>Assume</b> the first is Y on X: Y = 0.8X + 6.6 → b<sub>yx</sub> = 0.8. Second is X on Y: X = 0.45Y + 5.35 → b<sub>xy</sub> = 0.45.</li>
+  <li>Check: b<sub>yx</sub>·b<sub>xy</sub> = 0.36 ≤ 1 ✓ (assumption valid). <b>r = +√0.36 = 0.6</b> (positive because both coefficients are positive).</li>
+  <li>σ<sub>y</sub>: b<sub>yx</sub> = r σ<sub>y</sub>/σ<sub>x</sub> → 0.8 = 0.6 σ<sub>y</sub>/3 → <b>σ<sub>y</sub> = 4</b>.</li>
+</ol>
+<p><b>Why the check matters:</b> had we assumed the opposite, we would get b<sub>yx</sub> = 40/18 = 2.22 and b<sub>xy</sub> = 10/8 = 1.25, product 2.78 &gt; 1 — impossible.</p>
+</div>
+<div class="demo box" data-demo="regression" data-title="Interactive demo — fit both regression lines, see residuals, predict"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Using the father–son data (X̄ = 68, Ȳ = 69, Σx² = 36, Σy² = 44, Σxy = 24), find both regression lines and estimate the son's height when the father is 70 in.
+      <details class="ans"><summary>Show answer</summary><div>b<sub>yx</sub> = 24/36 = 0.667, b<sub>xy</sub> = 24/44 = 0.545. Y on X: Y − 69 = 0.667(X − 68) → Y = 0.667X + 23.67. X on Y: X − 68 = 0.545(Y − 69) → X = 0.545Y + 30.36. For X = 70: Y = 69 + 0.667 × 2 = <b>70.33 in</b>.</div></details></li>
+    <li>Regression lines: 3X + 2Y − 26 = 0 and 6X + Y − 31 = 0. Find means and r.
+      <details class="ans"><summary>Show answer</summary><div>Solving: <b>X̄ = 4, Ȳ = 7</b>. Assume the first is Y on X: Y = 13 − 1.5X → b<sub>yx</sub> = −1.5; second X on Y: X = (31 − Y)/6 → b<sub>xy</sub> = −1/6. Product = 0.25 ≤ 1 ✓ → <b>r = −0.5</b> (negative sign since both coefficients are negative).</div></details></li>
+    <li>b<sub>yx</sub> = 1.6 and b<sub>xy</sub> = 0.4. Find r. Can b<sub>yx</sub> = 1.6 and b<sub>xy</sub> = 0.8?
+      <details class="ans"><summary>Show answer</summary><div>r = √0.64 = 0.8. Second pair: product 1.28 &gt; 1 → impossible.</div></details></li>
+    <li>Fit Y = a + bX by least squares: X = 0, 1, 2, 3, 4; Y = 1, 1.8, 3.3, 4.5, 6.3.
+      <details class="ans"><summary>Show answer</summary><div>N = 5, ΣX = 10, ΣY = 16.9, ΣX² = 30, ΣXY = 0 + 1.8 + 6.6 + 13.5 + 25.2 = 47.1. 16.9 = 5a + 10b; 47.1 = 10a + 30b → b = (47.1 − 33.8)/10 = 1.33, a = (16.9 − 13.3)/5 = 0.72. <b>Y = 0.72 + 1.33X</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="unit2-review">
+<h2><span class="num">2.7</span> Unit II review and self-test</h2>
+<div class="box summary"><ul>
+  <li>Types: positive/negative, linear/non-linear, simple/multiple/partial. Methods: scatter, Pearson, Spearman.</li>
+  <li>r = Σxy/√(Σx²Σy²) = [NΣXY − ΣXΣY]/√{[NΣX² − (ΣX)²][NΣY² − (ΣY)²]}; −1 ≤ r ≤ 1; independent of origin and scale.</li>
+  <li>P.E. = 0.6745(1 − r²)/√N; r &lt; PE not significant; r &gt; 6 PE significant; ρ = r ± PE.</li>
+  <li>Spearman R = 1 − 6ΣD²/[N(N² − 1)]; ties: average ranks + Σ(m³ − m)/12 added to ΣD².</li>
+  <li>Y − Ȳ = b<sub>yx</sub>(X − X̄), b<sub>yx</sub> = rσ<sub>y</sub>/σ<sub>x</sub> = Σxy/Σx²; X − X̄ = b<sub>xy</sub>(Y − Ȳ); r = ±√(b<sub>yx</sub>b<sub>xy</sub>); lines meet at (X̄, Ȳ).</li>
+</ul></div>
+<div class="quiz">
+  <div class="mcq" data-ans="b"><p class="q">1. If r = −0.95, the correlation is:</p><ol><li>low negative</li><li>high negative</li><li>moderate positive</li><li>perfect negative</li></ol><p class="why">|r| between 0.75 and 1.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">2. Pearson's r is independent of:</p><ol><li>change of origin only</li><li>change of scale only</li><li>change of origin and scale</li><li>neither</li></ol><p class="why">Property 2.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">3. If b<sub>yx</sub> = 0.9 and b<sub>xy</sub> = 0.4, r =</p><ol><li>0.6</li><li>0.36</li><li>0.65</li><li>1.3</li></ol><p class="why">√0.36.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">4. Two regression lines intersect at:</p><ol><li>(0, 0)</li><li>(σx, σy)</li><li>(r, r)</li><li>(X̄, Ȳ)</li></ol><p class="why">Both pass through the means.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">5. Spearman's formula for N = 5 and ΣD² = 4 gives R =</p><ol><li>0.6</li><li>0.8</li><li>0.4</li><li>0.9</li></ol><p class="why">1 − 24/120 = 0.8.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">6. Probable error is 0.6745 times:</p><ol><li>r</li><li>1 − r</li><li>the standard error of r</li><li>√N</li></ol><p class="why">P.E. = 0.6745 × (1 − r²)/√N.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">7. Which is NOT possible?</p><ol><li>b<sub>yx</sub> = 2.5, b<sub>xy</sub> = 0.5</li><li>b<sub>yx</sub> = 1.2, b<sub>xy</sub> = 0.7</li><li>b<sub>yx</sub> = −0.3, b<sub>xy</sub> = −2</li><li>b<sub>yx</sub> = 0.5, b<sub>xy</sub> = 0.5</li></ol><p class="why">2.5 × 0.5 = 1.25 &gt; 1.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">8. In regression, the coefficients are:</p><ol><li>independent of origin and scale</li><li>dependent on origin</li><li>pure numbers</li><li>independent of origin but not scale</li></ol><p class="why">Changing units changes the slope.</p></div>
+</div>
+<h3>Likely exam questions</h3>
+<table>
+  <tr><th>Marks</th><th>Question</th></tr>
+  <tr><td>2</td><td>Define correlation / regression. · What is probable error? · State any two properties of r / regression coefficients. · What is a scatter diagram?</td></tr>
+  <tr><td>5</td><td>Types of correlation. · Compute Spearman's R (with ties). · Distinguish correlation and regression. · Find means and r from two regression lines.</td></tr>
+  <tr><td>10</td><td>Compute Karl Pearson's r and interpret using P.E. · Obtain both regression equations and estimate a value. · Explain regression: lines, coefficients and properties.</td></tr>
+</table>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="stats-core.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>
