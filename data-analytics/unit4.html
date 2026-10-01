@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit IV · Power BI &amp; Business Intelligence — Data Analytics</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="da" data-page="unit4.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Unit IV · 14 hours · CO4</div>
+  <h1>Power BI &amp; Business Intelligence</h1>
+  <p class="lead">Business Intelligence turns data into dashboards that managers use every day. Power BI is Microsoft's BI tool. This unit explains its components and interface, how to load and clean data with Power Query, and how to build interactive dashboards with slicers, drill-through and bookmarks — with simulators so you can practise each step in the browser.</p>
+  <div class="meta"><span class="chip acc">What is BI</span><span class="chip acc">Desktop · Service · Mobile</span><span class="chip acc">Interface</span><span class="chip acc">Data sources</span><span class="chip acc">Power Query</span><span class="chip acc">Merge &amp; append</span><span class="chip acc">Visuals</span><span class="chip acc">Slicers · drill-through · bookmarks</span></div>
+</div>
+<div class="box tip"><p>Power BI Desktop is free for Windows. If you can, install it and repeat every simulator here on the real tool using the sample data — practical exams and viva questions expect you to know the exact menu paths, which are written in <b>bold</b> throughout. (Microsoft renames things occasionally; recent names are given with older names in brackets.)</p></div>
+
+<!-- ============================================================ -->
+<section class="topic" id="bi">
+<h2><span class="num">4.1</span> Introduction to Business Intelligence (BI)</h2>
+<div class="concept">
+  <h3>What is Business Intelligence?</h3>
+  <div class="f-exp"><b>Business Intelligence</b> is the set of strategies, processes and technologies that <b>collect, integrate, analyse and present</b> business data to support better decision-making. In short: turning raw operational data into reports and dashboards that answer "how is the business doing?"</div>
+  <div class="f-use">Sales dashboards for regional managers, finance MIS reports, inventory monitoring, HR attrition dashboards, hospital bed-occupancy screens, college admission dashboards.</div>
+  <div class="f-imp"><b>BI process / architecture:</b>
+    <ol class="steps">
+      <li><b>Data sources</b> — ERP, CRM, Excel files, databases, web, cloud apps.</li>
+      <li><b>ETL</b> (Extract, Transform, Load) — pull data, clean and reshape it, load it into a store. (Power Query does ETL in Power BI.)</li>
+      <li><b>Data warehouse / data model</b> — integrated, historical, subject-oriented data organised for analysis (star schema).</li>
+      <li><b>Analysis</b> — aggregation, OLAP (slice and dice, drill down), calculations (DAX measures).</li>
+      <li><b>Presentation</b> — reports, dashboards, alerts, mobile apps shared with decision-makers.</li>
+    </ol></div>
+  <div class="f-lim">Mostly descriptive and diagnostic (looks at the past); quality depends on data quality; requires governance (who sees what), licences and trained users.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 760 170" width="740" role="img" aria-label="BI architecture">
+ <rect class="dg-box" x="5" y="20" width="120" height="130" rx="8"/><text class="dg-tb" x="65" y="40" text-anchor="middle">Sources</text>
+ <text class="dg-ts" x="65" y="62" text-anchor="middle">Excel / CSV</text><text class="dg-ts" x="65" y="80" text-anchor="middle">SQL databases</text><text class="dg-ts" x="65" y="98" text-anchor="middle">ERP / CRM</text><text class="dg-ts" x="65" y="116" text-anchor="middle">Web / APIs</text><text class="dg-ts" x="65" y="134" text-anchor="middle">Cloud apps</text>
+ <rect class="dg-warn" x="165" y="55" width="120" height="60" rx="8"/><text class="dg-tb" x="225" y="80" text-anchor="middle">ETL</text><text class="dg-ts" x="225" y="98" text-anchor="middle">(Power Query)</text>
+ <rect class="dg-acc" x="325" y="55" width="130" height="60" rx="8"/><text class="dg-tb" x="390" y="80" text-anchor="middle">Data model</text><text class="dg-ts" x="390" y="98" text-anchor="middle">warehouse / DAX</text>
+ <rect class="dg-found" x="495" y="55" width="110" height="60" rx="8"/><text class="dg-tb" x="550" y="80" text-anchor="middle">Analysis</text><text class="dg-ts" x="550" y="98" text-anchor="middle">OLAP, measures</text>
+ <rect class="dg-good" x="645" y="40" width="110" height="90" rx="8"/><text class="dg-tb" x="700" y="66" text-anchor="middle">Reports &amp;</text><text class="dg-tb" x="700" y="84" text-anchor="middle">dashboards</text><text class="dg-ts" x="700" y="104" text-anchor="middle">decision makers</text>
+ <path class="dg-line" d="M125 85 H161" marker-end="url(#arr)"/><path class="dg-line" d="M285 85 H321" marker-end="url(#arr)"/><path class="dg-line" d="M455 85 H491" marker-end="url(#arr)"/><path class="dg-line" d="M605 85 H641" marker-end="url(#arr)"/>
+</svg>
+<figcaption>Fig 4.1 — A typical BI pipeline.</figcaption>
+</figure>
+<div class="two-col">
+  <div class="box def" data-title="Benefits of BI"><ul><li>Single version of the truth across departments</li><li>Faster, data-driven decisions; self-service reporting</li><li>Spotting trends and problems early (KPIs, alerts)</li><li>Saves time compared to manual Excel reports</li><li>Improves accountability and performance tracking</li></ul></div>
+  <div class="box def" data-title="Popular BI tools"><ul><li><b>Microsoft Power BI</b> — most widely used, integrates with Excel/Azure</li><li><b>Tableau</b> (Salesforce) — strong visual analytics</li><li><b>Qlik Sense</b> — associative engine</li><li><b>Looker / Looker Studio</b> (Google)</li><li>SAP BusinessObjects, Oracle Analytics, Zoho Analytics</li></ul></div>
+</div>
+<table>
+  <tr><th>Basis</th><th>Business Intelligence</th><th>Data Analytics (broader)</th></tr>
+  <tr><td>Focus</td><td>What happened / what is happening</td><td>Also why, what will happen, what to do</td></tr>
+  <tr><td>Output</td><td>Reports, dashboards, KPIs</td><td>Insights, models, predictions, recommendations</td></tr>
+  <tr><td>Users</td><td>Business users, managers</td><td>Analysts, data scientists</td></tr>
+  <tr><td>Data</td><td>Mostly structured, historical</td><td>Structured and unstructured</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="power-bi">
+<h2><span class="num">4.2</span> Introduction to Power BI and its components</h2>
+<div class="concept">
+  <h3>What is Power BI?</h3>
+  <div class="f-exp"><b>Power BI</b> is Microsoft's collection of software services, apps and connectors that work together to turn unrelated data sources into coherent, visually immersive and interactive insights. Launched in 2015 (growing out of the Excel add-ins Power Query, Power Pivot, Power View and Power Map).</div>
+  <div class="f-use">Companies like Adobe, Heathrow Airport and many Indian banks and IT firms use it; very common in MIS/analyst job descriptions.</div>
+  <div class="f-imp"><b>Typical workflow:</b> connect to data in <b>Power BI Desktop</b> → clean it in Power Query → model it → build a report → <b>Publish</b> to the <b>Power BI Service</b> → create dashboards and share → view on <b>Power BI Mobile</b>.</div>
+  <div class="f-lim">Desktop runs only on Windows; sharing in the Service needs a Pro/Premium licence and a work or school account; very large data or complex DAX requires skill to keep reports fast.</div>
+</div>
+<figure class="fig">
+<svg viewBox="0 0 720 160" width="700" role="img" aria-label="Power BI workflow">
+ <rect class="dg-box" x="5" y="50" width="110" height="60" rx="8"/><text class="dg-tb" x="60" y="76" text-anchor="middle">Data</text><text class="dg-ts" x="60" y="94" text-anchor="middle">sources</text>
+ <rect class="dg-acc" x="160" y="40" width="150" height="80" rx="8"/><text class="dg-tb" x="235" y="66" text-anchor="middle">Power BI Desktop</text><text class="dg-ts" x="235" y="86" text-anchor="middle">connect · clean · model</text><text class="dg-ts" x="235" y="102" text-anchor="middle">build reports (.pbix)</text>
+ <rect class="dg-warn" x="355" y="40" width="160" height="80" rx="8"/><text class="dg-tb" x="435" y="66" text-anchor="middle">Power BI Service</text><text class="dg-ts" x="435" y="86" text-anchor="middle">app.powerbi.com — share,</text><text class="dg-ts" x="435" y="102" text-anchor="middle">dashboards, refresh, apps</text>
+ <rect class="dg-good" x="560" y="10" width="150" height="56" rx="8"/><text class="dg-tb" x="635" y="34" text-anchor="middle">Power BI Mobile</text><text class="dg-ts" x="635" y="52" text-anchor="middle">iOS · Android · Windows</text>
+ <rect class="dg-good" x="560" y="94" width="150" height="56" rx="8"/><text class="dg-tb" x="635" y="118" text-anchor="middle">Web / Teams /</text><text class="dg-ts" x="635" y="136" text-anchor="middle">embedded in apps</text>
+ <path class="dg-line" d="M115 80 H156" marker-end="url(#arr)"/><path class="dg-line" d="M310 80 H351" marker-end="url(#arr)"/><text class="dg-ts" x="330" y="72" text-anchor="middle">Publish</text>
+ <path class="dg-line" d="M515 70 L556 42" marker-end="url(#arr)"/><path class="dg-line" d="M515 92 L556 118" marker-end="url(#arr)"/>
+</svg>
+<figcaption>Fig 4.2 — Power BI's three main components and how a report flows through them.</figcaption>
+</figure>
+<div class="concept">
+  <h3>Power BI Desktop</h3>
+  <div class="f-exp">A free Windows application — the main <b>authoring tool</b>. Used to connect to data, transform it (Power Query Editor), create a data model with relationships and DAX calculations, and design multi-page reports. Files are saved as <b>.pbix</b>.</div>
+  <div class="f-use">Analysts and report developers build everything here.</div>
+  <div class="f-imp">Three main views: Report, Table (Data) and Model (Section 4.4).</div>
+  <div class="f-lim">Windows only; reports cannot be shared from Desktop itself except as files.</div>
+</div>
+<div class="concept">
+  <h3>Power BI Service</h3>
+  <div class="f-exp">The cloud (SaaS) platform at <b>app.powerbi.com</b>. Reports are <b>published</b> here from Desktop to be shared and consumed in a browser.</div>
+  <div class="f-use">Sharing with colleagues, building <b>dashboards</b> by pinning visuals, scheduling <b>data refresh</b>, setting data <b>alerts</b>, creating <b>apps</b> for many users, collaboration in <b>workspaces</b>, integration with Teams/SharePoint.</div>
+  <div class="f-imp">Contents of a workspace: semantic models (datasets), reports, dashboards, dataflows. An <b>on-premises data gateway</b> lets the cloud refresh data kept on local servers.</div>
+  <div class="f-lim">Sharing needs Pro or Premium licences; limited report editing compared with Desktop.</div>
+</div>
+<div class="concept">
+  <h3>Power BI Mobile</h3>
+  <div class="f-exp">Native apps for Android, iOS and Windows to view reports and dashboards on phones/tablets.</div>
+  <div class="f-use">A regional manager checks sales on the go, gets push notifications from data alerts, annotates and shares a snapshot with the team.</div>
+  <div class="f-imp">Report designers can create a dedicated <b>mobile layout</b> in Desktop (<b>View → Mobile layout</b>).</div>
+  <div class="f-lim">Viewing and light interaction only — no report building.</div>
+</div>
+<div class="box oos" data-title="Beyond the syllabus · other parts of the Power BI family">
+  <p><b>Power Query</b> (data preparation, M language) · <b>Power Pivot</b> (in-memory data model, DAX language) · <b>Power BI Report Server</b> (on-premises hosting) · <b>Power BI Embedded</b> (show reports inside your own app) · <b>Gateway</b> · <b>Power BI Report Builder</b> (paginated, print-ready reports). Licences: Free, Pro, Premium Per User, Premium/Fabric capacity. Since 2023 Power BI is part of <b>Microsoft Fabric</b>.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="install">
+<h2><span class="num">4.3</span> Installing Power BI Desktop</h2>
+<div class="concept">
+  <h3>Installation steps</h3>
+  <div class="f-exp">Power BI Desktop is free. Two ways to install: from the <b>Microsoft Store</b> (recommended — updates automatically every month) or as an <b>.exe installer</b> from the Microsoft Download Center / powerbi.microsoft.com.</div>
+  <div class="f-use">Required before any practical work in this unit.</div>
+  <div class="f-imp">
+    <p><b>Requirements:</b> Windows 10 or 11 (64-bit recommended), at least 2 GB RAM (4 GB+ recommended), display 1440 × 900 or higher, .NET Framework 4.6.2+, Microsoft Edge WebView2.</p>
+    <ol class="steps">
+      <li>Open <b>Microsoft Store</b> → search "Power BI Desktop" → <b>Get / Install</b>. <i>Or</i> go to powerbi.microsoft.com → Products → Desktop → <b>Download free</b> → choose language → download <b>PBIDesktopSetup_x64.exe</b>.</li>
+      <li>Run the installer → Next → accept the licence agreement → choose install location → Install → Finish.</li>
+      <li>Launch Power BI Desktop. A welcome/start screen appears (recent files, Get data, samples).</li>
+      <li>Optionally <b>Sign in</b> (top-right) with a work or school Microsoft account — needed to publish to the Service. (Personal Gmail/Outlook.com accounts are not accepted for the Service.)</li>
+    </ol></div>
+  <div class="f-lim">Not available for macOS/Linux (use a Windows VM or the Service in a browser); company PCs may need admin rights.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="interface">
+<h2><span class="num">4.4</span> Power BI interface and navigation</h2>
+<p>Click any region of the mock-up to learn what it does.</p>
+<div class="demo box" data-demo="pbiui" data-title="Interactive map of the Power BI Desktop window"></div>
+<table>
+  <tr><th>Area</th><th>Purpose</th></tr>
+  <tr><td><b>Ribbon</b></td><td>Tabs: <b>File</b> (save, publish, options), <b>Home</b> (Get data, Transform data, Refresh, New visual, Publish), <b>Insert</b> (visuals, text boxes, buttons, shapes, images), <b>Modeling</b> (new measure/column/table, manage relationships, roles), <b>View</b> (themes, gridlines, panes like Bookmarks, Selection, Sync slicers, mobile layout), <b>Optimize</b> (performance analyzer), <b>Help</b>.</td></tr>
+  <tr><td><b>View switcher</b> (left bar)</td><td><b>Report view</b> (design pages of visuals), <b>Table view</b> (formerly Data view — see the loaded rows, format columns), <b>Model view</b> (tables and relationships), <b>DAX query view</b> (newer versions).</td></tr>
+  <tr><td><b>Report canvas</b></td><td>The page where visuals are placed and arranged.</td></tr>
+  <tr><td><b>Page tabs</b></td><td>Bottom of the canvas: add, rename, duplicate, hide pages.</td></tr>
+  <tr><td><b>Filters pane</b></td><td>Visual-level, page-level and all-pages (report-level) filters.</td></tr>
+  <tr><td><b>Visualizations pane</b></td><td>Pick a visual type; <b>Build</b> (field wells: Axis/X-axis, Values/Y-axis, Legend, Tooltips, Drill through); <b>Format</b> (paintbrush: colours, titles, labels); <b>Analytics</b> (trend, average, forecast lines).</td></tr>
+  <tr><td><b>Data pane</b> (formerly Fields)</td><td>Lists tables and columns/measures; tick or drag fields onto visuals. Σ marks numeric fields, a calculator icon marks measures.</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="data-sources">
+<h2><span class="num">4.5</span> Data sources supported by Power BI</h2>
+<p>Power BI connects to hundreds of sources via <b>Home → Get data</b> (the "More…" option shows all categories).</p>
+<table>
+  <tr><th>Category</th><th>Examples</th></tr>
+  <tr><td><b>File</b></td><td>Excel workbook, Text/CSV, XML, JSON, PDF, Parquet, Folder (combine many files), SharePoint folder</td></tr>
+  <tr><td><b>Database</b></td><td>SQL Server, Access, Oracle, MySQL, PostgreSQL, IBM Db2, SAP HANA, Teradata, Snowflake, Google BigQuery, Amazon Redshift</td></tr>
+  <tr><td><b>Power Platform</b></td><td>Power BI semantic models (datasets), dataflows, Dataverse</td></tr>
+  <tr><td><b>Azure</b></td><td>Azure SQL Database, Azure Synapse Analytics, Azure Blob/Data Lake Storage, Azure Analysis Services</td></tr>
+  <tr><td><b>Online services</b></td><td>SharePoint Online list, Dynamics 365, Salesforce, Google Analytics, GitHub, Microsoft Exchange Online</td></tr>
+  <tr><td><b>Other</b></td><td><b>Web</b> (web pages and APIs), OData feed, ODBC, OLE DB, R script, Python script, Blank query, Spark, Hadoop (HDFS)</td></tr>
+</table>
+<div class="concept">
+  <h3>Connection (storage) modes</h3>
+  <div class="f-exp"><b>Import</b>: a copy of the data is loaded into Power BI's compressed in-memory engine (fastest, full features, needs refresh). <b>DirectQuery</b>: data stays in the source; every visual sends a live query (always current, slower, some limits). <b>Live connection</b>: connect to an existing Analysis Services model or Power BI semantic model.</div>
+  <div class="f-use">Import for Excel files and most databases; DirectQuery for huge or real-time databases.</div>
+  <div class="f-imp">Chosen in the connection dialog (e.g. SQL Server: "Data connectivity mode").</div>
+  <div class="f-lim">Import has size limits (1 GB per model in Pro); DirectQuery limits Power Query transformations and DAX functions.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="power-query">
+<h2><span class="num">4.6</span> Data loading and transformation with Power Query</h2>
+<div class="concept">
+  <h3>Understanding the Power Query Editor</h3>
+  <div class="f-exp"><b>Power Query</b> is Power BI's ETL engine. Every cleaning action you click is recorded as a <b>step</b> written in the <b>M language</b>; when data refreshes, the steps are replayed automatically — so you clean once and reuse forever. Open it with <b>Home → Transform data</b>.</div>
+  <div class="f-use">Removing junk rows from exported reports, fixing data types, combining monthly files, joining customer details to orders, splitting "City, State" columns.</div>
+  <div class="f-imp"><b>Layout of the editor:</b>
+    <ul>
+      <li><b>Ribbon</b> — Home, Transform, Add Column, View, Tools, Help tabs.</li>
+      <li><b>Queries pane</b> (left) — every table/query loaded.</li>
+      <li><b>Data preview</b> (centre) — the table after the selected step; column headers show the data-type icon (ABC text, 123 whole number, 1.2 decimal, calendar for date…).</li>
+      <li><b>Formula bar</b> — the M code of the selected step (turn on with View → Formula bar).</li>
+      <li><b>Query Settings</b> (right) — Properties (query name) and <b>Applied Steps</b>: click any step to see the data at that point; delete or reorder steps; the gear icon edits a step.</li>
+      <li><b>Data profiling</b> — View → Column quality (valid/error/empty %), Column distribution, Column profile.</li>
+    </ul>
+    Finish with <b>Home → Close &amp; Apply</b> to load the cleaned data into the model.</div>
+  <div class="f-lim">Steps run in order — deleting an early step can break later ones; very complex transformations can slow refresh.</div>
+</div>
+
+<h3>Loading data from various sources</h3>
+<div class="three-col">
+  <div class="box def" data-title="Excel"><ol style="padding-left:1.1em;margin:0"><li><b>Home → Get data → Excel workbook</b></li><li>Browse to the .xlsx file → Open</li><li><b>Navigator</b>: tick the sheets/tables (preview on right)</li><li><b>Load</b> (as is) or <b>Transform Data</b> (open Power Query)</li></ol></div>
+  <div class="box def" data-title="Web"><ol style="padding-left:1.1em;margin:0"><li><b>Home → Get data → Web</b></li><li>Enter the URL (Basic) — e.g. a Wikipedia page with tables</li><li>Choose access (Anonymous for public pages)</li><li>Navigator lists the HTML tables found → select → Transform Data</li></ol></div>
+  <div class="box def" data-title="SQL Server"><ol style="padding-left:1.1em;margin:0"><li><b>Home → Get data → SQL Server</b></li><li>Server name, optional Database</li><li>Connectivity mode: Import / DirectQuery; optional SQL statement (Advanced options)</li><li>Credentials (Windows or Database) → Navigator → select tables</li></ol></div>
+</div>
+
+<h3>Cleaning and transforming data</h3>
+<table>
+  <tr><th>Task</th><th>How (menu path)</th><th>When to use</th></tr>
+  <tr><td><b>Remove columns</b></td><td>Select column(s) → <b>Home → Remove Columns</b> (or right-click → Remove). <b>Remove Other Columns</b> keeps only the selected ones; <b>Choose Columns</b> picks from a list.</td><td>Drop unnecessary fields to keep the model small.</td></tr>
+  <tr><td><b>Remove rows</b></td><td><b>Home → Remove Rows</b> → Remove Top Rows / Bottom Rows / Alternate Rows / <b>Duplicates</b> / <b>Blank Rows</b> / Errors. <b>Keep Rows</b> is the opposite.</td><td>Junk header lines, totals at the bottom, repeated records.</td></tr>
+  <tr><td><b>Use first row as headers</b></td><td><b>Home → Use First Row as Headers</b></td><td>When column names arrive as the first data row.</td></tr>
+  <tr><td><b>Rename columns</b></td><td>Double-click the header (or right-click → Rename) and type.</td><td>Friendly names for report users ("cust_nm" → "Customer Name").</td></tr>
+  <tr><td><b>Filter rows</b></td><td>Header drop-down arrow → untick values or Text/Number/Date filters.</td><td>Keep only 2024 data, remove "Test" entries.</td></tr>
+  <tr><td><b>Replace values</b></td><td><b>Transform → Replace Values</b></td><td>Standardise "Blr" → "Bengaluru"; null → 0.</td></tr>
+  <tr><td><b>Trim / Clean / Format</b></td><td><b>Transform → Format → Trim</b> (spaces), Clean (non-printing chars), UPPERCASE, lowercase, Capitalize Each Word.</td><td>"  north " and "North" should be the same region.</td></tr>
+  <tr><td><b>Split column</b></td><td><b>Home/Transform → Split Column → By Delimiter</b> (comma, space) or By Number of Characters.</td><td>"Pune, Maharashtra" → City, State.</td></tr>
+  <tr><td><b>Fill down</b></td><td><b>Transform → Fill → Down</b></td><td>Exported reports that show a category only in its first row.</td></tr>
+  <tr><td><b>Change type</b></td><td>Click the type icon in the header, or <b>Transform → Data Type</b>.</td><td>Dates stored as text, numbers stored as text.</td></tr>
+  <tr><td><b>Add column</b></td><td><b>Add Column → Custom Column</b> (formula, e.g. [Units] * [Price]); Column From Examples; Conditional Column.</td><td>Revenue, profit, age group.</td></tr>
+  <tr><td><b>Unpivot</b> (OOS)</td><td>Select columns → <b>Transform → Unpivot Columns</b></td><td>Month columns Jan, Feb, Mar → rows of (Month, Value).</td></tr>
+</table>
+<div class="demo box" data-demo="pq" data-title="Power Query simulator — clean a messy sales table step by step"></div>
+
+<h3>Merge and append queries</h3>
+<div class="concept">
+  <h3>Merge queries (joins)</h3>
+  <div class="f-exp"><b>Merge</b> combines two tables <b>side by side</b> using a matching column (key), like SQL JOIN or Excel VLOOKUP. It <b>adds columns</b>.</div>
+  <div class="f-use">Add customer name and city (Customers table) to each order (Orders table) using CustomerID.</div>
+  <div class="f-imp">
+    <ol class="steps"><li>Select the main query (Orders) → <b>Home → Combine → Merge Queries</b> (or <b>Merge Queries as New</b> to create a third query).</li><li>Choose the second table (Customers); click the matching column in both tables (CustomerID ↔ ID).</li><li>Choose the <b>Join Kind</b> → OK.</li><li>A new column of nested tables appears — click its <b>expand icon</b> and tick the columns to bring in (Name, City).</li></ol>
+    <table class="compact"><tr><th>Join kind</th><th>Rows kept</th></tr>
+      <tr><td>Left outer (default)</td><td>All rows from the first table, matching rows from the second</td></tr>
+      <tr><td>Right outer</td><td>All rows from the second, matching from the first</td></tr>
+      <tr><td>Full outer</td><td>All rows from both</td></tr>
+      <tr><td>Inner</td><td>Only rows that match in both</td></tr>
+      <tr><td>Left anti</td><td>Rows only in the first (no match) — e.g. orders with unknown customer</td></tr>
+      <tr><td>Right anti</td><td>Rows only in the second — e.g. customers who never ordered</td></tr></table></div>
+  <div class="f-lim">Keys must have the same data type and clean values (trailing spaces cause mismatches); duplicates in the lookup table multiply rows.</div>
+</div>
+<div class="demo box" data-demo="merge" data-title="Interactive demo — merge with different join kinds"></div>
+<div class="concept">
+  <h3>Append queries (union)</h3>
+  <div class="f-exp"><b>Append</b> stacks tables <b>one below another</b> — it <b>adds rows</b>. Columns are matched by <b>name</b>; a column missing in one table is filled with <b>null</b>.</div>
+  <div class="f-use">Combine January, February and March sales files with the same structure into one table; combine sales from two branches.</div>
+  <div class="f-imp"><b>Home → Combine → Append Queries</b> (or <b>as New</b>) → <b>Two tables</b> or <b>Three or more tables</b> → select tables → OK. (For a whole folder of files use Get data → Folder → Combine.)</div>
+  <div class="f-lim">Mismatched column names ("Amount" vs "Amt") create separate columns full of nulls — rename first.</div>
+</div>
+<div class="demo box" data-demo="append" data-title="Interactive demo — append two tables"></div>
+<table>
+  <tr><th>Basis</th><th>Merge</th><th>Append</th></tr>
+  <tr><td>Direction</td><td>Horizontal (adds columns)</td><td>Vertical (adds rows)</td></tr>
+  <tr><td>Needs</td><td>A common key column</td><td>Same (or similar) column names</td></tr>
+  <tr><td>SQL equivalent</td><td>JOIN</td><td>UNION ALL</td></tr>
+  <tr><td>Example</td><td>Orders + customer details</td><td>Jan sales + Feb sales</td></tr>
+</table>
+
+<h3>Data types and formatting</h3>
+<div class="concept">
+  <h3>Data types in Power Query and the model</h3>
+  <div class="f-exp">Each column has one data type, which decides what operations are possible: <b>Text</b>, <b>Whole number</b>, <b>Decimal number</b>, <b>Fixed decimal number</b> (currency, 4 decimal places), <b>Percentage</b>, <b>Date</b>, <b>Time</b>, <b>Date/Time</b>, <b>Date/Time/Timezone</b>, <b>Duration</b>, <b>True/False</b>, <b>Binary</b>.</div>
+  <div class="f-use">Dates must be Date type for time intelligence and date slicers; numbers must be numeric to be summed.</div>
+  <div class="f-imp">Set in Power Query (header icon or <b>Transform → Data Type</b>; <b>Detect Data Type</b> guesses). After loading, in <b>Table view</b> or Report view use the <b>Column tools</b> ribbon: <b>Format</b> (currency ₹, percentage, thousands separator, decimal places, date format), <b>Data category</b> (City, Country, Postal code, Web URL, Image URL — helps maps), <b>Summarization</b> (Sum, Average, Count, Don't summarize — e.g. Year should not be summed), <b>Sort by column</b> (sort month names by month number).</div>
+  <div class="f-lim">Type conversion errors appear as "Error" cells (check Column quality); locale differences (dd/mm vs mm/dd) need "Using Locale" when changing type.</div>
+</div>
+<div class="box oos" data-title="Beyond the syllabus · data modelling and DAX in one minute">
+  <p><b>Model view:</b> connect a <b>fact table</b> (Sales) to <b>dimension tables</b> (Date, Product, Customer) — a <b>star schema</b>. Relationships have cardinality (one-to-many usually) and a filter direction. <b>DAX</b> (Data Analysis Expressions) creates <b>measures</b> (calculated on the fly, e.g. <code>Total Sales = SUM(Sales[Amount])</code>, <code>Margin % = DIVIDE([Profit], [Total Sales])</code>) and <b>calculated columns</b> (computed per row and stored). <code>CALCULATE([Total Sales], Region[Name] = "South")</code> changes filter context. Measures are preferred for aggregations.</p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="visualizations">
+<h2><span class="num">4.7</span> Visualizations and dashboards</h2>
+<div class="concept">
+  <h3>Creating a visual</h3>
+  <div class="f-exp">A <b>visual</b> (visualisation) is a chart, table, map or card on the report canvas, built from fields.</div>
+  <div class="f-use">Every report page is a collection of visuals that tell one story.</div>
+  <div class="f-imp"><ol class="steps"><li>In Report view click an empty area of the canvas.</li><li>Choose a visual type in the <b>Visualizations</b> pane (or just tick a field — Power BI picks a default).</li><li>Drag fields into the wells: <b>X-axis/Axis</b> (categories), <b>Y-axis/Values</b> (numbers), <b>Legend</b> (series), <b>Tooltips</b>.</li><li>Resize and position; format with the paintbrush (<b>Format visual</b>).</li><li>Change the visual type anytime by clicking another icon.</li></ol></div>
+  <div class="f-lim">Too many visuals per page confuse readers and slow the report — aim for 4–8 well-chosen visuals.</div>
+</div>
+<h3>Types of charts and when to use them</h3>
+<table>
+  <tr><th>Visual</th><th>Best for</th><th>Example</th></tr>
+  <tr><td><b>Bar chart</b> (horizontal) — clustered / stacked / 100 % stacked</td><td>Comparing categories, especially with long names</td><td>Sales by product</td></tr>
+  <tr><td><b>Column chart</b> (vertical) — clustered / stacked / 100 % stacked</td><td>Comparing categories or a few time periods</td><td>Sales by quarter; stacked by region</td></tr>
+  <tr><td><b>Line chart</b> / area chart</td><td>Trends over continuous time</td><td>Monthly revenue over 3 years</td></tr>
+  <tr><td><b>Combo</b> (line and column)</td><td>Two measures with different scales</td><td>Sales (columns) and margin % (line)</td></tr>
+  <tr><td><b>Pie</b> / <b>Donut</b></td><td>Parts of a whole with few (≤ 5) categories</td><td>Share of sales by payment mode</td></tr>
+  <tr><td><b>Treemap</b></td><td>Part-to-whole with many categories / hierarchy</td><td>Sales by category → sub-category</td></tr>
+  <tr><td><b>Map</b> (bubble) / <b>Filled map</b> / Azure map</td><td>Geographic data</td><td>Sales by state</td></tr>
+  <tr><td><b>Table</b></td><td>Detailed values in rows and columns</td><td>Order list</td></tr>
+  <tr><td><b>Matrix</b></td><td>Cross-tab / pivot table with row and column groups, subtotals, drill-down</td><td>Region × Quarter sales</td></tr>
+  <tr><td><b>Card</b> / Multi-row card</td><td>A single key number (KPI)</td><td>Total sales ₹4.2 Cr</td></tr>
+  <tr><td><b>Gauge</b></td><td>Progress of a value towards a target (min–max scale)</td><td>Sales vs target</td></tr>
+  <tr><td><b>KPI</b></td><td>A value, its target and trend</td><td>This month vs goal</td></tr>
+  <tr><td><b>Scatter</b></td><td>Relationship between two measures (correlation!)</td><td>Discount vs profit by product</td></tr>
+  <tr><td><b>Waterfall</b>, <b>Funnel</b>, Ribbon, Decomposition tree, Key influencers</td><td>Running changes; stages of a process; ranking changes; root-cause exploration (AI visuals)</td><td>Profit bridge; sales pipeline</td></tr>
+  <tr><td><b>Slicer</b></td><td>On-canvas filter</td><td>Choose year/region</td></tr>
+</table>
+<div class="demo box" data-demo="visuals" data-title="Interactive demo — the same data in different visuals"></div>
+
+<div class="concept">
+  <h3>Report vs dashboard</h3>
+  <div class="f-exp">A <b>report</b> is a multi-page, fully interactive document created in Desktop (or the Service) from one semantic model. A <b>dashboard</b> is a <b>single-page canvas in the Power BI Service</b> made by <b>pinning tiles</b> (visuals) from one or more reports — a one-screen summary for monitoring.</div>
+  <div class="f-use">Analysts explore in reports; executives monitor dashboards and receive alerts.</div>
+  <div class="f-imp">Pin a visual: in the Service, open the report → hover the visual → <b>pin icon</b> → choose an existing or new dashboard. Clicking a tile opens the underlying report.</div>
+  <div class="f-lim">Dashboards have no slicers/filters pane and limited interactivity; only available in the Service.</div>
+</div>
+<table>
+  <tr><th>Basis</th><th>Report</th><th>Dashboard</th></tr>
+  <tr><td>Pages</td><td>One or many</td><td>One</td></tr>
+  <tr><td>Created in</td><td>Desktop and Service</td><td>Service only</td></tr>
+  <tr><td>Data sources</td><td>One semantic model</td><td>Tiles from many reports/models</td></tr>
+  <tr><td>Filters / slicers</td><td>Yes</td><td>No</td></tr>
+  <tr><td>Alerts</td><td>No</td><td>Yes (on card/KPI/gauge tiles)</td></tr>
+  <tr><td>Q&amp;A natural-language box</td><td>As a visual</td><td>Built in</td></tr>
+</table>
+
+<h3>Steps to create an interactive dashboard (end-to-end)</h3>
+<ol class="steps">
+  <li><b>Get data</b> — Home → Get data → choose source → Transform Data.</li>
+  <li><b>Clean</b> in Power Query (remove, rename, types, merge/append) → Close &amp; Apply.</li>
+  <li><b>Model</b> — check relationships in Model view; create measures (Total Sales, Profit %).</li>
+  <li><b>Build visuals</b> — cards for KPIs on top, trend line, category bar chart, map, detail table.</li>
+  <li><b>Add interactivity</b> — slicers, cross-filtering, drill-down hierarchy, drill-through page, tooltips, bookmarks and buttons.</li>
+  <li><b>Format</b> — theme (View → Themes), titles, data labels, consistent colours, alignment.</li>
+  <li><b>Publish</b> — Home → Publish → choose workspace; then in the Service pin visuals to a dashboard, set refresh and share.</li>
+</ol>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="interactivity">
+<h2><span class="num">4.8</span> Formatting, tooltips, slicers, filters, drill-through and bookmarks</h2>
+<div class="concept">
+  <h3>Formatting visuals</h3>
+  <div class="f-exp">Select a visual → <b>Format visual</b> (paintbrush) in the Visualizations pane. Two groups: <b>Visual</b> (X/Y axis, legend, data labels, colours, gridlines, markers) and <b>General</b> (title, effects: background, border, shadow; header icons; tooltips; alt text for accessibility).</div>
+  <div class="f-use">Readable, branded, consistent reports.</div>
+  <div class="f-imp"><b>Conditional formatting</b>: colours by rules or by a field value (e.g. red for negative profit) — Format → Columns/Data colours → <b>fx</b>. <b>Themes</b>: View → Themes for a uniform colour palette. <b>Format painter</b> (Home) copies formatting between visuals.</div>
+  <div class="f-lim">Overdecorating (3D effects, many colours) hides the message.</div>
+</div>
+<div class="concept">
+  <h3>Tooltips</h3>
+  <div class="f-exp">A <b>tooltip</b> is the small pop-up shown when hovering over a data point. By default it shows the axis value and measure; you can add more fields or design a whole <b>report-page tooltip</b>.</div>
+  <div class="f-use">Show profit and units sold when hovering over a sales bar; show a mini trend chart for each region.</div>
+  <div class="f-imp"><b>Field tooltips:</b> drag extra fields into the visual's <b>Tooltips</b> well. <b>Report page tooltip:</b> add a new page → Format page → <b>Page information → Allow use as tooltip</b> → Canvas settings type <b>Tooltip</b> (small size) → design visuals → on the main visual: Format → General → <b>Tooltips → Type: Report page → Page: (your page)</b>.</div>
+  <div class="f-lim">Not available on touch devices in the same way; too much information in a tooltip clutters.</div>
+</div>
+<div class="concept">
+  <h3>Slicers and filters</h3>
+  <div class="f-exp">A <b>slicer</b> is a visual on the canvas that lets viewers filter other visuals (Region, Year, Category). <b>Filters</b> in the Filters pane do the same but can be hidden/locked by the author and work at three levels:
+    <ul><li><b>Visual-level</b> — one visual only;</li><li><b>Page-level</b> — all visuals on the page;</li><li><b>Report-level</b> (all pages) — everything.</li></ul>
+  Filter types: Basic (tick values), Advanced (conditions like "contains", "greater than"), <b>Top N</b> (top 5 products by sales), Relative date (last 30 days).</div>
+  <div class="f-use">A regional manager selects "South" and every visual updates.</div>
+  <div class="f-imp"><b>Add a slicer:</b> Visualizations → <b>Slicer</b> icon → drag a field into Field → Format → Slicer settings → Style: <b>Vertical list, Tile (buttons), Dropdown</b>; for numbers/dates: <b>Between</b>, Before/After, Relative date; Selection: single/multi select, "Select all". <b>Sync slicers</b> across pages: View → Sync slicers. <b>Edit interactions</b> (Format → Edit interactions) decides whether a slicer or visual filters, highlights or does nothing to each other visual.</div>
+  <div class="f-lim">Many slicers slow a report and confuse users; slicers on high-cardinality fields (customer names) are impractical — use search or Top N.</div>
+</div>
+<div class="concept">
+  <h3>Cross-filtering and drill-down</h3>
+  <div class="f-exp">Clicking a bar or slice in one visual <b>cross-filters</b> (or cross-highlights) the other visuals on the page. Visuals with a <b>hierarchy</b> on the axis (Year → Quarter → Month, or Category → Sub-category) support <b>drill-down</b> (go one level deeper) and <b>drill-up</b>, using the arrow icons on the visual header.</div>
+  <div class="f-use">Click "Electronics" in the category chart to see only electronics sales by month; drill from 2024 into its quarters.</div>
+  <div class="f-imp">Turn on drill mode with the ↓ (drill down) icon, then click a data point; "Expand all down one level" (double arrow) shows the next level for all.</div>
+  <div class="f-lim">Hierarchies must be built (Date hierarchy is automatic for Date fields).</div>
+</div>
+<div class="concept">
+  <h3>Drill through</h3>
+  <div class="f-exp"><b>Drill through</b> lets a user right-click a data point on a summary page and jump to a <b>separate detail page</b> automatically filtered to that item (e.g. a product or customer).</div>
+  <div class="f-use">From a "Sales by Product" chart, drill through to a "Product Details" page showing that product's monthly sales, top customers and returns.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li>Create a new page (e.g. "Product Details") and build detail visuals on it.</li>
+      <li>On that page, in the Visualizations pane (Build), drag the field (Product) into the <b>Drill through</b> well. Optionally set <b>Keep all filters</b> and <b>Cross-report</b>.</li>
+      <li>Power BI automatically adds a <b>Back button</b> (top-left) to return to the source page.</li>
+      <li>On any other page, <b>right-click</b> a data point for that field → <b>Drill through → Product Details</b>.</li>
+    </ol></div>
+  <div class="f-lim">The user must discover the right-click option — add a button or text hint; the field must exist on both pages.</div>
+</div>
+<div class="concept">
+  <h3>Bookmarks</h3>
+  <div class="f-exp">A <b>bookmark</b> captures the <b>current state of a report page</b> — filters and slicer selections, sort order, drill location, which visuals are visible (Selection pane), spotlight/focus mode — so it can be restored with one click.</div>
+  <div class="f-use">Saved views ("South region 2024"), storytelling/presentation (View → Slideshow through bookmarks), toggling between a chart and a table using buttons, "Reset filters" buttons, show/hide information panels.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li>Set the page the way you want (filters, visibility).</li>
+      <li><b>View → Bookmarks</b> → <b>Add</b>; rename it (… → Rename). Use … → <b>Update</b> after changes.</li>
+      <li>Choose what it stores: <b>Data</b> (filters/slicers), <b>Display</b> (visibility, spotlight), <b>Current page</b>; All visuals or Selected visuals.</li>
+      <li>Make it clickable: <b>Insert → Buttons</b> → choose a button → Format → <b>Action: On → Type: Bookmark → Bookmark: (name)</b>. Or <b>Insert → Buttons → Navigator → Bookmark navigator</b> for automatic buttons.</li>
+      <li>In Desktop, Ctrl + click a button to test it.</li>
+    </ol></div>
+  <div class="f-lim">Bookmarks don't update automatically when the report changes — you must Update them; personal bookmarks in the Service are separate from report bookmarks.</div>
+</div>
+<div class="demo box" data-demo="dashboard" data-title="Mini dashboard simulator — slicers, cross-filtering, tooltips, drill-through and bookmarks"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="unit4-review">
+<h2><span class="num">4.9</span> Unit IV review and self-test</h2>
+<div class="box summary"><ul>
+  <li>BI = collect → ETL → model → analyse → present. Tools: Power BI, Tableau, Qlik.</li>
+  <li>Power BI Desktop (author, .pbix), Service (app.powerbi.com: share, dashboards, refresh), Mobile (view, alerts).</li>
+  <li>Desktop views: Report, Table (Data), Model. Panes: Filters, Visualizations (Build/Format/Analytics), Data (Fields).</li>
+  <li>Get data: Excel, Web, SQL Server … Import vs DirectQuery.</li>
+  <li>Power Query: Applied Steps (M), remove/rename columns, remove rows (duplicates, blanks), change type, replace, split, merge (joins: left/right/full outer, inner, left/right anti), append (union).</li>
+  <li>Visuals: bar/column, line, pie, map, matrix, card, gauge… Report (multi-page) vs dashboard (one page, Service, pinned tiles).</li>
+  <li>Interactivity: slicers, visual/page/report filters, cross-filter, drill-down, drill-through (+ back button), tooltips (report-page), bookmarks (+ buttons).</li>
+</ul></div>
+<div class="quiz">
+  <div class="mcq" data-ans="b"><p class="q">1. Power BI Desktop files are saved with the extension:</p><ol><li>.xlsx</li><li>.pbix</li><li>.pbit only</li><li>.pdf</li></ol><p class="why">.pbix (a .pbit is a template).</p></div>
+  <div class="mcq" data-ans="c"><p class="q">2. Dashboards can be created in:</p><ol><li>Power BI Desktop only</li><li>Power BI Mobile</li><li>the Power BI Service</li><li>Power Query</li></ol><p class="why">By pinning tiles in the Service.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">3. To combine January and February sales tables with the same columns you use:</p><ol><li>Append queries</li><li>Merge queries</li><li>Pivot</li><li>Drill through</li></ol><p class="why">Append stacks rows.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">4. Which join keeps only customers who never placed an order (Customers as the second table)?</p><ol><li>Inner</li><li>Left outer</li><li>Full outer</li><li>Right anti</li></ol><p class="why">Rows only in the second table.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">5. Every transformation in Power Query is recorded in:</p><ol><li>the Filters pane</li><li>Applied Steps</li><li>Bookmarks</li><li>the Model view</li></ol><p class="why">Written in the M language and replayed on refresh.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">6. A feature that saves the current filter and visibility state of a page is a:</p><ol><li>tooltip</li><li>slicer</li><li>bookmark</li><li>theme</li></ol><p class="why">Restored by clicking it or a button linked to it.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">7. The best visual to show a single total like "Total Sales" is a:</p><ol><li>Card</li><li>Pie chart</li><li>Scatter chart</li><li>Matrix</li></ol><p class="why">Cards display one key number.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">8. Drill through takes the user to:</p><ol><li>a lower level of the same chart's hierarchy</li><li>the Power Query Editor</li><li>another report file</li><li>a separate detail page filtered to the selected item</li></ol><p class="why">Drill-down (option a) is different.</p></div>
+</div>
+<h3>Likely exam questions</h3>
+<table>
+  <tr><th>Marks</th><th>Question</th></tr>
+  <tr><td>2</td><td>What is BI? · Name the components of Power BI. · What is a slicer? · Define a bookmark. · What is Power Query? · Differentiate merge and append.</td></tr>
+  <tr><td>5</td><td>Explain the Power BI interface. · Explain the steps to install Power BI Desktop. · List data sources supported. · Explain cleaning operations in Power Query. · Report vs dashboard. · Explain drill-through with steps.</td></tr>
+  <tr><td>10</td><td>Explain Power BI and its components (Desktop, Service, Mobile) with workflow. · Explain data loading and transformation using Power Query (sources, cleaning, merge, append, data types). · Explain types of visualisations and how to create an interactive dashboard with slicers, tooltips, drill-through and bookmarks.</td></tr>
+</table>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="stats-core.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

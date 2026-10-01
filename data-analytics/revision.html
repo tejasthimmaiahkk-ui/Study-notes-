@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revision &amp; Exam Kit — Data Analytics</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="da" data-page="revision.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+<div class="hero">
+  <div class="eyebrow">Exam kit · all units</div>
+  <h1>Revision &amp; Exam Kit</h1>
+  <p class="lead">Formula sheet, a test-selection guide, one-page theory summaries, a random problem generator and a mixed self-test.</p>
+</div>
+
+<section class="topic" id="formulas">
+<h2>Formula sheet</h2>
+<table>
+  <tr><th>Topic</th><th>Formula</th></tr>
+  <tr><td>Mean, SD</td><td>X̄ = ΣX/N; σ = √(Σx²/N) = √(ΣX²/N − X̄²); sample S = √[Σ(X − X̄)²/(n − 1)]</td></tr>
+  <tr><td>Pearson (actual mean)</td><td>r = Σxy / √(Σx² Σy²)</td></tr>
+  <tr><td>Pearson (direct)</td><td>r = [NΣXY − ΣXΣY] / √{[NΣX² − (ΣX)²][NΣY² − (ΣY)²]}</td></tr>
+  <tr><td>Pearson (assumed mean)</td><td>r = [NΣdxdy − ΣdxΣdy] / √{[NΣdx² − (Σdx)²][NΣdy² − (Σdy)²]}</td></tr>
+  <tr><td>Probable error</td><td>P.E. = 0.6745(1 − r²)/√N; r &gt; 6 P.E. significant; r &lt; P.E. not; ρ = r ± P.E.</td></tr>
+  <tr><td>Spearman</td><td>R = 1 − 6ΣD²/[N(N² − 1)]; ties: ΣD² + Σ(m³ − m)/12</td></tr>
+  <tr><td>Regression Y on X</td><td>Y − Ȳ = b<sub>yx</sub>(X − X̄); b<sub>yx</sub> = rσ<sub>y</sub>/σ<sub>x</sub> = Σxy/Σx²</td></tr>
+  <tr><td>Regression X on Y</td><td>X − X̄ = b<sub>xy</sub>(Y − Ȳ); b<sub>xy</sub> = rσ<sub>x</sub>/σ<sub>y</sub> = Σxy/Σy²</td></tr>
+  <tr><td>Relations</td><td>r = ±√(b<sub>yx</sub>b<sub>xy</sub>); b<sub>yx</sub>b<sub>xy</sub> ≤ 1; same signs; lines meet at (X̄, Ȳ)</td></tr>
+  <tr><td>Least squares</td><td>ΣY = Na + bΣX; ΣXY = aΣX + bΣX²</td></tr>
+  <tr><td>Probability</td><td>P(A) = m/n; P(A∪B) = P(A) + P(B) − P(A∩B); P(A′) = 1 − P(A); P(A∩B) = P(A)P(B|A)</td></tr>
+  <tr><td>Conditional / Bayes</td><td>P(A|B) = P(A∩B)/P(B); P(Bᵢ|A) = P(Bᵢ)P(A|Bᵢ) / ΣP(Bⱼ)P(A|Bⱼ)</td></tr>
+  <tr><td>Expectation</td><td>E(X) = Σxp; Var = Σx²p − [E(X)]²</td></tr>
+  <tr><td>Binomial</td><td>P(r) = nCr pʳqⁿ⁻ʳ; mean np; variance npq</td></tr>
+  <tr><td>Poisson</td><td>P(r) = e⁻ᵐmʳ/r!; mean = variance = m = np</td></tr>
+  <tr><td>Normal</td><td>z = (X − μ)/σ; 68.27 / 95.45 / 99.73 %; z<sub>0.05</sub> = 1.96, z<sub>0.01</sub> = 2.58</td></tr>
+  <tr><td>Confidence interval</td><td>x̄ ± zσ/√n (large); x̄ ± t·S/√n (small)</td></tr>
+  <tr><td>One-sample t</td><td>t = (x̄ − μ)/(S/√n), df = n − 1</td></tr>
+  <tr><td>Two-sample t</td><td>t = (x̄₁ − x̄₂)/[S√(1/n₁ + 1/n₂)], S² = [Σ(X₁ − x̄₁)² + Σ(X₂ − x̄₂)²]/(n₁ + n₂ − 2)</td></tr>
+  <tr><td>Paired t</td><td>t = d̄/(S<sub>d</sub>/√n), df = n − 1</td></tr>
+  <tr><td>ANOVA</td><td>CF = T²/N; SST = ΣX² − CF; SSC = Σ(Tⱼ²/nⱼ) − CF; SSE = SST − SSC; F = [SSC/(k−1)]/[SSE/(N−k)]</td></tr>
+  <tr><td>Chi-square</td><td>χ² = Σ(O − E)²/E; E = RT × CT/N; df = (r − 1)(c − 1) or k − 1</td></tr>
+</table>
+</section>
+
+<section class="topic" id="critical-values">
+<h2>Critical values to memorise (α = 0.05)</h2>
+<table class="num">
+  <tr><th>Distribution</th><th>Value</th><th>Distribution</th><th>Value</th></tr>
+  <tr><td>z two-tailed</td><td>1.96</td><td>z one-tailed</td><td>1.645</td></tr>
+  <tr><td>t, df = 4</td><td>2.776</td><td>t, df = 9</td><td>2.262</td></tr>
+  <tr><td>t, df = 10</td><td>2.228</td><td>t, df = 14</td><td>2.145</td></tr>
+  <tr><td>χ², df = 1</td><td>3.841</td><td>χ², df = 2</td><td>5.991</td></tr>
+  <tr><td>χ², df = 3</td><td>7.815</td><td>χ², df = 5</td><td>11.070</td></tr>
+  <tr><td>F (2, 9)</td><td>4.26</td><td>F (2, 12)</td><td>3.89</td></tr>
+</table>
+<p>Full tables are in <a href="unit3.html#normal">Unit III</a> (z, t, F, χ²).</p>
+</section>
+
+<section class="topic" id="choose-test">
+<h2>Which statistic or test? — decision guide</h2>
+<figure class="fig">
+<svg viewBox="0 0 760 330" width="740" role="img" aria-label="Test selection">
+ <rect class="dg-acc" x="270" y="8" width="220" height="36" rx="8"/><text class="dg-tb" x="380" y="31" text-anchor="middle">What is the question?</text>
+ <path class="dg-line" d="M380 44 V60 M120 60 H640 M120 60 V76 M380 60 V76 M640 60 V76"/>
+ <rect class="dg-box" x="30" y="76" width="180" height="40" rx="8"/><text class="dg-t" x="120" y="100" text-anchor="middle">Relationship of 2 variables</text>
+ <rect class="dg-box" x="290" y="76" width="180" height="40" rx="8"/><text class="dg-t" x="380" y="100" text-anchor="middle">Compare means</text>
+ <rect class="dg-box" x="550" y="76" width="180" height="40" rx="8"/><text class="dg-t" x="640" y="100" text-anchor="middle">Counts / categories</text>
+ <path class="dg-line" d="M120 116 V132 M60 132 H180 M60 132 V146 M180 132 V146"/>
+ <rect class="dg-good" x="5" y="146" width="110" height="52" rx="6"/><text class="dg-t" x="60" y="168" text-anchor="middle">Measured values</text><text class="dg-tb" x="60" y="186" text-anchor="middle">Pearson r</text>
+ <rect class="dg-good" x="125" y="146" width="110" height="52" rx="6"/><text class="dg-t" x="180" y="168" text-anchor="middle">Ranks / ordinal</text><text class="dg-tb" x="180" y="186" text-anchor="middle">Spearman R</text>
+ <rect class="dg-warn" x="30" y="220" width="180" height="40" rx="6"/><text class="dg-t" x="120" y="244" text-anchor="middle">Predict → Regression</text>
+ <path class="dg-line" d="M120 198 V218" marker-end="url(#arr)"/>
+ <path class="dg-line" d="M380 116 V132 M290 132 H470 M290 132 V146 M380 132 V146 M470 132 V146"/>
+ <rect class="dg-good" x="240" y="146" width="100" height="52" rx="6"/><text class="dg-t" x="290" y="168" text-anchor="middle">1 sample</text><text class="dg-tb" x="290" y="186" text-anchor="middle">one-sample t</text>
+ <rect class="dg-good" x="345" y="146" width="70" height="52" rx="6"/><text class="dg-t" x="380" y="168" text-anchor="middle">2 groups</text><text class="dg-tb" x="380" y="186" text-anchor="middle">t / paired</text>
+ <rect class="dg-good" x="420" y="146" width="100" height="52" rx="6"/><text class="dg-t" x="470" y="168" text-anchor="middle">3+ groups</text><text class="dg-tb" x="470" y="186" text-anchor="middle">ANOVA (F)</text>
+ <path class="dg-line" d="M640 116 V132 M585 132 H700 M585 132 V146 M700 132 V146"/>
+ <rect class="dg-good" x="535" y="146" width="100" height="52" rx="6"/><text class="dg-t" x="585" y="168" text-anchor="middle">2 attributes</text><text class="dg-tb" x="585" y="186" text-anchor="middle">χ² independence</text>
+ <rect class="dg-good" x="645" y="146" width="110" height="52" rx="6"/><text class="dg-t" x="700" y="168" text-anchor="middle">vs a distribution</text><text class="dg-tb" x="700" y="186" text-anchor="middle">χ² goodness of fit</text>
+ <text class="dg-ts" x="380" y="300" text-anchor="middle">Probability model for a count: fixed n trials → Binomial · rare events per interval → Poisson · continuous measurement → Normal</text>
+</svg>
+</figure>
+</section>
+
+<section class="topic" id="theory-summary">
+<h2>One-page theory summary (Units I &amp; IV)</h2>
+<div class="two-col">
+  <div class="box summary" data-title="Unit I"><ul>
+    <li>Analytics = examine data to support decisions. DIKW pyramid.</li>
+    <li>Evolution: statistics → databases/SQL → BI &amp; warehouses → data mining → big data → AI.</li>
+    <li>Descriptive (what) · Diagnostic (why) · Predictive (what will) · Prescriptive (what should).</li>
+    <li>Benefits: decisions, customers, efficiency, revenue, risk, competitive advantage.</li>
+    <li>Text analytics: tokenise → stop words → stem → TF-IDF → sentiment/topics/NER.</li>
+    <li>Web analytics: sessions, bounce rate, conversion rate, CTR, A/B testing; on-site vs off-site.</li>
+    <li>Skills: SQL, Excel, Python/R, BI tools, statistics, domain, communication.</li>
+  </ul></div>
+  <div class="box summary" data-title="Unit IV"><ul>
+    <li>BI: sources → ETL → model → analysis → dashboards.</li>
+    <li>Power BI Desktop (.pbix, author) → Publish → Service (share, dashboards, refresh) → Mobile.</li>
+    <li>Views: Report, Table, Model. Panes: Filters, Visualizations, Data.</li>
+    <li>Get data: Excel, Web, SQL Server, etc.; Import vs DirectQuery.</li>
+    <li>Power Query: Applied Steps (M); remove/rename columns, remove rows, types, replace, split; Merge (join kinds) vs Append (union).</li>
+    <li>Visuals: bar/column, line, pie/donut, map, table, matrix, card, gauge, KPI, slicer.</li>
+    <li>Interactivity: slicers, filters (visual/page/report), cross-filter, drill-down, drill-through + back button, tooltips, bookmarks + buttons.</li>
+  </ul></div>
+</div>
+</section>
+
+<section class="topic" id="drill">
+<h2>Problem generator — unlimited practice</h2>
+<div class="demo box" data-demo="dadrill" data-title="Random exam-style numericals"></div>
+</section>
+
+<section class="topic" id="self-test">
+<h2>Mixed self-test</h2>
+<div class="quiz">
+  <div class="mcq" data-ans="b"><p class="q">1. Which analytics type uses optimisation to recommend actions?</p><ol><li>Predictive</li><li>Prescriptive</li><li>Diagnostic</li><li>Descriptive</li></ol><p class="why">Prescriptive = "what should we do".</p></div>
+  <div class="mcq" data-ans="c"><p class="q">2. Σx² = 40, Σy² = 90, Σxy = 54. r =</p><ol><li>0.75</li><li>0.85</li><li>0.9</li><li>0.6</li></ol><p class="why">54/√3600 = 54/60.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">3. For N = 6, ΣD² = 14, Spearman's R =</p><ol><li>0.6</li><li>0.4</li><li>0.8</li><li>0.2</li></ol><p class="why">1 − 84/210 = 0.6.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">4. If r = 0.5, σx = 4, σy = 8, then b<sub>yx</sub> =</p><ol><li>0.25</li><li>2</li><li>0.5</li><li>1</li></ol><p class="why">0.5 × 8/4.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">5. A card is drawn: P(red or king) =</p><ol><li>30/52</li><li>28/52</li><li>26/52</li><li>32/52</li></ol><p class="why">26 + 4 − 2 = 28.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">6. Binomial with n = 5, p = 0.5: P(X = 2) =</p><ol><li>5/32</li><li>1/32</li><li>10/32</li><li>15/32</li></ol><p class="why">5C2/32.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">7. Poisson with m = 1: P(X = 0) ≈</p><ol><li>0.368</li><li>0.5</li><li>0.135</li><li>1</li></ol><p class="why">e⁻¹.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">8. X ~ N(50, 5²): P(X &gt; 60) ≈</p><ol><li>0.1587</li><li>0.0013</li><li>0.4772</li><li>0.0228</li></ol><p class="why">z = 2 → 0.5 − 0.4772.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">9. In one-way ANOVA with 4 groups and 20 observations, df (within) =</p><ol><li>3</li><li>16</li><li>19</li><li>17</li></ol><p class="why">N − k.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">10. In a 2 × 2 table, row total 40, column total 30, N = 100. Expected frequency =</p><ol><li>70</li><li>10</li><li>12</li><li>30</li></ol><p class="why">40 × 30 / 100.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">11. In Power Query, combining two tables with a common key column is:</p><ol><li>Merge</li><li>Append</li><li>Pivot</li><li>Group by</li></ol><p class="why">Merge = join.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">12. Which Power BI feature lets a user go to a filtered detail page from a data point?</p><ol><li>Bookmark</li><li>Tooltip</li><li>Slicer</li><li>Drill through</li></ol><p class="why">Right-click → Drill through.</p></div>
+</div>
+</section>
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="stats-core.js"></script>
+<script src="demos.js"></script>
+<script>
+DEMOS.dadrill = function (host) {
+  const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const f = (x, d) => K.num(x, d === undefined ? 4 : d);
+  const gen = {
+    "Pearson r": () => { const n = R(5, 7), X = [], Y = []; for (let i = 0; i < n; i++) { const x = R(2, 20); X.push(x); Y.push(Math.max(1, Math.round(x * (Math.random() < 0.7 ? 1.5 : -1.2) + R(-6, 6) + 30))); } const P = ST.pearson(X, Y); return [`Compute Karl Pearson's r for X = ${X.join(", ")} and Y = ${Y.join(", ")}.`, `X̄ = ${f(P.mx, 3)}, Ȳ = ${f(P.my, 3)}, Σx² = ${f(P.Sx2, 3)}, Σy² = ${f(P.Sy2, 3)}, Σxy = ${f(P.Sxy, 3)} → <b>r = ${f(P.r)}</b>; P.E. = ${f(P.pe)}`]; },
+    "Spearman": () => { const n = R(6, 9), a = [...Array(n).keys()].map(i => i + 1).sort(() => Math.random() - .5), b = [...Array(n).keys()].map(i => i + 1).sort(() => Math.random() - .5); const s = ST.spearman(a, b, true); return [`Two judges ranked ${n} entries: A = ${a.join(", ")}; B = ${b.join(", ")}. Find R.`, `ΣD² = ${s.SD2} → <b>R = ${f(s.R)}</b>`]; },
+    "Regression": () => { const mx = R(10, 40), my = R(10, 60), sx = R(2, 8), sy = R(2, 10), r = R(-9, 9) / 10 || 0.5; const byx = r * sy / sx, bxy = r * sx / sy, x0 = mx + R(-5, 5); return [`X̄ = ${mx}, Ȳ = ${my}, σx = ${sx}, σy = ${sy}, r = ${r}. Find both regression lines and Y when X = ${x0}.`, `b<sub>yx</sub> = ${f(byx)}, b<sub>xy</sub> = ${f(bxy)}. Y = ${f(byx)}X + ${f(my - byx * mx)}; X = ${f(bxy)}Y + ${f(mx - bxy * my)}. At X = ${x0}: <b>Y = ${f(my + byx * (x0 - mx), 2)}</b>`]; },
+    "Binomial": () => { const n = R(4, 10), p = R(1, 9) / 10, r = R(0, n); return [`n = ${n}, p = ${p}. Find P(X = ${r}), the mean and variance.`, `P = ${n}C${r} × ${p}<sup>${r}</sup> × ${f(1 - p, 1)}<sup>${n - r}</sup> = <b>${f(ST.binom(n, p, r))}</b>; mean = ${f(n * p, 2)}, variance = ${f(n * p * (1 - p), 3)}`]; },
+    "Poisson": () => { const m = R(5, 40) / 10, r = R(0, 4); return [`Mean number of calls per minute is ${m}. Find P(exactly ${r}) and P(at least 1).`, `P(${r}) = e<sup>−${m}</sup>${m}<sup>${r}</sup>/${r}! = <b>${f(ST.poisson(m, r))}</b>; P(≥1) = 1 − e<sup>−${m}</sup> = <b>${f(1 - Math.exp(-m))}</b>`]; },
+    "Normal": () => { const mu = R(40, 70), sd = R(4, 12), a = mu + R(-2, 2) * sd / 2, b = a + R(1, 4) * sd / 2; return [`X ~ N(${mu}, ${sd}²). Find P(${a} &lt; X &lt; ${b}) and P(X &gt; ${b}).`, `z₁ = ${f((a - mu) / sd, 2)}, z₂ = ${f((b - mu) / sd, 2)} → <b>${f(ST.normCdf((b - mu) / sd) - ST.normCdf((a - mu) / sd))}</b>; P(X &gt; ${b}) = <b>${f(1 - ST.normCdf((b - mu) / sd))}</b>`]; },
+    "Bayes": () => { const p = [R(20, 50), 0, 0]; p[1] = R(10, 100 - p[0] - 10); p[2] = 100 - p[0] - p[1]; const d = [R(1, 6), R(1, 6), R(1, 6)]; const j = p.map((x, i) => x * d[i] / 10000), t = j.reduce((a, b) => a + b, 0); return [`Machines A, B, C make ${p.join("%, ")}% of output with defect rates ${d.join("%, ")}%. A defective item is found. Find P(A | defective).`, `Joint: ${j.map(x => f(x)).join(", ")}; total = ${f(t)} → <b>P(A|D) = ${f(j[0] / t)}</b>, P(B|D) = ${f(j[1] / t)}, P(C|D) = ${f(j[2] / t)}`]; },
+    "Chi-square 2×2": () => { const o = [[R(10, 60), R(10, 60)], [R(10, 60), R(10, 60)]]; const c = ST.chiTable(o); return [`Test independence: row 1 = ${o[0].join(", ")}; row 2 = ${o[1].join(", ")} (α = 5%).`, `E = ${c.E.flat().map(x => f(x, 2)).join(", ")}; <b>χ² = ${f(c.chi)}</b> vs 3.841 → ${c.chi > 3.841 ? "reject H₀ (associated)" : "accept H₀ (independent)"}`]; }
+  };
+  host.innerHTML = `<div class="demo-row"><label>Type<select id="t"><option>Any</option>${Object.keys(gen).map(k => `<option>${k}</option>`).join("")}</select></label><button class="btn" id="g">New question</button></div><div id="o"></div>`;
+  function go() { let t = host.querySelector("#t").value; if (t === "Any") { const ks = Object.keys(gen); t = ks[R(0, ks.length - 1)]; } const [q, a] = gen[t](); host.querySelector("#o").innerHTML = `<div class="out"><b>${t}:</b> ${q}</div><details class="ans"><summary>Show answer</summary><div>${a}</div></details>`; }
+  host.querySelector("#g").addEventListener("click", go); go();
+};
+</script>
+</body>
+</html>

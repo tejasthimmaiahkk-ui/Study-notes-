@@ -412,5 +412,251 @@ Worst experience ever, the package arrived late and damaged.</textarea></label><
     K.qa(host, "textarea,select").forEach(i => i.addEventListener("input", go)); go();
   };
 
-  /*__UNIT4__*/
+  /* -------------------------------------------------------------- Unit IV */
+  const inr = v => "₹" + Math.round(v).toLocaleString("en-IN");
+
+  D.pbiui = function (host) {
+    const R = {
+      ribbon: ["Ribbon", "Tabs: File, Home, Insert, Modeling, View, Optimize, Help. <b>Home</b> holds Get data, Transform data (opens Power Query), Refresh, New visual and <b>Publish</b>. <b>Insert</b> adds visuals, buttons, text boxes, shapes and images. <b>Modeling</b> creates measures, columns, tables and relationships. <b>View</b> has themes and panes such as Bookmarks, Selection, Sync slicers and Performance analyzer."],
+      views: ["View switcher (left bar)", "<b>Report view</b> — design pages of visuals. <b>Table view</b> (formerly Data view) — see loaded rows, change formats and data types. <b>Model view</b> — tables and relationships (star schema). Newer versions add <b>DAX query view</b>."],
+      canvas: ["Report canvas", "The page area where you place, resize and arrange visuals. Click empty space before choosing a new visual type."],
+      pages: ["Page tabs", "Add (+), rename, duplicate, hide or reorder report pages. Drill-through and tooltip pages also appear here."],
+      filters: ["Filters pane", "Filters on this visual, on this page, and on all pages (report level). Supports basic, advanced, Top N and relative-date filters. Authors can lock or hide filters."],
+      viz: ["Visualizations pane", "Choose the visual type. Three tabs: <b>Build</b> (field wells such as X-axis, Y-axis, Legend, Values, Tooltips and Drill through), <b>Format</b> (paintbrush: colours, titles, labels, background), <b>Analytics</b> (constant, average, trend and forecast lines)."],
+      data: ["Data pane (formerly Fields)", "Lists every table with its columns and measures. Tick a field or drag it to a field well. Σ = numeric column (auto-summarised); calculator icon = DAX measure; calendar = date hierarchy."]
+    };
+    host.innerHTML = `<div id="g"></div><div class="out" id="o">Click a region of the window.</div>`;
+    const s = K.svg(760, 440);
+    const box = (k, x, y, w, h, label, cls) => {
+      const g = K.s(s, "g", {}); g.style.cursor = "pointer"; g.dataset.k = k;
+      K.s(g, "rect", { x, y, width: w, height: h, rx: 6, "class": cls || "dg-box" });
+      const t = K.s(g, "text", { x: x + w / 2, y: y + h / 2 + 4, "text-anchor": "middle", "class": "dg-tb" }, label); void t;
+      g.addEventListener("click", () => { K.qa(s, "g rect").forEach(r => r.style.strokeWidth = ""); g.querySelector("rect").style.strokeWidth = "3.5"; K.q(host, "#o").innerHTML = `<b>${R[k][0]}</b><br>${R[k][1]}`; });
+      return g;
+    };
+    K.s(s, "rect", { x: 2, y: 2, width: 756, height: 436, rx: 10, "class": "dg-plain" });
+    K.s(s, "text", { x: 14, y: 20, "class": "dg-ts" }, "Sales Report.pbix — Power BI Desktop");
+    box("ribbon", 8, 28, 744, 58, "Ribbon  ·  File  Home  Insert  Modeling  View  Optimize  Help", "dg-acc");
+    box("views", 8, 92, 40, 300, "", "dg-warn");
+    ["Report", "Table", "Model"].forEach((v, i) => K.s(s, "text", { x: 28, y: 140 + i * 70, "text-anchor": "middle", "class": "dg-ts", transform: `rotate(-90 28 ${140 + i * 70})` }, v));
+    box("canvas", 54, 92, 430, 300, "Report canvas", "dg-box");
+    const v1 = K.s(s, "rect", { x: 70, y: 110, width: 190, height: 110, rx: 4, "class": "dg-good" }); v1.style.pointerEvents = "none";
+    const v2 = K.s(s, "rect", { x: 275, y: 110, width: 190, height: 110, rx: 4, "class": "dg-good" }); v2.style.pointerEvents = "none";
+    box("pages", 54, 398, 430, 34, "Page tabs:  Overview | Details | +", "dg-found");
+    box("filters", 490, 92, 70, 340, "Filters", "dg-oos");
+    box("viz", 566, 92, 92, 340, "Visual-", "dg-acc");
+    K.s(s, "text", { x: 612, y: 280, "text-anchor": "middle", "class": "dg-tb" }, "izations").style.pointerEvents = "none";
+    box("data", 664, 92, 88, 340, "Data", "dg-good");
+    K.q(host, "#g").appendChild(s);
+  };
+
+  D.pq = function (host) {
+    const SRC = {
+      cols: [["Order ID", "text"], ["Order Date", "text"], ["Region", "text"], ["Product", "text"], ["Units", "text"], ["Unit Price", "text"], ["Notes", "text"]],
+      rows: [["1001", "05-01-2024", " north ", "Laptop", "2", "55000", ""], ["1002", "07-01-2024", "South", "Mouse", "10", "450", "promo"], ["1003", "07-01-2024", "south ", "Keyboard", "5", "1200", ""],
+        ["1002", "07-01-2024", "South", "Mouse", "10", "450", "promo"], ["", "", "", "", "", "", ""], ["1004", "12-01-2024", "EAST", "Monitor", "3", "9500", ""],
+        ["1005", "15-01-2024", "West", "Laptop", "1", "56000", "urgent"], ["1006", "18-01-2024", "north", "Mouse", "", "450", ""], ["1007", "20-01-2024", "East", "Printer", "2", "12000", ""]]
+    };
+    const ERR = { err: true };
+    let steps = [], view = -1;
+    const isEmpty = v => v === null || v === "";
+    const ops = {
+      remove: (st, a) => { const i = st.cols.findIndex(c => c[0] === a.col); return { cols: st.cols.filter((_, j) => j !== i), rows: st.rows.map(r => r.filter((_, j) => j !== i)) }; },
+      rename: (st, a) => ({ cols: st.cols.map(c => c[0] === a.col ? [a.to, c[1]] : c), rows: st.rows }),
+      distinct: st => { const seen = new Set(); return { cols: st.cols, rows: st.rows.filter(r => { const k = JSON.stringify(r); if (seen.has(k)) return false; seen.add(k); return true; }) }; },
+      blank: st => ({ cols: st.cols, rows: st.rows.filter(r => !r.every(isEmpty)) }),
+      trim: (st, a) => { const i = st.cols.findIndex(c => c[0] === a.col); return { cols: st.cols, rows: st.rows.map(r => r.map((v, j) => j === i && typeof v === "string" ? v.trim().toLowerCase().replace(/\b\w/g, m => m.toUpperCase()) : v)) }; },
+      type: (st, a) => {
+        const i = st.cols.findIndex(c => c[0] === a.col);
+        const conv = v => {
+          if (v && v.err) return v; if (isEmpty(v)) return null;
+          if (a.t === "text") return String(v);
+          if (a.t === "int" || a.t === "dec") { const n = Number(v); if (isNaN(n)) return ERR; return a.t === "int" ? Math.round(n) : n; }
+          if (a.t === "date") { const m = String(v).match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/); if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`; return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : ERR; }
+        };
+        return { cols: st.cols.map((c, j) => j === i ? [c[0], a.t] : c), rows: st.rows.map(r => r.map((v, j) => j === i ? conv(v) : v)) };
+      },
+      replace: (st, a) => { const i = st.cols.findIndex(c => c[0] === a.col); const find = a.find === "null" ? null : a.find; const num = ["int", "dec"].includes(st.cols[i][1]); const rep = a.rep === "null" ? null : num && !isNaN(+a.rep) ? +a.rep : a.rep; return { cols: st.cols, rows: st.rows.map(r => r.map((v, j) => j === i && (v === find || (v !== null && String(v) === String(find))) ? rep : v)) }; },
+      filter: (st, a) => { const i = st.cols.findIndex(c => c[0] === a.col); const num = ["int", "dec"].includes(st.cols[i][1]); return { cols: st.cols, rows: st.rows.filter(r => { const v = r[i]; if (v && v.err) return false; const x = num ? +a.val : a.val; if (a.op === "=") return String(v) === String(a.val); if (a.op === "≠") return String(v) !== String(a.val); if (v === null) return false; return a.op === ">" ? v > x : v < x; }) }; },
+      custom: (st, a) => { const i = st.cols.findIndex(c => c[0] === a.c1), j = st.cols.findIndex(c => c[0] === a.c2); const numT = t => ["int", "dec"].includes(t); return { cols: st.cols.concat([[a.name, numT(st.cols[i][1]) && numT(st.cols[j][1]) ? "dec" : "any"]]), rows: st.rows.map(r => { const x = r[i], y = r[j]; let v; if (x === null || y === null) v = null; else if (typeof x !== "number" || typeof y !== "number") v = ERR; else v = x * y; return r.concat([v]); }) }; }
+    };
+    function stateAt(k) { let st = { cols: SRC.cols.map(c => c.slice()), rows: SRC.rows.map(r => r.slice()) }; for (let i = 0; i <= k; i++) st = ops[steps[i].op](st, steps[i].a); return st; }
+    const ICON = { text: "ABC", int: "123", dec: "1.2", date: "📅", any: "ABC123" };
+    host.innerHTML = `<div class="two-col" style="grid-template-columns:1fr 220px;align-items:start"><div>
+      <div class="demo-row"><label>Column<select id="col"></select></label>
+        <button class="btn ghost" data-op="remove">Remove column</button><button class="btn ghost" data-op="trim">Trim + Capitalize</button>
+        <label>Change type<select id="ty"><option value="">—</option><option value="int">Whole number</option><option value="dec">Decimal number</option><option value="date">Date</option><option value="text">Text</option></select></label></div>
+      <div class="demo-row"><button class="btn ghost" data-op="distinct">Remove duplicates</button><button class="btn ghost" data-op="blank">Remove blank rows</button>
+        <label>Rename to<input type="text" id="nn" size="10"></label><button class="btn ghost" data-op="rename">Rename</button></div>
+      <div class="demo-row"><label>Replace<input type="text" id="rf" size="6" value="null"></label><label>with<input type="text" id="rt" size="6" value="0"></label><button class="btn ghost" data-op="replace">Replace values</button>
+        <label>Filter<select id="fo"><option>=</option><option>≠</option><option>&gt;</option><option>&lt;</option></select></label><input type="text" id="fv" size="8" placeholder="value"><button class="btn ghost" data-op="filter">Filter rows</button></div>
+      <div class="demo-row"><button class="btn ghost" data-op="custom">Add custom column: Revenue = [Units] × [Unit Price]</button></div>
+      <div class="out mono" id="fx" style="font-size:.78rem"></div><div id="tb"></div><div class="hint" id="msg"></div></div>
+      <div><b>Query Settings</b><div class="hint">APPLIED STEPS (click to view)</div><div id="st"></div><button class="btn ghost" id="del" style="margin-top:8px">✕ Delete last step</button></div></div>`;
+    function names() { return stateAt(steps.length - 1).cols.map(c => c[0]); }
+    function stepName(op, a) { return { remove: `Removed Columns (${a.col})`, rename: `Renamed Columns (${a.col} → ${a.to})`, distinct: "Removed Duplicates", blank: "Removed Blank Rows", trim: `Trimmed & Capitalized (${a.col})`, type: `Changed Type (${a.col})`, replace: `Replaced Value (${a.col})`, filter: `Filtered Rows (${a.col} ${a.op} ${a.val})`, custom: "Added Custom (Revenue)" }[op]; }
+    function mCode(op, a, prev) {
+      const P = `#"${prev}"`, T = { int: "Int64.Type", dec: "type number", date: "type date", text: "type text" };
+      return { remove: `Table.RemoveColumns(${P}, {"${a.col}"})`, rename: `Table.RenameColumns(${P}, {{"${a.col}", "${a.to}"}})`, distinct: `Table.Distinct(${P})`, blank: `Table.SelectRows(${P}, each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null})))`, trim: `Table.TransformColumns(${P}, {{"${a.col}", each Text.Proper(Text.Trim(_)), type text}})`, type: `Table.TransformColumnTypes(${P}, {{"${a.col}", ${T[a.t]}}})`, replace: `Table.ReplaceValue(${P}, ${a.find === "null" ? "null" : `"${a.find}"`}, ${a.rep === "null" ? "null" : isNaN(+a.rep) ? `"${a.rep}"` : a.rep}, Replacer.ReplaceValue, {"${a.col}"})`, filter: `Table.SelectRows(${P}, each [${a.col}] ${a.op === "≠" ? "<>" : a.op} ${isNaN(+a.val) ? `"${a.val}"` : a.val})`, custom: `Table.AddColumn(${P}, "Revenue", each [Units] * [Unit Price])` }[op];
+    }
+    function add(op, a) { if (op === "custom" && !(names().includes("Units") && names().includes("Unit Price"))) { K.q(host, "#msg").innerHTML = '<span class="no">Needs columns named "Units" and "Unit Price".</span>'; return; } steps.push({ op, a, name: stepName(op, a) }); view = steps.length - 1; render(); }
+    function cell(v) { if (v === null) return '<i style="color:var(--ink-3)">null</i>'; if (v && v.err) return '<span class="no">Error</span>'; if (v === "") return ""; return K.esc(typeof v === "number" ? K.num(v, 2) : v); }
+    function render() {
+      const st = stateAt(view), cs = K.q(host, "#col"), keep = cs.value;
+      const nm = stateAt(steps.length - 1).cols.map(c => c[0]); cs.innerHTML = nm.map(n => `<option${n === keep ? " selected" : ""}>${K.esc(n)}</option>`).join("");
+      const qual = st.cols.map((_, i) => { const n = st.rows.length || 1, e = st.rows.filter(r => r[i] && r[i].err).length, em = st.rows.filter(r => isEmpty(r[i])).length; return `<span style="color:var(--good)">${Math.round(100 * (n - e - em) / n)}%</span> · <span style="color:var(--bad)">${Math.round(100 * e / n)}%</span> · ${Math.round(100 * em / n)}%`; });
+      K.q(host, "#tb").innerHTML = `<div class="tbl-wrap"><table class="compact"><tr>${st.cols.map(c => `<th><span style="color:var(--acc);font-family:var(--mono);font-size:.72rem">${ICON[c[1]]}</span> ${K.esc(c[0])}</th>`).join("")}</tr><tr>${qual.map(q => `<td style="font-size:.68rem">${q}</td>`).join("")}</tr>${st.rows.map(r => `<tr>${r.map(v => `<td>${cell(v)}</td>`).join("")}</tr>`).join("")}</table></div>`;
+      K.q(host, "#msg").innerHTML = `${st.rows.length} rows, ${st.cols.length} columns. Quality row: <span style="color:var(--good)">valid</span> · <span style="color:var(--bad)">error</span> · empty. ${view < steps.length - 1 ? "<b>Viewing an earlier step.</b>" : ""}`;
+      const all = [{ name: "Source" }].concat(steps);
+      K.q(host, "#st").innerHTML = all.map((s, i) => `<div class="cell ${i - 1 === view ? "hl" : ""}" data-i="${i - 1}" style="justify-content:start;height:auto;padding:5px 8px;margin:3px 0;cursor:pointer;font-family:var(--sans);font-size:.78rem">${i ? "⚙ " : ""}${K.esc(s.name)}</div>`).join("");
+      K.qa(host, "#st .cell").forEach(c => c.addEventListener("click", () => { view = +c.dataset.i; render(); }));
+      K.q(host, "#fx").textContent = view < 0 ? `= Csv.Document(File.Contents("C:\\Data\\sales.csv"), [Delimiter=","])` : "= " + mCode(steps[view].op, steps[view].a, view ? steps[view - 1].name : "Source");
+    }
+    K.qa(host, "[data-op]").forEach(b => b.addEventListener("click", () => {
+      const col = K.q(host, "#col").value, op = b.dataset.op;
+      if (op === "rename") { const to = K.q(host, "#nn").value.trim(); if (!to) return; add(op, { col, to }); }
+      else if (op === "replace") add(op, { col, find: K.q(host, "#rf").value, rep: K.q(host, "#rt").value });
+      else if (op === "filter") { const val = K.q(host, "#fv").value.trim(); if (!val) return; add(op, { col, op: K.q(host, "#fo").value, val }); }
+      else if (op === "custom") add(op, { c1: "Units", c2: "Unit Price", name: "Revenue" });
+      else add(op, { col });
+    }));
+    K.q(host, "#ty").addEventListener("change", e => { if (!e.target.value) return; add("type", { col: K.q(host, "#col").value, t: e.target.value }); e.target.value = ""; });
+    K.q(host, "#del").addEventListener("click", () => { steps.pop(); view = steps.length - 1; render(); });
+    render();
+    K.q(host, "#msg").insertAdjacentHTML("afterend", `<p class="hint">Suggested sequence: Remove blank rows → Remove duplicates → Trim + Capitalize "Region" → change "Order Date" to Date, "Units" and "Unit Price" to Whole number → Replace null with 0 in Units → Remove "Notes" → Add custom column. Try adding the custom column <i>before</i> changing types to see why types matter.</p>`);
+  };
+
+  D.merge = function (host) {
+    const orders = [[1, "C1", 500], [2, "C2", 300], [3, "C1", 200], [4, "C9", 150]];
+    const custs = [["C1", "Asha", "Pune"], ["C2", "Ravi", "Delhi"], ["C3", "Meena", "Chennai"]];
+    const kinds = ["Left outer", "Right outer", "Full outer", "Inner", "Left anti", "Right anti"];
+    host.innerHTML = `<div class="two-col"><div><b>Orders</b> (first table)${tbl(["OrderID", "CustID", "Amount"], orders)}</div><div><b>Customers</b> (second table)${tbl(["ID", "Name", "City"], custs)}</div></div>
+      <div class="demo-row"><label>Join kind<select id="k">${kinds.map(k => `<option>${k}</option>`).join("")}</select></label><span id="venn"></span></div><div id="o"></div>`;
+    function venn(k) {
+      const L = /Left outer|Full|Left anti/.test(k), Rr = /Right outer|Full|Right anti/.test(k), M = /outer|Inner/.test(k);
+      const s = K.svg(130, 60);
+      const c1 = K.s(s, "circle", { cx: 48, cy: 30, r: 24 }), c2 = K.s(s, "circle", { cx: 82, cy: 30, r: 24 });
+      c1.style.fill = L ? "var(--acc)" : "transparent"; c2.style.fill = Rr ? "var(--acc)" : "transparent";
+      [c1, c2].forEach(c => { c.style.stroke = "var(--ink-2)"; c.style.fillOpacity = ".45"; });
+      const lens = K.s(s, "path", { d: "M65 12 A24 24 0 0 1 65 48 A24 24 0 0 1 65 12 Z" }); lens.style.fill = M ? "var(--acc)" : "var(--card)"; lens.style.fillOpacity = M ? ".9" : "1"; lens.style.stroke = "var(--ink-2)";
+      return s;
+    }
+    function go() {
+      const k = K.q(host, "#k").value, rows = [];
+      const cmap = {}; custs.forEach(c => cmap[c[0]] = c);
+      if (k !== "Right anti" && k !== "Right outer") orders.forEach(o => { const c = cmap[o[1]]; if (k === "Left anti") { if (!c) rows.push([...o, "null", "null"]); } else if (c || k !== "Inner") rows.push([...o, c ? c[1] : "null", c ? c[2] : "null"]); });
+      if (k === "Right outer") custs.forEach(c => { const os = orders.filter(o => o[1] === c[0]); if (os.length) os.forEach(o => rows.push([...o, c[1], c[2]])); else rows.push(["null", "null", "null", c[1], c[2]]); });
+      if (k === "Full outer") custs.forEach(c => { if (!orders.some(o => o[1] === c[0])) rows.push(["null", "null", "null", c[1], c[2]]); });
+      if (k === "Right anti") custs.forEach(c => { if (!orders.some(o => o[1] === c[0])) rows.push(["null", "null", "null", c[1], c[2]]); });
+      const v = K.q(host, "#venn"); v.innerHTML = ""; v.appendChild(venn(k));
+      const expl = { "Left outer": "All 4 orders; order 4 (C9) has no matching customer → null.", "Right outer": "All 3 customers; Meena (C3) has no orders → nulls on the order side.", "Full outer": "Everything from both tables.", "Inner": "Only orders whose customer exists (orders 1–3).", "Left anti": "Orders with no matching customer — data-quality check (C9 is unknown).", "Right anti": "Customers who never ordered — a marketing list!" };
+      K.q(host, "#o").innerHTML = `<b>Result: Orders ⋈ Customers (${k})</b> — after expanding Name and City` + tbl(["OrderID", "CustID", "Amount", "Name", "City"], rows.map(r => r.map(x => x === "null" ? '<i style="color:var(--ink-3)">null</i>' : x))) + `<div class="out">${expl[k]}</div>`;
+    }
+    K.q(host, "#k").addEventListener("change", go); go();
+  };
+
+  D.append = function (host) {
+    host.innerHTML = `<div class="demo-row"><label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="bad"> February file uses "Amt" instead of "Amount"</label></div><div class="two-col" id="src"></div><div id="o"></div>`;
+    function go() {
+      const bad = K.q(host, "#bad").checked;
+      const jan = { cols: ["Date", "Product", "Amount"], rows: [["03-Jan", "Pen", 120], ["11-Jan", "Book", 450], ["25-Jan", "Bag", 900]] };
+      const feb = { cols: ["Date", "Product", bad ? "Amt" : "Amount", "Discount"], rows: [["02-Feb", "Pen", 150, 10], ["19-Feb", "Lamp", 700, 50]] };
+      K.q(host, "#src").innerHTML = `<div><b>Sales_Jan</b>${tbl(jan.cols, jan.rows)}</div><div><b>Sales_Feb</b>${tbl(feb.cols, feb.rows)}</div>`;
+      const cols = [...new Set(jan.cols.concat(feb.cols))];
+      const rows = [jan, feb].flatMap(t => t.rows.map(r => cols.map(c => { const i = t.cols.indexOf(c); return i < 0 ? '<i style="color:var(--ink-3)">null</i>' : r[i]; })));
+      K.q(host, "#o").innerHTML = `<b>Appended result (Home → Append Queries as New)</b>` + tbl(cols, rows) + `<div class="out">${bad ? '<span class="no">Column names differ, so "Amount" and "Amt" became two half-empty columns. Fix: rename "Amt" to "Amount" in the Feb query before appending.</span>' : "Rows are stacked; columns are matched by name. Jan has no Discount column, so those cells are null."}</div>`;
+    }
+    K.q(host, "#bad").addEventListener("change", go); go();
+  };
+
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], REGIONS = ["North", "South", "East", "West"];
+  const SALES = REGIONS.map((r, i) => MONTHS.map((m, j) => Math.round(120 + 40 * i + 18 * j + 25 * Math.sin(i * 2 + j))));
+
+  D.visuals = function (host) {
+    const kinds = ["Clustered column", "Stacked column", "Line", "Pie", "Donut", "Card", "Gauge", "Table", "Matrix"];
+    host.innerHTML = `<div class="demo-row"><label>Visual type<select id="k">${kinds.map(k => `<option>${k}</option>`).join("")}</select></label><span class="hint" id="h"></span></div><div id="g"></div>`;
+    const tips = { "Clustered column": "Compare regions side by side for each month.", "Stacked column": "Show monthly totals and each region's contribution.", "Line": "Trends over time — best for months.", "Pie": "Share of total by region (few categories only).", "Donut": "Same as pie with space for a label in the middle.", "Card": "One headline number.", "Gauge": "Progress towards a target.", "Table": "Exact values.", "Matrix": "Pivot: regions × quarters with totals." };
+    function go() {
+      const k = K.q(host, "#k").value, g = K.q(host, "#g"); g.innerHTML = ""; K.q(host, "#h").textContent = tips[k];
+      const totR = SALES.map(r => r.reduce((a, b) => a + b, 0)), total = totR.reduce((a, b) => a + b, 0);
+      if (k === "Clustered column" || k === "Stacked column") {
+        const W = 620, H = 260, pad = 44, s = K.svg(W, H), max = k === "Stacked column" ? K.niceMax(Math.max(...MONTHS.map((_, j) => SALES.reduce((a, r) => a + r[j], 0)))) : K.niceMax(Math.max(...SALES.flat()));
+        const gw = (W - pad - 10) / MONTHS.length;
+        for (let t = 0; t <= 4; t++) { const y = H - 30 - (H - 50) * t / 4; K.s(s, "line", { x1: pad, x2: W - 10, y1: y, y2: y, "class": "gridl" }); K.s(s, "text", { x: pad - 6, y: y + 4, "text-anchor": "end" }, K.short(max * t / 4)); }
+        MONTHS.forEach((m, j) => {
+          let acc = 0;
+          REGIONS.forEach((r, i) => {
+            const v = SALES[i][j], h = (H - 50) * v / max;
+            const x = k === "Stacked column" ? pad + j * gw + gw * 0.2 : pad + j * gw + gw * 0.1 + i * gw * 0.2;
+            const w = k === "Stacked column" ? gw * 0.6 : gw * 0.18, y = H - 30 - h - (k === "Stacked column" ? (H - 50) * acc / max : 0);
+            const rc = K.s(s, "rect", { x, y, width: w, height: h, rx: 2 }); rc.style.fill = K.PALETTE[i]; K.s(rc, "title", {}, `${r}, ${m}: ${v}`);
+            acc += v;
+          });
+          K.s(s, "text", { x: pad + j * gw + gw / 2, y: H - 12, "text-anchor": "middle" }, m);
+        });
+        g.appendChild(s); g.insertAdjacentHTML("beforeend", K.legend(REGIONS));
+      } else if (k === "Line") { g.appendChild(K.lineChart({ labels: MONTHS, series: REGIONS.map((r, i) => ({ values: SALES[i], name: r })), h: 260, yMin: 0 })); g.insertAdjacentHTML("beforeend", K.legend(REGIONS)); }
+      else if (k === "Pie" || k === "Donut") { const s = K.pieChart({ labels: REGIONS, values: totR, donut: k === "Donut", size: 240 }); s.style.maxWidth = "260px"; s.style.margin = "auto"; g.appendChild(s); g.insertAdjacentHTML("beforeend", K.legend(REGIONS)); }
+      else if (k === "Card") g.innerHTML = `<div class="kpis" style="max-width:520px"><div class="kpi"><div class="k">Total sales (₹ '000)</div><div class="v">${total.toLocaleString("en-IN")}</div></div><div class="kpi"><div class="k">Best region</div><div class="v">${REGIONS[totR.indexOf(Math.max(...totR))]}</div></div><div class="kpi"><div class="k">Avg / month</div><div class="v">${Math.round(total / 6)}</div></div></div>`;
+      else if (k === "Gauge") {
+        const target = 5000, s = K.svg(320, 190), cx = 160, cy = 160, r = 120, frac = Math.min(1, total / target);
+        const arc = (a0, a1, cls) => { const p = a => [cx + r * Math.cos(Math.PI * (1 - a)), cy - r * Math.sin(Math.PI * (1 - a))]; const [x0, y0] = p(a0), [x1, y1] = p(a1); const e = K.s(s, "path", { d: `M${x0},${y0} A${r},${r} 0 0,1 ${x1},${y1}` }); e.style.fill = "none"; e.style.strokeWidth = "26"; e.style.stroke = cls; };
+        arc(0, 1, "var(--line)"); arc(0, frac, "var(--acc)");
+        K.s(s, "text", { x: cx, y: cy - 20, "text-anchor": "middle" }, total.toLocaleString("en-IN")).style.fontSize = "26px";
+        K.s(s, "text", { x: cx - r, y: cy + 22, "text-anchor": "middle" }, "0"); K.s(s, "text", { x: cx + r, y: cy + 22, "text-anchor": "middle" }, `${target} (target)`);
+        s.style.maxWidth = "360px"; g.appendChild(s); g.insertAdjacentHTML("beforeend", `<p class="hint">${Math.round(100 * frac)}% of the target achieved.</p>`);
+      } else if (k === "Table") g.innerHTML = tbl(["Region", "Total sales", "Avg / month", "Best month"], REGIONS.map((r, i) => [r, totR[i], Math.round(totR[i] / 6), MONTHS[SALES[i].indexOf(Math.max(...SALES[i]))]]).concat([{ cls: "total", cells: ["Total", total, Math.round(total / 6), ""] }]));
+      else { const q = r => [r.slice(0, 3), r.slice(3)].map(a => a.reduce((x, y) => x + y, 0)); g.innerHTML = tbl(["Region", "Q1", "Q2", "Total"], REGIONS.map((r, i) => [r, ...q(SALES[i]), totR[i]]).concat([{ cls: "total", cells: ["Total", q(MONTHS.map((_, j) => SALES.reduce((a, rr) => a + rr[j], 0)))[0], q(MONTHS.map((_, j) => SALES.reduce((a, rr) => a + rr[j], 0)))[1], total] }])); }
+    }
+    K.q(host, "#k").addEventListener("change", go); go();
+  };
+
+  D.dashboard = function (host) {
+    const CATS = ["Electronics", "Furniture", "Clothing"];
+    const data = [];
+    REGIONS.forEach((r, i) => MONTHS.forEach((m, j) => CATS.forEach((c, k) => {
+      const sales = Math.round((60 + 25 * k + 12 * i + 9 * j + 20 * Math.abs(Math.sin(i + 2 * j + 3 * k))) * (k === 0 ? 1.8 : 1)) * 1000;
+      data.push({ region: r, month: m, cat: c, sales, profit: Math.round(sales * (0.08 + 0.05 * k + 0.02 * Math.cos(i + j))) });
+    })));
+    let st = { regions: new Set(REGIONS), cat: "All", cross: null, page: "main", detail: null };
+    let marks = [];
+    host.innerHTML = `<div id="dash"></div>`;
+    const filt = (ignoreCross) => data.filter(d => st.regions.has(d.region) && (st.cat === "All" || d.cat === st.cat) && (ignoreCross || !st.cross || d.cat === st.cross));
+    const sum = (a, k) => a.reduce((x, d) => x + d[k], 0);
+    function render() {
+      const el = K.q(host, "#dash");
+      if (st.page === "detail") {
+        const rows = data.filter(d => d.cat === st.detail && st.regions.has(d.region));
+        el.innerHTML = `<div class="demo-row"><button class="btn ghost" id="back">← Back</button><b>Drill-through page: ${st.detail} details</b> <span class="hint">(filtered to ${st.detail}${st.regions.size < 4 ? ", regions: " + [...st.regions].join(", ") : ""})</span></div>
+          <div class="kpis"><div class="kpi"><div class="k">${st.detail} sales</div><div class="v">${inr(sum(rows, "sales"))}</div></div><div class="kpi"><div class="k">Profit</div><div class="v">${inr(sum(rows, "profit"))}</div></div><div class="kpi"><div class="k">Margin</div><div class="v">${K.num(100 * sum(rows, "profit") / sum(rows, "sales"), 1)}%</div></div></div>
+          ${tbl(["Region", ...MONTHS, "Total"], [...st.regions].map(r => { const v = MONTHS.map(m => sum(rows.filter(d => d.region === r && d.month === m), "sales") / 1000); return [r, ...v.map(x => K.num(x, 0)), `<b>${K.num(v.reduce((a, b) => a + b, 0), 0)}</b>`]; }))}<p class="hint">Values in ₹ thousand. Power BI adds the Back button automatically on drill-through pages.</p>`;
+        K.q(el, "#back").addEventListener("click", () => { st.page = "main"; render(); });
+        return;
+      }
+      const f = filt(false), fNoCross = filt(true);
+      el.innerHTML = `
+        <div class="demo-row" style="align-items:center"><b style="font-size:.8rem">Region slicer (tiles, multi-select):</b>${REGIONS.map(r => `<button class="btn ${st.regions.has(r) ? "" : "ghost"}" data-r="${r}">${r}</button>`).join("")}
+          <label>Category slicer<select id="cs"><option>All</option>${CATS.map(c => `<option${st.cat === c ? " selected" : ""}>${c}</option>`).join("")}</select></label></div>
+        <div class="kpis"><div class="kpi"><div class="k">Total sales</div><div class="v">${inr(sum(f, "sales"))}</div></div><div class="kpi"><div class="k">Profit</div><div class="v">${inr(sum(f, "profit"))}</div></div><div class="kpi"><div class="k">Margin</div><div class="v">${K.num(100 * sum(f, "profit") / Math.max(1, sum(f, "sales")), 1)}%</div></div><div class="kpi"><div class="k">Filter context</div><div class="v" style="font-size:.85rem">${st.cross ? "Cross-filter: " + st.cross : "none"}</div></div></div>
+        <div class="two-col"><div><b style="font-size:.85rem">Sales by category</b> <span class="hint">click = cross-filter · right-click = drill through</span><div id="cat"></div></div><div><b style="font-size:.85rem">Sales trend by month</b><div id="trend"></div></div></div>
+        <div class="demo-row" style="align-items:center"><b style="font-size:.8rem">Bookmarks:</b><input type="text" id="bn" placeholder="bookmark name" size="14"><button class="btn ghost" id="addb">＋ Add bookmark</button><span id="bl"></span><button class="btn ghost" id="reset">Reset all filters</button></div>`;
+      const catVals = CATS.map(c => sum(fNoCross.filter(d => d.cat === c), "sales") / 1000);
+      const cs = K.barChart({ labels: CATS, values: catVals, h: 210, fmt: v => K.num(v, 0) + "k", active: i => !st.cross || CATS[i] === st.cross, onClick: i => { st.cross = st.cross === CATS[i] ? null : CATS[i]; render(); } });
+      K.qa(cs, "rect.bar").forEach((r, i) => {
+        const rows = fNoCross.filter(d => d.cat === CATS[i]);
+        r.querySelector("title").textContent = `${CATS[i]}\nSales: ${inr(sum(rows, "sales"))}\nProfit: ${inr(sum(rows, "profit"))}\nMargin: ${K.num(100 * sum(rows, "profit") / Math.max(1, sum(rows, "sales")), 1)}%`;
+        r.addEventListener("contextmenu", e => { e.preventDefault(); st.page = "detail"; st.detail = CATS[i]; render(); });
+      });
+      K.q(el, "#cat").appendChild(cs);
+      K.q(el, "#trend").appendChild(K.lineChart({ labels: MONTHS, series: [{ values: MONTHS.map(m => sum(f.filter(d => d.month === m), "sales") / 1000), name: "Sales (₹k)" }], h: 210, yMin: 0 }));
+      K.q(el, "#bl").innerHTML = marks.map((b, i) => `<button class="btn ghost" data-b="${i}">🔖 ${K.esc(b.name)}</button>`).join(" ");
+      K.qa(el, "[data-r]").forEach(b => b.addEventListener("click", () => { const r = b.dataset.r; if (st.regions.has(r)) { if (st.regions.size > 1) st.regions.delete(r); } else st.regions.add(r); render(); }));
+      K.q(el, "#cs").addEventListener("change", e => { st.cat = e.target.value; st.cross = null; render(); });
+      K.q(el, "#addb").addEventListener("click", () => { const n = K.q(el, "#bn").value.trim() || `View ${marks.length + 1}`; marks.push({ name: n, regions: [...st.regions], cat: st.cat, cross: st.cross }); render(); });
+      K.qa(el, "[data-b]").forEach(b => b.addEventListener("click", () => { const m = marks[+b.dataset.b]; st.regions = new Set(m.regions); st.cat = m.cat; st.cross = m.cross; render(); }));
+      K.q(el, "#reset").addEventListener("click", () => { st.regions = new Set(REGIONS); st.cat = "All"; st.cross = null; render(); });
+    }
+    render();
+    host.insertAdjacentHTML("beforeend", `<p class="hint">Try it: select only South and West, click "Electronics" to cross-filter the trend, hover a bar for its tooltip, save a bookmark, reset, then click the bookmark to restore the view. Right-click a category bar to drill through to its detail page.</p>`);
+  };
 })();
