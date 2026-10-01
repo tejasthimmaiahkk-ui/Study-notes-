@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit I · Core Arithmetic &amp; Algebra — Quantitative Techniques</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="quant" data-page="unit1.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Unit I · 14 hours · CO1, CO2</div>
+  <h1>Core Arithmetic &amp; Algebra</h1>
+  <p class="lead">The arithmetic that 70 % of aptitude questions are built on. We begin with calculation basics, then numbers, divisibility, HCF/LCM and remainders, then the business topics (percentages, profit and loss, ratio, partnership, averages), then motion and work, and finally linear and quadratic equations.</p>
+  <div class="meta"><span class="chip acc">Number system</span><span class="chip acc">HCF &amp; LCM</span><span class="chip acc">Remainders</span><span class="chip acc">Percentages</span><span class="chip acc">Profit &amp; loss</span><span class="chip acc">Ratio · partnership</span><span class="chip acc">Averages</span><span class="chip acc">Speed · trains</span><span class="chip acc">Work · pipes</span><span class="chip acc">Equations</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="calc-basics">
+<h2><span class="num">1.0</span> Foundation: fast and accurate calculation</h2>
+<div class="box found">
+  <p>Aptitude questions are timed. Most mistakes come from slow or careless arithmetic, not from not knowing the method. Spend time here first — it pays off in every later topic.</p>
+</div>
+<div class="concept">
+  <h3>Order of operations: BODMAS</h3>
+  <div class="f-exp">Evaluate in this order: <b>B</b>rackets → <b>O</b>rders/of (powers, roots, "of") → <b>D</b>ivision and <b>M</b>ultiplication (left to right) → <b>A</b>ddition and <b>S</b>ubtraction (left to right).</div>
+  <div class="f-use">Simplification questions; every formula you substitute into.</div>
+  <div class="f-imp">18 ÷ 3 × 2 + 4² − (6 − 2) = 18 ÷ 3 × 2 + 16 − 4 = 6 × 2 + 16 − 4 = 12 + 16 − 4 = <b>24</b>. "of" means multiply: ½ of 40 + 5 = 25.</div>
+  <div class="f-lim">Division and multiplication have equal priority — go left to right (18 ÷ 3 × 2 = 12, not 3).</div>
+</div>
+<div class="concept">
+  <h3>Squares, cubes and handy values</h3>
+  <div class="f-exp">Knowing these by heart saves seconds on every question.</div>
+  <div class="f-use">Pythagoras, areas, quadratic equations, approximation, percentages.</div>
+  <div class="f-imp">
+    <table class="num compact">
+      <tr><th>n</th><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td></tr>
+      <tr><th>n²</th><td>121</td><td>144</td><td>169</td><td>196</td><td>225</td><td>256</td><td>289</td><td>324</td><td>361</td><td>400</td><td>441</td><td>484</td><td>529</td><td>576</td><td>625</td></tr>
+      <tr><th>n</th><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>20</td></tr>
+      <tr><th>n³</th><td>8</td><td>27</td><td>64</td><td>125</td><td>216</td><td>343</td><td>512</td><td>729</td><td>1000</td><td>1331</td><td>1728</td><td>2197</td><td>2744</td><td>3375</td><td>8000</td></tr>
+    </table>
+    √2 ≈ 1.414, √3 ≈ 1.732, √5 ≈ 2.236, π ≈ 22/7 ≈ 3.1416.</div>
+  <div class="f-lim">Memorising is not understanding — but in a timed exam it is the fastest path.</div>
+</div>
+<div class="concept">
+  <h3>Mental-maths shortcuts</h3>
+  <div class="f-exp">Rewrite awkward numbers into easy ones.</div>
+  <div class="f-use">Every calculation-heavy question.</div>
+  <div class="f-imp">
+    <ul>
+      <li><b>× 5</b> = × 10 ÷ 2: 468 × 5 = 4680 ÷ 2 = 2340. <b>× 25</b> = × 100 ÷ 4: 36 × 25 = 900.</li>
+      <li><b>× 11</b> (two digits): 72 × 11 → 7 (7+2) 2 = 792; 85 × 11 → 8 (13) 5 → 935 (carry).</li>
+      <li><b>× 9, 99</b>: 47 × 99 = 4700 − 47 = 4653.</li>
+      <li><b>Squares ending in 5</b>: 75² → 7 × 8 = 56, append 25 → 5625.</li>
+      <li><b>Near a base</b>: 98 × 97 → (98 − 3) = 95 and (2 × 3) = 06 → 9506.</li>
+      <li><b>(a + b)(a − b) = a² − b²</b>: 52 × 48 = 50² − 2² = 2496.</li>
+    </ul></div>
+  <div class="f-lim">Use the trick only when it is faster — practise them until automatic.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="number-system">
+<h2><span class="num">1.1</span> Number system</h2>
+<div class="concept">
+  <h3>Classification of numbers</h3>
+  <div class="f-exp">
+    <ul>
+      <li><b>Natural numbers</b> N = {1, 2, 3, …} — counting numbers.</li>
+      <li><b>Whole numbers</b> W = {0, 1, 2, …} — naturals plus zero.</li>
+      <li><b>Integers</b> Z = {…, −2, −1, 0, 1, 2, …}.</li>
+      <li><b>Rational numbers</b> Q — can be written p/q (q ≠ 0): ¾, −5, 0.25, 0.333… (terminating or repeating decimals).</li>
+      <li><b>Irrational numbers</b> — cannot be written as p/q; non-terminating, non-repeating: √2, π.</li>
+      <li><b>Real numbers</b> R — all rationals and irrationals.</li>
+      <li><b>Even</b> (divisible by 2) / <b>odd</b>; <b>prime</b> (exactly two factors: 2, 3, 5, 7, 11, …; 2 is the only even prime) / <b>composite</b> (more than two factors); 1 is neither; <b>co-primes</b> have HCF 1 (8 and 15).</li>
+    </ul></div>
+  <div class="f-use">Questions like "which is a rational number", "how many primes between 50 and 100" (there are 10: 53, 59, 61, 67, 71, 73, 79, 83, 89, 97).</div>
+  <div class="f-imp"><b>Place value vs face value:</b> in 58,736 the face value of 7 is 7, its place value is 700.<br>
+  <b>Useful sums:</b> 1 + 2 + … + n = n(n + 1)/2; 1² + … + n² = n(n + 1)(2n + 1)/6; 1³ + … + n³ = [n(n + 1)/2]². Sum of first n odd numbers = n²; first n even numbers = n(n + 1).<br>
+  <b>Number of factors</b> of N = a<sup>p</sup> × b<sup>q</sup> × c<sup>r</sup> (prime factorisation) is (p + 1)(q + 1)(r + 1). 360 = 2³ × 3² × 5 → 4 × 3 × 2 = <b>24 factors</b>.</div>
+  <div class="f-lim">0 is even; 1 is not prime; negative numbers are not prime.</div>
+</div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Find the sum of the first 20 natural numbers and of their squares.
+      <details class="ans"><summary>Show answer</summary><div>20 × 21/2 = <b>210</b>; 20 × 21 × 41/6 = <b>2870</b>.</div></details></li>
+    <li>How many factors does 720 have?
+      <details class="ans"><summary>Show answer</summary><div>720 = 2⁴ × 3² × 5 → 5 × 3 × 2 = <b>30</b>.</div></details></li>
+    <li>Difference between the place value and face value of 6 in 46,329.
+      <details class="ans"><summary>Show answer</summary><div>6000 − 6 = <b>5994</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="divisibility">
+<h2><span class="num">1.2</span> Divisibility rules</h2>
+<div class="concept">
+  <h3>Rules you must know</h3>
+  <div class="f-exp">A divisibility rule tells you whether a number divides another <b>without doing the division</b>.</div>
+  <div class="f-use">Simplifying fractions, finding missing digits, checking answers (option elimination), factorising for HCF/LCM.</div>
+  <div class="f-imp">
+    <table>
+      <tr><th>Divisor</th><th>Rule</th><th>Example</th></tr>
+      <tr><td>2</td><td>Last digit even (0, 2, 4, 6, 8)</td><td>3,58<b>4</b></td></tr>
+      <tr><td>3</td><td>Sum of digits divisible by 3</td><td>7 + 4 + 1 = 12 → 741 ✓</td></tr>
+      <tr><td>4</td><td>Last two digits divisible by 4 (or 00)</td><td>53,<b>16</b> → 16 ✓</td></tr>
+      <tr><td>5</td><td>Last digit 0 or 5</td><td>2,34<b>5</b></td></tr>
+      <tr><td>6</td><td>Divisible by both 2 and 3</td><td>354: even and 3+5+4 = 12 ✓</td></tr>
+      <tr><td>7</td><td>Double the last digit and subtract from the rest; repeat</td><td>371 → 37 − 2 = 35 ✓</td></tr>
+      <tr><td>8</td><td>Last three digits divisible by 8</td><td>1,<b>256</b> → 256 = 8 × 32 ✓</td></tr>
+      <tr><td>9</td><td>Sum of digits divisible by 9</td><td>8,451 → 18 ✓</td></tr>
+      <tr><td>10</td><td>Last digit 0</td><td>4,50<b>0</b></td></tr>
+      <tr><td>11</td><td>(Sum of digits in odd places) − (sum in even places) is 0 or a multiple of 11</td><td>918,082 → (9+8+8) − (1+0+2) = 22 ✓</td></tr>
+      <tr><td>12</td><td>Divisible by both 3 and 4</td><td>2,352 ✓</td></tr>
+      <tr><td>25</td><td>Last two digits 00, 25, 50, 75</td><td>3,<b>475</b></td></tr>
+    </table>
+    <b>Composite divisors:</b> to test divisibility by 15, 18, 24, 36, 72… test the <b>co-prime factors</b> (72 = 8 × 9, not 6 × 12).</div>
+  <div class="f-lim">The rule for 7 is slow for big numbers — direct division may be faster.</div>
+</div>
+<div class="box example" data-title="Worked example — missing digits">
+  <p><b>Q.</b> Find the smallest digit * so that 5*2 is divisible by 9 and the smallest * so that 64*8 is divisible by 8.</p>
+  <ol class="steps"><li>9: 5 + * + 2 = 7 + * must be a multiple of 9 → * = <b>2</b> (522).</li><li>8: last three digits 4*8 must be divisible by 8: 408 ✓ (408 = 51 × 8) → * = <b>0</b>.</li></ol>
+</div>
+<div class="demo box" data-demo="divcheck" data-title="Interactive checker — apply every divisibility rule to your number"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Is 7,29,972 divisible by 72?
+      <details class="ans"><summary>Show answer</summary><div>72 = 8 × 9. Last three digits 972 = 8 × 121.5 → not divisible by 8 → <b>No</b>. (Digit sum 36 is divisible by 9, but both are needed.)</div></details></li>
+    <li>Find the value of * if 37*58 is divisible by 11.
+      <details class="ans"><summary>Show answer</summary><div>Odd places (from left): 3 + * + 8 = 11 + *; even places: 7 + 5 = 12. Difference (11 + *) − 12 = * − 1 must be 0 → * = <b>1</b> (37158 = 11 × 3378).</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="hcf-lcm">
+<h2><span class="num">1.3</span> LCM and HCF</h2>
+<div class="concept">
+  <h3>Definitions</h3>
+  <div class="f-exp"><b>HCF</b> (Highest Common Factor, also GCD) of two or more numbers is the <b>largest</b> number that divides all of them exactly. <b>LCM</b> (Least Common Multiple) is the <b>smallest</b> number that is exactly divisible by all of them.</div>
+  <div class="f-use"><b>HCF</b> → "largest", "maximum size", "greatest number that divides", cutting into equal pieces, tiles, groups. <b>LCM</b> → "least", "together again", "bells ring together", "minimum number divisible by".</div>
+  <div class="f-imp">
+    <p><b>Prime factorisation method:</b> HCF = product of <b>common</b> primes with the <b>lowest</b> powers; LCM = product of <b>all</b> primes with the <b>highest</b> powers.</p>
+    <p>36 = 2² × 3², 84 = 2² × 3 × 7 → HCF = 2² × 3 = <b>12</b>; LCM = 2² × 3² × 7 = <b>252</b>.</p>
+    <p><b>Division method for HCF</b> (Euclid): divide the larger by the smaller, then the divisor by the remainder, until remainder 0; the last divisor is the HCF. HCF(1071, 462): 1071 = 2 × 462 + 147; 462 = 3 × 147 + 21; 147 = 7 × 21 + 0 → <b>21</b>.</p>
+    <p><b>Common-division method for LCM:</b> divide all numbers by common primes repeatedly; LCM = product of divisors and final quotients.</p>
+    <div class="box formula" data-title="Key results">
+      <span class="eq">HCF × LCM = product of the two numbers</span>
+      <span class="eq">HCF of fractions = <span class="fr"><span>HCF of numerators</span><span>LCM of denominators</span></span> &nbsp;&nbsp; LCM of fractions = <span class="fr"><span>LCM of numerators</span><span>HCF of denominators</span></span></span>
+    </div></div>
+  <div class="f-lim">HCF × LCM = product holds only for <b>two</b> numbers. HCF always divides the LCM.</div>
+</div>
+<div class="box example" data-title="Worked examples — standard question types">
+  <ol class="steps">
+    <li><b>Check:</b> 12 × 252 = 3024 = 36 × 84 ✓.</li>
+    <li><b>Product of two numbers is 2028, HCF 13. LCM?</b> 2028/13 = <b>156</b>.</li>
+    <li><b>Three bells ring every 6, 8 and 12 minutes. They ring together at 9:00. When next?</b> LCM(6, 8, 12) = 24 → <b>9:24</b>.</li>
+    <li><b>Least number which when divided by 12, 15, 20 leaves remainder 4 in each case:</b> LCM = 60 → 60 + 4 = <b>64</b>.</li>
+    <li><b>Greatest number that divides 43, 91 and 183 leaving the same remainder:</b> HCF of the differences: 91 − 43 = 48, 183 − 91 = 92, 183 − 43 = 140 → HCF(48, 92, 140) = <b>4</b>.</li>
+    <li><b>Largest square tile for a floor 15 m 17 cm × 9 m 2 cm, and how many tiles?</b> HCF(1517, 902) = 41 cm; tiles = (1517/41) × (902/41) = 37 × 22 = <b>814</b>.</li>
+    <li><b>HCF and LCM of fractions</b> 2/3, 8/9, 16/81, 10/27: HCF = HCF(2, 8, 16, 10)/LCM(3, 9, 81, 27) = <b>2/81</b>. LCM of 1/3, 5/6, 2/9 = LCM(1, 5, 2)/HCF(3, 6, 9) = <b>10/3</b>.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="hcflcm" data-title="Interactive demo — HCF and LCM by prime factorisation and by division"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Find the HCF and LCM of 48, 72 and 108.
+      <details class="ans"><summary>Show answer</summary><div>48 = 2⁴·3, 72 = 2³·3², 108 = 2²·3³ → HCF = 2²·3 = <b>12</b>; LCM = 2⁴·3³ = <b>432</b>.</div></details></li>
+    <li>The HCF of two numbers is 11 and their LCM is 693. One number is 77. Find the other.
+      <details class="ans"><summary>Show answer</summary><div>11 × 693/77 = <b>99</b>.</div></details></li>
+    <li>Find the least number which when divided by 5, 6, 7 and 8 leaves remainder 3 but is divisible by 9.
+      <details class="ans"><summary>Show answer</summary><div>Numbers = 840k + 3. Need divisible by 9: 840 ≡ 3 (mod 9), so 3k + 3 ≡ 0 → k ≡ 2 (mod 3). k = 2 → <b>1683</b> (1683 = 9 × 187).</div></details></li>
+    <li>Four runners complete a lap in 200, 300, 360 and 450 seconds. After how long do they meet at the start again?
+      <details class="ans"><summary>Show answer</summary><div>LCM = 1800 s = <b>30 minutes</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="remainders">
+<h2><span class="num">1.4</span> Remainders (basic concepts)</h2>
+<div class="concept">
+  <h3>The division relation and remainder rules</h3>
+  <div class="f-exp"><span class="math">Dividend = Divisor × Quotient + Remainder</span>, with 0 ≤ remainder &lt; divisor. Remainders can be <b>added and multiplied</b>: the remainder of a sum/product equals the remainder of the sum/product of the individual remainders.</div>
+  <div class="f-use">"Find the remainder when…", unit-digit questions, calendar/day-of-week problems, cyclic patterns.</div>
+  <div class="f-imp">
+    <ul>
+      <li><b>Product rule:</b> (17 × 23 × 31) ÷ 5 → remainders 2, 3, 1 → 2 × 3 × 1 = 6 → 6 ÷ 5 → remainder <b>1</b>.</li>
+      <li><b>Divisor-of-divisor rule:</b> a number leaves remainder 36 when divided by 136. Remainder when divided by 17 (a factor of 136)? 36 ÷ 17 → <b>2</b>.</li>
+      <li><b>Negative remainder:</b> 25 ≡ −1 (mod 26) → 25<sup>25</sup> ≡ (−1)<sup>25</sup> = −1 → remainder 26 − 1 = <b>25</b>.</li>
+      <li><b>Power cycles:</b> 2<sup>100</sup> ÷ 7: 2³ = 8 ≡ 1 (mod 7) → 2<sup>99</sup> = (2³)<sup>33</sup> ≡ 1 → 2<sup>100</sup> ≡ 2 → remainder <b>2</b>.</li>
+    </ul></div>
+  <div class="f-lim">Remainders cannot be divided directly; always reduce the final result below the divisor.</div>
+</div>
+<div class="concept">
+  <h3>Unit digit and cyclicity</h3>
+  <div class="f-exp">The unit digits of powers repeat in short cycles: 2 → 2, 4, 8, 6 (cycle 4); 3 → 3, 9, 7, 1; 7 → 7, 9, 3, 1; 8 → 8, 4, 2, 6 (all cycle 4); 4 → 4, 6 and 9 → 9, 1 (cycle 2); 0, 1, 5, 6 always repeat themselves.</div>
+  <div class="f-use">"Find the unit digit of 7<sup>95</sup> × 3<sup>58</sup>."</div>
+  <div class="f-imp">Divide the exponent by the cycle length (4) and use the remainder (remainder 0 → use the 4th term). 7<sup>95</sup>: 95 mod 4 = 3 → 3rd term → <b>3</b>. 3<sup>65</sup> × 6<sup>59</sup> × 7<sup>71</sup>: 3, 6, 3 → 3 × 6 × 3 = 54 → <b>4</b>.</div>
+  <div class="f-lim">Only the last digit of the base matters; the exponent must be reduced mod 4, not mod 10.</div>
+</div>
+<div class="demo box" data-demo="cycles" data-title="Interactive demo — remainders of powers and unit-digit cycles"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Remainder when 1234 × 1235 × 1236 is divided by 12.
+      <details class="ans"><summary>Show answer</summary><div>1234 ≡ 10, 1235 ≡ 11, 1236 ≡ 0 (mod 12) → product ≡ <b>0</b>.</div></details></li>
+    <li>Unit digit of 2<sup>51</sup> + 3<sup>52</sup>.
+      <details class="ans"><summary>Show answer</summary><div>51 mod 4 = 3 → 8; 52 mod 4 = 0 → 1; 8 + 1 = <b>9</b>.</div></details></li>
+    <li>Remainder when 3<sup>21</sup> is divided by 5.
+      <details class="ans"><summary>Show answer</summary><div>3⁴ = 81 ≡ 1 (mod 5); 3<sup>21</sup> = (3⁴)⁵ × 3 ≡ <b>3</b>.</div></details></li>
+    <li>A number divided by 5 leaves remainder 3. What is the remainder when its square is divided by 5?
+      <details class="ans"><summary>Show answer</summary><div>3² = 9 → <b>4</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="percentages">
+<h2><span class="num">1.5</span> Percentages and applications</h2>
+<div class="concept">
+  <h3>Meaning and conversions</h3>
+  <div class="f-exp"><b>Per cent</b> means "per hundred": x % = x/100. A percentage compares a quantity with 100, so different totals can be compared fairly (45/60 and 70/100 → 75 % vs 70 %).</div>
+  <div class="f-use">Marks, discounts, interest, growth rates, GST, election results, data interpretation — percentages are everywhere.</div>
+  <div class="f-imp">
+    <p>Fraction → %: multiply by 100. % → fraction: divide by 100. <b>x % of y = y % of x</b> (8 % of 50 = 50 % of 8 = 4 — use whichever is easier).</p>
+    <table class="num compact">
+      <tr><th>Fraction</th><td>1/2</td><td>1/3</td><td>1/4</td><td>1/5</td><td>1/6</td><td>1/7</td><td>1/8</td><td>1/9</td><td>1/10</td><td>1/11</td><td>1/12</td><td>1/16</td><td>1/20</td></tr>
+      <tr><th>%</th><td>50</td><td>33⅓</td><td>25</td><td>20</td><td>16⅔</td><td>14 2/7</td><td>12½</td><td>11 1/9</td><td>10</td><td>9 1/11</td><td>8⅓</td><td>6¼</td><td>5</td></tr>
+    </table></div>
+  <div class="f-lim">A percentage of a percentage is not additive: a 10 % rise then 10 % fall does not return to the start.</div>
+</div>
+<div class="concept">
+  <h3>Percentage change and comparison</h3>
+  <div class="f-exp">
+    <span class="eq">% change = <span class="fr"><span>new − old</span><span>old</span></span> × 100 &nbsp;&nbsp;&nbsp; A is what % of B = <span class="fr"><span>A</span><span>B</span></span> × 100</span>
+    <b>If A is r % more than B, then B is less than A by</b> <span class="math"><span class="fr"><span>r</span><span>100 + r</span></span> × 100 %</span>. (If A is r % less than B, B is more than A by r/(100 − r) × 100 %.)</div>
+  <div class="f-use">Salary comparisons, price rise vs consumption, growth of sales.</div>
+  <div class="f-imp">A's salary is 25 % more than B's → B's is less than A's by 25/125 × 100 = <b>20 %</b>. Price of sugar rises 25 % → to keep expenditure unchanged, reduce consumption by 25/125 × 100 = <b>20 %</b>.</div>
+  <div class="f-lim">Always identify the base (the "of" or "than" quantity) — it changes the answer.</div>
+</div>
+<div class="concept">
+  <h3>Successive percentage change</h3>
+  <div class="f-exp">Two successive changes of a % and b % equal a single change of
+  <span class="eq">a + b + <span class="fr"><span>ab</span><span>100</span></span> % &nbsp;&nbsp; (use negative signs for decreases)</span></div>
+  <div class="f-use">Price increased twice, successive discounts, area when length and breadth change, population growth over years.</div>
+  <div class="f-imp">+10 % then +20 % → 10 + 20 + 2 = <b>+32 %</b>. +20 % then −20 % → 20 − 20 − 4 = <b>−4 %</b>. Length +20 %, breadth −10 % → area changes 20 − 10 − 2 = <b>+8 %</b>.<br>
+  <b>Growth/depreciation for n years:</b> P(1 ± r/100)<sup>n</sup>. Population 10,000 growing 10 % a year → after 2 years 10,000 × 1.1² = <b>12,100</b>. Machine worth ₹50,000 depreciating 10 % a year → after 2 years 50,000 × 0.9² = <b>₹40,500</b>.</div>
+  <div class="f-lim">The order of the changes does not matter (multiplication is commutative), but the base does.</div>
+</div>
+<div class="box example" data-title="Worked examples — exams and elections">
+  <ol class="steps">
+    <li><b>A candidate scoring 30 % fails by 30 marks; another scoring 40 % gets 30 marks more than the pass mark. Find the maximum marks and pass mark.</b> The difference of 10 % = 30 + 30 = 60 marks → 100 % = <b>600</b>. Pass mark = 30 % of 600 + 30 = <b>210</b>.</li>
+    <li><b>In an election between two candidates, the winner got 60 % of the valid votes and won by 200 votes. Total valid votes?</b> 60 % − 40 % = 20 % = 200 → <b>1000</b>.</li>
+    <li><b>After spending 80 % of his salary, a man saves ₹6,000. Salary?</b> 20 % = 6,000 → <b>₹30,000</b>.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="succpct" data-title="Interactive demo — successive percentage changes"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>If the price of petrol rises by 20 %, by what % must a family cut consumption to keep spending the same?
+      <details class="ans"><summary>Show answer</summary><div>20/120 × 100 = <b>16⅔ %</b>.</div></details></li>
+    <li>A number is increased by 20 % and then decreased by 25 %. Net change?
+      <details class="ans"><summary>Show answer</summary><div>20 − 25 − 5 = <b>−10 %</b> (decrease of 10 %).</div></details></li>
+    <li>The population of a town is 1,25,000. It grows 4 % in the first year and 5 % in the second. Population after 2 years?
+      <details class="ans"><summary>Show answer</summary><div>1,25,000 × 1.04 × 1.05 = <b>1,36,500</b>.</div></details></li>
+    <li>What percentage of 3/5 is 1/5?
+      <details class="ans"><summary>Show answer</summary><div>(1/5)/(3/5) × 100 = <b>33⅓ %</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="profit-loss">
+<h2><span class="num">1.6</span> Profit, loss and discount</h2>
+<div class="concept">
+  <h3>Basic terms and formulas</h3>
+  <div class="f-exp"><b>Cost price (CP)</b> = price paid by the seller. <b>Selling price (SP)</b> = price received. <b>Marked price (MP / list price)</b> = price printed on the tag. <b>Discount</b> is always on MP; <b>profit/loss %</b> is always on CP (unless stated otherwise).</div>
+  <div class="f-use">Retail pricing, sales offers, business decisions, dishonest-dealer puzzles.</div>
+  <div class="f-imp">
+    <div class="box formula" data-title="Profit and loss">
+      <span class="eq">Profit = SP − CP, &nbsp; Profit % = <span class="fr"><span>Profit</span><span>CP</span></span> × 100 &nbsp;&nbsp; Loss % = <span class="fr"><span>Loss</span><span>CP</span></span> × 100</span>
+      <span class="eq">SP = CP × <span class="fr"><span>100 + P%</span><span>100</span></span> &nbsp;&nbsp; CP = SP × <span class="fr"><span>100</span><span>100 + P%</span></span> &nbsp;&nbsp; (replace + P by − L for loss)</span>
+    </div>
+    <div class="box formula" data-title="Discount">
+      <span class="eq">Discount = MP − SP, &nbsp; Discount % = <span class="fr"><span>Discount</span><span>MP</span></span> × 100, &nbsp; SP = MP × <span class="fr"><span>100 − D%</span><span>100</span></span></span>
+      <span class="eq"><span class="fr"><span>MP</span><span>CP</span></span> = <span class="fr"><span>100 + P%</span><span>100 − D%</span></span> &nbsp;&nbsp; successive discounts d₁, d₂: single discount = d₁ + d₂ − d₁d₂/100</span>
+    </div></div>
+  <div class="f-lim">Mixing bases (taking profit on SP or discount on CP) is the most common error.</div>
+</div>
+<div class="box example" data-title="Worked examples">
+  <ol class="steps">
+    <li><b>CP ₹400, SP ₹500.</b> Profit = 100 → 100/400 × 100 = <b>25 %</b>.</li>
+    <li><b>Selling at ₹540 causes a 10 % loss. What SP gives a 15 % gain?</b> CP = 540 × 100/90 = 600 → SP = 600 × 115/100 = <b>₹690</b>.</li>
+    <li><b>Two articles are sold at ₹990 each, one at 10 % gain and the other at 10 % loss. Overall?</b> Always a loss of (x/10)² = <b>1 %</b>. Check: CPs 900 and 1100 = 2000; SP 1980 → loss 20 = 1 %.</li>
+    <li><b>A dishonest dealer sells at cost price but uses a 900 g weight for 1 kg.</b> Gain % = (1000 − 900)/900 × 100 = <b>11.11 %</b>.</li>
+    <li><b>Marked 40 % above CP, discount 10 %.</b> MP/CP = 1.4; SP = 1.4 × 0.9 = 1.26 CP → <b>26 % profit</b>.</li>
+    <li><b>Successive discounts of 20 % and 10%</b> = 20 + 10 − 2 = <b>28 %</b> (not 30 %).</li>
+    <li><b>"Buy 4 get 1 free"</b> → pay for 4, get 5 → discount = 1/5 = <b>20 %</b>.</li>
+    <li><b>By selling 33 m of cloth a shopkeeper gains the SP of 11 m. Gain %?</b> SP(33) − CP(33) = SP(11) → CP(33) = SP(22) → gain = 11/22 = <b>50 %</b>.</li>
+  </ol>
+</div>
+<div class="demo box" data-demo="profitcalc" data-title="Interactive calculator — CP, MP, discount and profit"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>An article bought for ₹1,200 is sold at a loss of 15 %. Find the SP.
+      <details class="ans"><summary>Show answer</summary><div>1,200 × 85/100 = <b>₹1,020</b>.</div></details></li>
+    <li>A shopkeeper allows 20 % discount on MP and still gains 20 %. If CP is ₹800, find MP.
+      <details class="ans"><summary>Show answer</summary><div>SP = 960 = 0.8 MP → MP = <b>₹1,200</b>. (Or MP = CP × 120/80.)</div></details></li>
+    <li>The CP of 20 articles equals the SP of 16 articles. Profit %?
+      <details class="ans"><summary>Show answer</summary><div>(20 − 16)/16 × 100 = <b>25 %</b>.</div></details></li>
+    <li>Find a single discount equivalent to successive discounts of 10 %, 20 % and 25 %.
+      <details class="ans"><summary>Show answer</summary><div>1 − 0.9 × 0.8 × 0.75 = 1 − 0.54 = <b>46 %</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ratio">
+<h2><span class="num">1.7</span> Ratio, proportion and partnership</h2>
+<div class="concept">
+  <h3>Ratio</h3>
+  <div class="f-exp">A <b>ratio</b> a : b compares two quantities of the <b>same kind</b> by division (a/b). a is the antecedent, b the consequent. Multiplying or dividing both terms by the same non-zero number does not change a ratio (6 : 9 = 2 : 3).</div>
+  <div class="f-use">Sharing money, mixing ingredients, ages, partnerships, maps and scales.</div>
+  <div class="f-imp">
+    <ul>
+      <li><b>Combining ratios:</b> A : B = 2 : 3 and B : C = 4 : 5 → make B equal (LCM of 3 and 4 = 12): A : B : C = 8 : 12 : 15.</li>
+      <li><b>Dividing a quantity</b> in a : b: shares are a/(a + b) and b/(a + b) of the total. ₹1,200 in 3 : 5 → 450 and 750.</li>
+      <li><b>Compound ratio</b> of a:b and c:d is ac : bd (2:3, 4:5, 6:7 → 48 : 105 = 16 : 35). <b>Duplicate</b> a² : b², <b>triplicate</b> a³ : b³, <b>sub-duplicate</b> √a : √b (16 : 25 → 4 : 5).</li>
+      <li><b>Comparing ratios:</b> 3/5 vs 4/7 → cross-multiply 21 vs 20 → 3/5 is larger.</li>
+    </ul></div>
+  <div class="f-lim">Quantities must be in the same unit before forming a ratio (50 paise : ₹2 = 1 : 4).</div>
+</div>
+<div class="concept">
+  <h3>Proportion; direct and inverse proportion</h3>
+  <div class="f-exp">Four numbers are <b>in proportion</b> (a : b :: c : d) if a/b = c/d, i.e. <b>a × d = b × c</b> (product of extremes = product of means). In <b>direct proportion</b> two quantities rise and fall together (y = kx); in <b>inverse proportion</b> one rises as the other falls (xy = k).</div>
+  <div class="f-use">Unitary method problems: cost of items (direct), workers and days (inverse), speed and time (inverse).</div>
+  <div class="f-imp">
+    <ul>
+      <li><b>Fourth proportional</b> to a, b, c = bc/a: to 4, 9, 12 → 27.</li>
+      <li><b>Third proportional</b> to a, b = b²/a: to 9, 12 → 16.</li>
+      <li><b>Mean proportional</b> between a and b = √(ab): between 4 and 25 → 10.</li>
+      <li><b>Direct:</b> 12 pens cost ₹90 → 20 pens cost 90 × 20/12 = ₹150.</li>
+      <li><b>Inverse:</b> 12 men finish in 15 days → 18 men take 12 × 15/18 = 10 days.</li>
+    </ul></div>
+  <div class="f-lim">Decide first whether the relation is direct or inverse — reversing it gives a wrong answer.</div>
+</div>
+<div class="box example" data-title="Worked example — ages">
+  <p><b>Present ages of A and B are in the ratio 4 : 5. After 5 years the ratio will be 5 : 6. Find their present ages.</b></p>
+  <ol class="steps"><li>Let ages be 4x and 5x.</li><li>(4x + 5)/(5x + 5) = 5/6 → 24x + 30 = 25x + 25 → x = 5.</li><li>Ages: <b>20 and 25</b> years.</li></ol>
+</div>
+<div class="concept">
+  <h3>Partnership</h3>
+  <div class="f-exp">When two or more people invest in a business, profit (or loss) is shared in the ratio of their <b>capital × time</b>.
+  <ul><li><b>Simple partnership:</b> capitals invested for the same period → share in ratio of capitals.</li>
+  <li><b>Compound partnership:</b> different periods → ratio of (capital × months).</li>
+  <li>A <b>working (active) partner</b> manages the business and may first receive a salary/commission; a <b>sleeping partner</b> only invests.</li></ul></div>
+  <div class="f-use">Dividing business profits fairly; questions with partners joining or leaving mid-year.</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>A invests ₹50,000 for the whole year; B joins after 4 months with ₹60,000. Profit ₹27,000.</b> Ratio = 50,000 × 12 : 60,000 × 8 = 6,00,000 : 4,80,000 = 5 : 4 → A gets <b>₹15,000</b>, B <b>₹12,000</b>.</li>
+      <li><b>A, B, C invest ₹20,000, ₹30,000, ₹50,000. A is the working partner and gets 10 % of profit as salary. Profit ₹50,000.</b> Salary = 5,000; remaining 45,000 in 2 : 3 : 5 → 9,000, 13,500, 22,500. A's total = <b>₹14,000</b>.</li>
+    </ol></div>
+  <div class="f-lim">If capital changes during the year, split each partner's investment into periods and add capital × months for each period.</div>
+</div>
+<div class="box oos" data-title="Beyond the syllabus · mixtures and alligation">
+  <p>When two items with prices c (cheaper) and d (dearer) are mixed to get a mean price m, the quantities are in the ratio <b>(d − m) : (m − c)</b>. Rice at ₹40/kg and ₹60/kg mixed to sell at ₹45/kg (at cost) → (60 − 45) : (45 − 40) = 3 : 1.</p>
+</div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>If a : b = 3 : 4 and b : c = 6 : 7, find a : b : c and a : c.
+      <details class="ans"><summary>Show answer</summary><div>Make b = 12: a : b = 9 : 12, b : c = 12 : 14 → <b>9 : 12 : 14</b>; a : c = <b>9 : 14</b>.</div></details></li>
+    <li>Divide ₹7,800 among A, B, C in the ratio ½ : ⅓ : ¼.
+      <details class="ans"><summary>Show answer</summary><div>Multiply by 12: 6 : 4 : 3 (sum 13) → <b>₹3,600, ₹2,400, ₹1,800</b>.</div></details></li>
+    <li>A and B start a business with ₹15,000 and ₹20,000. After 6 months A adds ₹5,000. Share of B in a yearly profit of ₹11,000?
+      <details class="ans"><summary>Show answer</summary><div>A: 15,000 × 6 + 20,000 × 6 = 2,10,000; B: 20,000 × 12 = 2,40,000 → 7 : 8 → B = 11,000 × 8/15 = <b>₹5,866.67</b>.</div></details></li>
+    <li>Find the mean proportional between 0.08 and 0.18.
+      <details class="ans"><summary>Show answer</summary><div>√(0.0144) = <b>0.12</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="averages">
+<h2><span class="num">1.8</span> Averages</h2>
+<div class="concept">
+  <h3>Simple and weighted average</h3>
+  <div class="f-exp"><b>Average</b> (arithmetic mean) = sum of observations ÷ number of observations. A <b>weighted average</b> gives each value an importance (weight): (w₁x₁ + w₂x₂ + …)/(w₁ + w₂ + …).</div>
+  <div class="f-use">Average marks, run rate, average salary of a combined group, average price per kg of a mixture.</div>
+  <div class="f-imp">
+    <p><b>Properties:</b> adding (subtracting/multiplying) a constant to every value adds (subtracts/multiplies) the average by the same constant. Sum = average × number — the most-used rearrangement.</p>
+    <p><b>Combined group:</b> Section A has 40 students averaging 60, B has 60 averaging 70 → (40 × 60 + 60 × 70)/100 = <b>66</b>.</p>
+    <p><b>Consecutive numbers:</b> average of an AP = (first + last)/2; average of first n natural numbers = (n + 1)/2.</p></div>
+  <div class="f-lim">Averages of averages are wrong unless group sizes are equal — use weights.</div>
+</div>
+<div class="box example" data-title="Worked examples — replacement and new members">
+  <ol class="steps">
+    <li><b>The average of 10 numbers is 25. If 40 is replaced by 20, new average?</b> Sum falls by 20 → average falls by 20/10 = 2 → <b>23</b>.</li>
+    <li><b>The average age of 30 students is 15. Including the teacher, it becomes 16. Teacher's age?</b> 16 × 31 − 15 × 30 = 496 − 450 = <b>46</b>. Shortcut: 15 + 31 × 1 = 46.</li>
+    <li><b>A batsman averages 40 in 10 innings. What must he score in the 11th to raise his average to 42?</b> 42 × 11 − 40 × 10 = 462 − 400 = <b>62</b>.</li>
+    <li><b>Average speed:</b> going at 60 km/h and returning the same distance at 40 km/h → 2 × 60 × 40/(60 + 40) = <b>48 km/h</b> (not 50 — equal distances, not equal times).</li>
+  </ol>
+</div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>The average of 5 consecutive odd numbers is 61. Find the largest.
+      <details class="ans"><summary>Show answer</summary><div>Middle = 61 → numbers 57, 59, 61, 63, 65 → <b>65</b>.</div></details></li>
+    <li>The average weight of 8 people increases by 2.5 kg when a new person replaces one weighing 65 kg. Weight of the new person?
+      <details class="ans"><summary>Show answer</summary><div>65 + 8 × 2.5 = <b>85 kg</b>.</div></details></li>
+    <li>The average salary of 20 workers is ₹15,000; of 5 managers ₹40,000. Average of all?
+      <details class="ans"><summary>Show answer</summary><div>(3,00,000 + 2,00,000)/25 = <b>₹20,000</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="tsd">
+<h2><span class="num">1.9</span> Time, speed and distance</h2>
+<div class="concept">
+  <h3>Basic concepts</h3>
+  <div class="f-exp"><span class="math">Speed = Distance ÷ Time</span>, so Distance = Speed × Time and Time = Distance ÷ Speed. For a fixed distance, speed and time are <b>inversely proportional</b>; for a fixed time, distance ∝ speed.</div>
+  <div class="f-use">Travel planning, trains, races, boats, catching up, meeting problems.</div>
+  <div class="f-imp">
+    <p><b>Unit conversion:</b> km/h → m/s multiply by <b>5/18</b>; m/s → km/h multiply by <b>18/5</b>. (72 km/h = 20 m/s; 15 m/s = 54 km/h.)</p>
+    <p><b>Average speed</b> = total distance ÷ total time. For equal distances at x and y: <span class="math">2xy/(x + y)</span>.</p>
+    <p><b>Speed ratio a : b</b> → time ratio b : a for the same distance.</p></div>
+  <div class="f-lim">Always convert to consistent units before substituting; average speed is NOT the average of speeds (unless equal times).</div>
+</div>
+<div class="concept">
+  <h3>Relative speed</h3>
+  <div class="f-exp">When two bodies move: <b>same direction</b> → relative speed = <b>difference</b> of speeds; <b>opposite directions</b> → relative speed = <b>sum</b>. Then time to meet/cross = distance between them ÷ relative speed.</div>
+  <div class="f-use">Two trains crossing, a police car catching a thief, two people walking towards each other.</div>
+  <div class="f-imp">Two people 20 km apart walk towards each other at 4 and 6 km/h → meet after 20/(4 + 6) = <b>2 h</b>. A thief runs at 8 km/h; police start 1 km behind at 10 km/h → caught after 1/(10 − 8) = 0.5 h, having run <b>5 km</b>.</div>
+  <div class="f-lim">Relative speed applies to the gap between the bodies — use the right starting distance.</div>
+</div>
+<div class="concept">
+  <h3>Problems on trains</h3>
+  <div class="f-exp">A train has <b>length</b>, so crossing means the whole train must pass. Distance to cover:
+  <ul><li>crossing a pole / man standing / signal → <b>length of train</b>;</li>
+  <li>crossing a platform / bridge / tunnel → <b>train length + platform length</b>;</li>
+  <li>crossing another train → <b>sum of both lengths</b>, at relative speed;</li>
+  <li>passing a moving man → train length at relative speed.</li></ul></div>
+  <div class="f-use">A favourite in every aptitude test (railway exams, campus placement).</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>A 150 m train at 54 km/h crosses a pole in?</b> 54 × 5/18 = 15 m/s → 150/15 = <b>10 s</b>. A 300 m platform? (150 + 300)/15 = <b>30 s</b>.</li>
+      <li><b>Trains 120 m and 180 m at 50 and 40 km/h, opposite directions:</b> relative 90 km/h = 25 m/s → 300/25 = <b>12 s</b>. Same direction: relative 10 km/h = 25/9 m/s → 300 × 9/25 = <b>108 s</b>.</li>
+      <li><b>A 125 m train at 50 km/h passes a man walking at 5 km/h in the same direction:</b> relative 45 km/h = 12.5 m/s → <b>10 s</b>.</li>
+      <li><b>A train crosses a pole in 15 s and a 100 m platform in 25 s. Length and speed?</b> Extra 100 m takes 10 s → speed 10 m/s = 36 km/h; length = 10 × 15 = <b>150 m</b>.</li>
+    </ol></div>
+  <div class="f-lim">Forgetting to add the train's own length is the classic mistake.</div>
+</div>
+<div class="demo box" data-demo="train" data-title="Interactive animation — a train crossing a platform"></div>
+<div class="box oos" data-title="Beyond the syllabus · boats and streams, races">
+  <p>Boat speed in still water u, stream v: <b>downstream</b> = u + v, <b>upstream</b> = u − v; u = (down + up)/2, v = (down − up)/2. A boat at 10 km/h in a 2 km/h stream goes 24 km down and back in 24/12 + 24/8 = 5 h. In races, "A beats B by x m" means when A finishes, B is x m behind.</p>
+</div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Walking at 5 km/h a man reaches 10 minutes early; at 4 km/h he is 5 minutes late. Distance?
+      <details class="ans"><summary>Show answer</summary><div>Time difference = 15 min: d/4 − d/5 = 1/4 h → d/20 = 1/4 → <b>5 km</b>.</div></details></li>
+    <li>A car covers half a journey at 40 km/h and the other half at 60 km/h. Average speed?
+      <details class="ans"><summary>Show answer</summary><div>2 × 40 × 60/100 = <b>48 km/h</b>.</div></details></li>
+    <li>A 240 m train passes a 360 m bridge in 30 s. Speed in km/h?
+      <details class="ans"><summary>Show answer</summary><div>600/30 = 20 m/s = <b>72 km/h</b>.</div></details></li>
+    <li>Two trains of 100 m each pass in opposite directions in 8 s. One is twice as fast as the other. Speeds?
+      <details class="ans"><summary>Show answer</summary><div>Relative = 200/8 = 25 m/s = 3x → x = 25/3 m/s = <b>30 km/h</b> and <b>60 km/h</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="time-work">
+<h2><span class="num">1.10</span> Time and work</h2>
+<div class="concept">
+  <h3>Work, rate and efficiency</h3>
+  <div class="f-exp">If A finishes a job in n days, A does <b>1/n of the job per day</b> (A's rate or efficiency). Rates of people working together <b>add up</b>: time together = 1 ÷ (sum of rates). Work = rate × time.</div>
+  <div class="f-use">Project scheduling, how many workers to hire, sharing wages, machines producing output.</div>
+  <div class="f-imp">
+    <p><b>LCM (total-units) method</b> — avoids fractions:</p>
+    <ol class="steps"><li>Take total work = LCM of the individual days.</li><li>Each person's units/day = total ÷ their days.</li><li>Add/subtract rates as required; time = total ÷ combined rate.</li></ol>
+    <p><b>Example:</b> A takes 10 days, B 15 days. Total = 30 units; A = 3/day, B = 2/day → together 5/day → <b>6 days</b>.</p>
+    <div class="box formula" data-title="Man-days formula"><span class="eq"><span class="fr"><span>M₁ × D₁ × H₁</span><span>W₁</span></span> = <span class="fr"><span>M₂ × D₂ × H₂</span><span>W₂</span></span></span><p>(M = men, D = days, H = hours/day, W = work)</p></div>
+    <p><b>Wages</b> are shared in the ratio of work done (= ratio of efficiencies when working the same time).</p></div>
+  <div class="f-lim">Assumes everyone works at a constant rate and the work is divisible.</div>
+</div>
+<div class="box example" data-title="Worked examples">
+  <ol class="steps">
+    <li><b>A and B together finish in 12 days; A alone in 20 days. B alone?</b> Total 60: A + B = 5/day, A = 3 → B = 2 → <b>30 days</b>.</li>
+    <li><b>A, B, C take 10, 12, 15 days. All together?</b> Total 60; rates 6 + 5 + 4 = 15 → <b>4 days</b>.</li>
+    <li><b>A is twice as efficient as B; together they finish in 14 days. A alone?</b> Rates 2 : 1 → work = 3 × 14 = 42 units → A alone 42/2 = <b>21 days</b>.</li>
+    <li><b>12 men build a wall in 18 days working 8 h/day. How many days for 16 men working 9 h/day?</b> 12 × 18 × 8 = 16 × D × 9 → D = <b>12 days</b>.</li>
+    <li><b>A can do a job in 6 days, B in 8. Together they earn ₹1,400.</b> Rates (LCM 24): 4 : 3 → A <b>₹800</b>, B <b>₹600</b>.</li>
+    <li><b>A (8 days) and B (12 days) work on alternate days, A starting.</b> Total 24; A 3, B 2 → every 2 days 5 units. 4 cycles = 20 units in 8 days; day 9: A does 3 (23 done); day 10: B needs 1 unit = half a day → <b>9.5 days</b>.</li>
+  </ol>
+</div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>A can do a piece of work in 20 days and B in 30 days. They work together for 6 days, then A leaves. In how many more days will B finish?
+      <details class="ans"><summary>Show answer</summary><div>Total 60; A 3, B 2 → 6 days × 5 = 30 done; remaining 30 at 2/day = <b>15 days</b>.</div></details></li>
+    <li>10 men can complete a job in 15 days. After 5 days, 5 more men join. Total time taken?
+      <details class="ans"><summary>Show answer</summary><div>Work = 150 man-days; 5 days × 10 = 50 done; 100 left with 15 men = 6⅔ days → total <b>11⅔ days</b>.</div></details></li>
+    <li>A does half as much work as B in three-fourths of the time. If together they take 18 days, how long does B take alone?
+      <details class="ans"><summary>Show answer</summary><div>In time t, B does 1 unit; A does ½ unit in ¾t → A's rate = (½)/(¾t) = 2/(3t), B's = 1/t → A : B = 2 : 3. Work = 5 × 18 = 90 units → B alone 90/3 = <b>30 days</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="pipes">
+<h2><span class="num">1.11</span> Pipes and cisterns</h2>
+<div class="concept">
+  <h3>Same idea as time and work</h3>
+  <div class="f-exp">A pipe that fills a tank in n hours adds 1/n of the tank per hour (an <b>inlet</b>, positive work); a pipe or leak that empties it in m hours removes 1/m per hour (an <b>outlet</b>, negative work). Net rate = sum of inlet rates − sum of outlet rates.</div>
+  <div class="f-use">Water tanks, reservoirs, any process with inflow and outflow (bank balance, inventory).</div>
+  <div class="f-imp">
+    <ol class="steps">
+      <li><b>A fills in 20 min, B in 30 min, C empties in 15 min. All open?</b> Total 60 units: A 3, B 2, C −4 → net 1/min → <b>60 min</b>.</li>
+      <li><b>A pipe fills a tank in 6 h; because of a leak it takes 7 h. The leak alone empties a full tank in?</b> 1/6 − 1/7 = 1/42 → <b>42 h</b>.</li>
+      <li><b>Pipes A and B fill a tank in 12 and 15 minutes. Both are opened, and B is turned off after 3 minutes. Total time?</b> Total 60: A 5, B 4. In 3 min: 27 units; remaining 33 by A at 5/min = 6.6 min → total <b>9.6 min</b>.</li>
+    </ol></div>
+  <div class="f-lim">If the net rate is negative the tank never fills (it empties instead).</div>
+</div>
+<div class="demo box" data-demo="tank" data-title="Interactive simulation — pipes filling and emptying a tank"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>Two pipes fill a tank in 10 and 12 hours; a third empties it in 20 hours. All three open — time to fill?
+      <details class="ans"><summary>Show answer</summary><div>LCM 60: 6 + 5 − 3 = 8/h → <b>7.5 hours</b>.</div></details></li>
+    <li>A tap fills a bucket in 4 minutes; a hole empties it in 12 minutes. Time to fill with the hole open?
+      <details class="ans"><summary>Show answer</summary><div>1/4 − 1/12 = 1/6 → <b>6 minutes</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="algebra">
+<h2><span class="num">1.12</span> Algebra basics: linear and quadratic equations</h2>
+<div class="box found">
+  <p>A <b>variable</b> (x, y) stands for an unknown number. An <b>expression</b> combines variables and numbers (3x + 5). An <b>equation</b> says two expressions are equal (3x + 5 = 20); solving it means finding the value(s) that make it true. Whatever you do to one side, do to the other.</p>
+  <p><b>Identities to know:</b> (a + b)² = a² + 2ab + b²; (a − b)² = a² − 2ab + b²; a² − b² = (a + b)(a − b); (a + b)³ = a³ + b³ + 3ab(a + b); a³ + b³ = (a + b)(a² − ab + b²).</p>
+</div>
+<div class="concept">
+  <h3>Linear equations in one variable</h3>
+  <div class="f-exp">Of the form ax + b = 0 (highest power of x is 1) — exactly one solution x = −b/a.</div>
+  <div class="f-use">Translating word problems: ages, numbers, money, consecutive integers.</div>
+  <div class="f-imp">
+    <ol class="steps"><li>Remove brackets and fractions (multiply by the LCM of denominators).</li><li>Bring x-terms to one side, numbers to the other.</li><li>Divide by the coefficient of x. Check by substituting.</li></ol>
+    3x + 7 = 22 → 3x = 15 → <b>x = 5</b>. (2x − 1)/3 = (x + 2)/4 → 4(2x − 1) = 3(x + 2) → 8x − 4 = 3x + 6 → 5x = 10 → <b>x = 2</b>.</div>
+  <div class="f-lim">Multiplying by an expression that can be zero can create false solutions — always check.</div>
+</div>
+<div class="concept">
+  <h3>Linear equations in two variables</h3>
+  <div class="f-exp">Two unknowns need two independent equations. Graphically each is a straight line; the solution is their intersection point.</div>
+  <div class="f-use">"3 pens and 2 pencils cost…", "the sum and difference of two numbers…".</div>
+  <div class="f-imp">
+    <p><b>Substitution:</b> 2x + 3y = 12, 3x − y = 7 → y = 3x − 7 → 2x + 9x − 21 = 12 → x = <b>3</b>, y = <b>2</b>.</p>
+    <p><b>Elimination:</b> x + y = 14, x − y = 4 → add: 2x = 18 → x = <b>9</b>, y = <b>5</b>.</p>
+    <p><b>Word problem:</b> 3 pens + 2 pencils = ₹38; 2 pens + 3 pencils = ₹32. Add: 5(p + q) = 70 → p + q = 14. Subtract: p − q = 6 → pen = <b>₹10</b>, pencil = <b>₹4</b>.</p>
+    <p><b>Cross-multiplication</b> (for a₁x + b₁y + c₁ = 0, a₂x + b₂y + c₂ = 0): x = (b₁c₂ − b₂c₁)/(a₁b₂ − a₂b₁), y = (c₁a₂ − c₂a₁)/(a₁b₂ − a₂b₁).</p></div>
+  <div class="f-lim">If a₁/a₂ = b₁/b₂ ≠ c₁/c₂ the lines are parallel → no solution; if all three ratios are equal → infinitely many solutions.</div>
+</div>
+<div class="concept">
+  <h3>Quadratic equations</h3>
+  <div class="f-exp">Of the form <b>ax² + bx + c = 0</b> (a ≠ 0) — at most two solutions (roots). The graph is a parabola; roots are where it cuts the x-axis.</div>
+  <div class="f-use">Area problems ("length is 3 m more than breadth, area 40 m²"), product of consecutive numbers, profit maximisation, aptitude "compare the roots" questions.</div>
+  <div class="f-imp">
+    <p><b>1. Factorisation (splitting the middle term):</b> find two numbers whose product = a·c and sum = b.</p>
+    <p>x² − 5x + 6 = 0: product 6, sum −5 → −2, −3 → (x − 2)(x − 3) = 0 → <b>x = 2, 3</b>.<br>
+    6x² − 7x − 3 = 0: a·c = −18, sum −7 → −9, +2 → 6x² − 9x + 2x − 3 = 3x(2x − 3) + 1(2x − 3) = (3x + 1)(2x − 3) → <b>x = 3/2, −1/3</b>.</p>
+    <div class="box formula" data-title="2. Quadratic formula">
+      <span class="eq">x = <span class="fr"><span>−b ± √(b² − 4ac)</span><span>2a</span></span> &nbsp;&nbsp; Discriminant D = b² − 4ac</span>
+      <p>D &gt; 0: two distinct real roots (rational if D is a perfect square) · D = 0: two equal roots (−b/2a) · D &lt; 0: no real roots</p>
+      <span class="eq">Sum of roots α + β = −b/a &nbsp;&nbsp; Product αβ = c/a &nbsp;&nbsp; Equation with roots α, β: x² − (α + β)x + αβ = 0</span>
+    </div>
+    <p>x² − 4x + 1 = 0: D = 16 − 4 = 12 → x = (4 ± √12)/2 = <b>2 ± √3</b>. Equation with roots 3 and −5: x² + 2x − 15 = 0.</p>
+    <p><b>Word problem:</b> A rectangle's length is 3 m more than its breadth and its area is 40 m². x(x + 3) = 40 → x² + 3x − 40 = 0 → (x + 8)(x − 5) = 0 → breadth <b>5 m</b>, length <b>8 m</b> (reject −8).</p></div>
+  <div class="f-lim">Reject roots that make no sense in context (negative lengths, fractional people).</div>
+</div>
+<div class="demo box" data-demo="quadratic" data-title="Interactive solver — quadratic equations with steps and graph"></div>
+<div class="box practice">
+  <ol class="qlist">
+    <li>The sum of three consecutive even numbers is 78. Find them.
+      <details class="ans"><summary>Show answer</summary><div>x + x + 2 + x + 4 = 78 → x = 24 → <b>24, 26, 28</b>.</div></details></li>
+    <li>A father is three times as old as his son. After 12 years he will be twice as old. Present ages?
+      <details class="ans"><summary>Show answer</summary><div>3x + 12 = 2(x + 12) → x = 12 → son <b>12</b>, father <b>36</b>.</div></details></li>
+    <li>Solve 2x² + 5x − 3 = 0.
+      <details class="ans"><summary>Show answer</summary><div>a·c = −6, sum 5 → 6, −1 → (2x − 1)(x + 3) = 0 → <b>x = ½, −3</b>.</div></details></li>
+    <li>Find k if x² − kx + 9 = 0 has equal roots.
+      <details class="ans"><summary>Show answer</summary><div>D = k² − 36 = 0 → <b>k = ±6</b>.</div></details></li>
+    <li>The product of two consecutive positive integers is 132. Find them.
+      <details class="ans"><summary>Show answer</summary><div>x(x + 1) = 132 → x² + x − 132 = 0 → (x + 12)(x − 11) = 0 → <b>11 and 12</b>.</div></details></li>
+  </ol>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="unit1-review">
+<h2><span class="num">1.13</span> Unit I review and quick test</h2>
+<div class="box summary"><ul>
+  <li>HCF × LCM = product (two numbers); HCF ↔ "largest", LCM ↔ "least / together".</li>
+  <li>Remainders multiply; use cycles of 4 for unit digits.</li>
+  <li>Successive % = a + b + ab/100; r % more → r/(100 + r) less.</li>
+  <li>Profit % on CP, discount % on MP; MP/CP = (100 + P)/(100 − D).</li>
+  <li>Partnership: share ∝ capital × time.</li>
+  <li>Average speed (equal distances) = 2xy/(x + y); trains: add lengths; relative speed: same direction subtract, opposite add; ×5/18.</li>
+  <li>Work: LCM method; M₁D₁H₁/W₁ = M₂D₂H₂/W₂; outlets are negative work.</li>
+  <li>Quadratic: factorise or (−b ± √D)/2a; sum −b/a, product c/a.</li>
+</ul></div>
+<div class="quiz">
+  <div class="mcq" data-ans="c"><p class="q">1. HCF of 2 numbers is 8 and LCM is 48. One number is 16. The other is:</p><ol><li>12</li><li>32</li><li>24</li><li>6</li></ol><p class="why">8 × 48/16.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">2. Unit digit of 7<sup>105</sup>:</p><ol><li>3</li><li>7</li><li>9</li><li>1</li></ol><p class="why">105 mod 4 = 1 → 7.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">3. A price increases by 10 % and then decreases by 10 %. Net:</p><ol><li>1 % decrease</li><li>no change</li><li>1 % increase</li><li>2 % decrease</li></ol><p class="why">10 − 10 − 1.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">4. An article marked ₹500 is sold at 12 % discount. SP =</p><ol><li>₹488</li><li>₹450</li><li>₹460</li><li>₹440</li></ol><p class="why">500 × 0.88.</p></div>
+  <div class="mcq" data-ans="c"><p class="q">5. 90 km/h in m/s:</p><ol><li>15</li><li>20</li><li>25</li><li>30</li></ol><p class="why">90 × 5/18.</p></div>
+  <div class="mcq" data-ans="b"><p class="q">6. A can finish a job in 12 days, B in 24. Together:</p><ol><li>6 days</li><li>8 days</li><li>9 days</li><li>18 days</li></ol><p class="why">Total 24; 2 + 1 = 3/day.</p></div>
+  <div class="mcq" data-ans="a"><p class="q">7. The roots of x² − 7x + 12 = 0 are:</p><ol><li>3, 4</li><li>−3, −4</li><li>2, 6</li><li>1, 12</li></ol><p class="why">Product 12, sum 7.</p></div>
+  <div class="mcq" data-ans="d"><p class="q">8. A and B invest ₹3,000 and ₹4,000 for 8 and 6 months. Profit ratio:</p><ol><li>3 : 4</li><li>4 : 3</li><li>2 : 1</li><li>1 : 1</li></ol><p class="why">24,000 : 24,000.</p></div>
+</div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>
