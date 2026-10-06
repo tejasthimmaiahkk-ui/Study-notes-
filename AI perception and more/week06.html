@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 6 · Normalisation, Visualisation &amp; CNN Architectures — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week06.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 6 · Lectures 12a, 12b, 12c</div>
+  <h1>Normalisation, Visualising CNNs &amp; Classic Architectures</h1>
+  <p class="lead">Why inputs and feature maps must be normalised (internal covariate shift, Batch/Layer/Instance/Group Norm, style and AdaIN), how we look inside a CNN (receptive fields, DeConvNet, saliency, CAM, Grad-CAM), and the backbone family tree: LeNet-5 → AlexNet → ZFNet → VGG → GoogLeNet → ResNet, plus fine-tuning strategies.</p>
+  <div class="meta"><span class="chip acc">BN / LN / IN / GN</span><span class="chip acc">AdaIN</span><span class="chip acc">Grad-CAM</span><span class="chip acc">AlexNet · VGG · Inception · ResNet</span><span class="chip"><span data-qcount="6:A"></span> assignment Qs · <span data-qcount="6:P"></span> practice Qs</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="why-normalise">
+<h2><span class="num">6.1</span> Why normalise inputs?</h2>
+<div class="concept">
+<div class="f-exp"><b>Non-zero-centred inputs</b> (e.g. all positive, as after a sigmoid) make all gradients of a neuron's weights share a sign → zig-zag updates and slow training (see 3.1). <b>Scale mismatch</b> — one feature in [0, 1], another in [0, 10,000] — makes the loss landscape elongated and <b>ill-conditioned</b>, giving uneven gradients.</div>
+<div class="f-imp">Making E[x] = 0 lets ∂L/∂w take either sign. Gradient descent works best when features are <b>centred at zero with comparable variances</b>; if the Hessian is close to the identity matrix, the problem is much easier (LeCun et al., "Efficient BackProp").</div>
+<div class="f-use">Weight initialisation assumes standardised inputs: Xavier/Glorot uses Var(y) = n·Var(w)·Var(x) with Var(w) = 1/n (fan-in n), so Var(y) ≈ 1 <b>only if</b> Var(x) ≈ 1. With much larger input variance, activations and gradients can explode.</div>
+<div class="f-lim">Z-score normalisation z = (x − μ)/σ is a <b>linear</b> rescaling: it shifts and stretches the values but <b>preserves the shape</b> of the distribution (skewness and kurtosis unchanged).</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ics">
+<h2><span class="num">6.2</span> Internal covariate shift</h2>
+<div class="concept">
+<div class="f-exp"><b>Internal covariate shift</b>: as earlier layers' weights change during training, the <b>distribution of inputs to each later layer keeps changing</b> from batch to batch, even though the training data does not. Each layer must keep re-adapting.</div>
+<div class="f-lim">Problems: slower training (time spent adapting rather than learning features); need for lower learning rates; sensitivity to initialisation; vanishing/exploding gradients.</div>
+<div class="f-use">Standard fix: <b>Batch Normalisation</b> (Ioffe &amp; Szegedy, 2015). Not to be confused with dataset covariate shift (train vs test inputs differ — fixed by augmentation/adaptation) or label shift.</div>
+</div>
+<p>Training vocabulary: an <b>iteration</b> = one forward + backward pass and one weight update on one <b>batch</b> of B samples; an <b>epoch</b> = one pass over the whole dataset = (total samples / batch size) iterations. A feature map is stored as <b>[B, C, H, W]</b>.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="norm-layers">
+<h2><span class="num">6.3</span> Batch, Layer, Instance and Group Normalisation</h2>
+<div class="box formula"><p>x̂ = (x − μ)/√(σ² + ε), then a learnable <b>affine</b> transform y = γx̂ + β (γ, β per channel). The methods differ only in <b>which values share μ and σ</b>.</p></div>
+<table class="compact">
+<tr><th>Method</th><th>μ, σ computed over</th><th>Key facts</th></tr>
+<tr><td><b>Batch Norm</b></td><td>(N, H, W) — per channel, across the batch</td><td>Robust to initialisation; zero overhead at test time. <b>Behaves differently in training and testing</b> (a common source of bugs): training uses mini-batch statistics, inference uses <b>running averages</b> with γ, β frozen — BN then becomes a linear operator.</td></tr>
+<tr><td><b>Layer Norm</b></td><td>(C, H, W) — per sample</td><td>Applied to one observation at a time; deterministic; independent of batch size.</td></tr>
+<tr><td><b>Instance Norm</b></td><td>(H, W) — per sample, per channel</td><td>Removes each image's per-channel statistics (contrast, brightness) — used for style transfer (Ulyanov et al., 2016).</td></tr>
+<tr><td><b>Group Norm</b></td><td>(C/G, H, W) — per sample, per group of channels</td><td>G = 32 by default. <b>G = 1 → LN</b> (assumes all channels contribute similarly); <b>G = C → IN</b> (uses only spatial statistics, missing channel dependence). Wu &amp; He, 2018.</td></tr>
+</table>
+<div class="demo box" data-demo="normviz" data-title="Interactive — which values share a mean and variance?"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="style">
+<h2><span class="num">6.4</span> Style vs content, AdaIN and normalisation perturbation</h2>
+<div class="concept">
+<div class="f-exp"><b>Content</b> = spatial structure (edges, shapes, lines) — the pattern of activations across H × W. <b>Style</b> = <b>channel statistics</b>: the mean μ (overall brightness/tone) and std σ (contrast/spread) of each channel — the texture. Two images with the same per-channel μ and σ look stylistically similar even if their layouts differ (e.g. "cool cinematic" μ = [60, 100, 160] vs "golden hour" μ = [220, 160, 60]).</div>
+<div class="f-imp"><b>Instance Norm in style transfer:</b> it strips each image's own contrast/intensity statistics, so the generator can impose the target style — replacing BN by IN noticeably improves stylisation.<br>
+<b>AdaIN</b> (Huang &amp; Belongie, 2017): AdaIN(x, y) = σ(y)·((x − μ(x))/σ(x)) + μ(y) — normalise the content features, then scale and shift them with the <b>style</b> image's channel statistics. Arbitrary style transfer in a single forward pass, no iterative optimisation.</div>
+<div class="f-use"><b>Normalisation perturbation</b> (Fan et al., 2022): randomly perturb the channel statistics of feature maps during training to simulate style/domain changes — a simple <b>domain-generalisation</b> method for real-world domain shifts (e.g. day/night, weather in drone imagery).</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="visualise">
+<h2><span class="num">6.5</span> Looking inside a CNN</h2>
+<div class="concept">
+<div class="f-exp"><b>Domain of dependence (receptive field):</b> with 3 × 3 filters, a neuron in one layer depends on a 3 × 3 patch of the layer before, a 5 × 5 patch two layers back, and so on — each stride-1 3 × 3 layer adds 2 (R<sub>L</sub> = R<sub>L−1</sub> + k − 1). Pooling enlarges it faster.</div>
+<div class="f-imp"><b>Hierarchy of learned features</b> (Zeiler &amp; Fergus): first layers — edges, corners, small textures; intermediate — parts (eyes, nose); deep — whole objects (faces, cars, cats).<br>
+<b>DeConvNet</b> maps activations from deep layers back to pixel space: (i) <b>unpool</b> (reverse max-pooling using the recorded "switch" locations, preserving the stimulus structure), (ii) <b>rectify</b>, (iii) <b>filter</b> with the transposed learned filters. A DeConvNet has <b>no learning stage</b>.<br>
+<b>What ZFNet's visualisation showed</b> (ImageNet validation set, top-9 activations per feature): layer 1 — oriented edges and colours; layer 2 — corners and edge/colour conjunctions; layer 3 — more complex patterns (mesh, wheel, text); layer 4 — dog faces, birds' legs; layer 5 — whole objects with large pose variation. Small transformations change layer-1 features a lot but the top layers much less (quasi-linear for translation and scaling).</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="interpretability">
+<h2><span class="num">6.6</span> Interpretability: saliency, CAM and Grad-CAM</h2>
+<div class="concept">
+<div class="f-exp">Why explain? (1) When AI is weaker than humans — to identify <b>failure modes</b>; (2) on par — to build <b>user confidence</b>; (3) stronger — for <b>machine teaching</b>. There is a trade-off between accuracy and interpretability (200-layer ResNets are accurate but opaque).</div>
+<div class="f-imp"><b>Saliency map</b> (Simonyan et al., 2013) — <i>pixel attribution</i>: approximate the class score S<sub>c</sub>(I) near the image I<sub>0</sub> by a first-order Taylor expansion, S<sub>c</sub>(I) ≈ w<sup>T</sup>I + b with <b>w = ∂S<sub>c</sub>/∂I at I<sub>0</sub></b>; the magnitude of w per pixel is the heat map. Needs a <b>single backpropagation pass</b>.<br>
+<b>CAM</b> — maps the predicted class score back to the last conv layer to highlight discriminative regions; requires a restricted architecture (global average pooling before the classifier).<br>
+<b>Grad-CAM</b> (Selvaraju et al., 2017): (1) choose image and class c; (2) forward pass → score y<sup>c</sup> before softmax; (3) pick the target conv layer with maps A<sup>k</sup>; (4–5) compute ∂y<sup>c</sup>/∂A<sup>k</sup> and the <b>neuron-importance weights by global average pooling</b>: α<sub>k</sub><sup>c</sup> = (1/Z) Σ<sub>i</sub>Σ<sub>j</sub> ∂y<sup>c</sup>/∂A<sup>k</sup><sub>ij</sub> (Z = u × v); (6) weighted combination Σ<sub>k</sub> α<sub>k</sub><sup>c</sup>A<sup>k</sup>; (7) <b>ReLU</b> to keep only positive influence; (8) upsample to the image.</div>
+<div class="f-use">Grad-CAM works on many CNN families <b>without changing the architecture</b>: CNNs with FC layers (VGG), structured outputs (captioning), multi-modal inputs (VQA), reinforcement learning. A good visual explanation is (a) <b>class-discriminative</b> and (b) <b>high-resolution</b>.</div>
+</div>
+<div class="demo box" data-demo="gradcam" data-title="Interactive — a Grad-CAM map by hand"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="architectures">
+<h2><span class="num">6.7</span> CNN architectures: LeNet to ResNet</h2>
+<p>A CNN combines convolution layers, pooling layers, fully connected layers, normalisation (usually after conv/FC layers, before the nonlinearity) and activation functions. For each architecture ask: (1) its basic structure, (2) the problem it addressed, (3) are deeper/wider models always better?</p>
+<table class="compact">
+<tr><th>Network</th><th>Structure</th><th>What to remember</th></tr>
+<tr><td><b>LeNet-5</b> (LeCun 1998)</td><td>CONV–POOL–CONV–POOL–FC–FC</td><td>5 × 5 conv at stride 1; 2 × 2 subsampling at stride 2; <b>alternating conv and subsampling, then FC</b>; digits.</td></tr>
+<tr><td><b>AlexNet</b> (2012)</td><td>CONV1–POOL1–NORM1–CONV2–POOL2–NORM2–CONV3–CONV4–CONV5–POOL3–FC6–FC7–FC8 → 1000-way softmax</td><td><b>5 conv + 3 FC</b>. Input 227 × 227 × 3; CONV1: 96 filters 11 × 11, <b>stride 4</b> → (227 − 11)/4 + 1 = <b>55</b> → 55 × 55 × 96, parameters (11·11·3 + 1)·96 ≈ <b>35 K</b>; POOL1 3 × 3 stride 2 (<b>overlapping</b>) → 27 × 27 × 96, <b>0 parameters</b>. First to use <b>ReLU</b>; heavy augmentation; <b>dropout</b> in FC layers; learning rate ÷10 when validation accuracy plateaus; split across <b>two GPUs</b> (not enough memory on one). ~60 M parameters. Visualisation showed un-normalised first-layer filters, a mix of very high and low frequencies, and dead features.</td></tr>
+<tr><td><b>ZFNet</b> (2013)</td><td>AlexNet with tuned hyper-parameters</td><td>Used <b>DeConvNet visualisation</b>; CONV1 <b>11 × 11 s4 → 7 × 7 s2</b> (retains more information, removes aliasing); CONV3–5 filters 384, 384, 256 → 512, 1024, 512. Top-5 error 16.4 % → 11.7 %.</td></tr>
+<tr><td><b>VGG</b> (2014)</td><td>Only 3 × 3 conv (stride 1, pad 1) and 2 × 2 max-pool (stride 2); VGG-16, VGG-19</td><td><b>Small filters, deeper network.</b> Three stacked 3 × 3 = receptive field of one 7 × 7, with <b>27C² vs 49C²</b> parameters and more nonlinearity. Conv1: 3·3·3·64 = 1,728; Conv2: 3·3·64·64 = 36,864 (no bias); total <b>~138 M</b>, most in FC layers.</td></tr>
+<tr><td><b>GoogLeNet</b> (2014)</td><td>22 layers of Inception modules</td><td>Computation 12× less than AlexNet, 27× less than VGG-16; ~5 M parameters. <b>Inception module</b>: parallel 1 × 1, 3 × 3, 5 × 5 convs and pooling, outputs <b>concatenated along depth</b>; <b>1 × 1 "bottleneck" convs</b> reduce channels before the expensive branches. <b>Global average pooling</b> instead of big FC layers.</td></tr>
+<tr><td><b>ResNet</b> (2015)</td><td>Residual blocks H(x) = F(x) + x; 18, 34, 50, 101, 152 layers</td><td><b>Degradation problem</b>: a 56-layer plain net has <b>higher training and test error</b> than a 20-layer one — an optimisation problem, <b>not overfitting</b>. Identity is easy (F(x) = 0); shortcut adds no parameters; ReLU after the addition. Dimension mismatch: zero-padding or <b>1 × 1 projection</b>. BN after every conv, Xavier init, <b>no dropout</b>. Bottleneck 1×1–3×3–1×1 in ResNet-50+. Won all five ILSVRC &amp; COCO 2015 tracks.</td></tr>
+</table>
+<p>The ImageNet competition ended in 2017; newer backbones include MobileNet, EfficientNet, ResNeXt, ConvNeXt and Transformer backbones.</p>
+<div class="demo box" data-demo="archcalc" data-title="Interactive — layer-by-layer output sizes and parameter counts"></div>
+<div class="demo box" data-demo="bottleneck" data-title="Interactive — why small and 1×1 filters save parameters"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="finetune">
+<h2><span class="num">6.8</span> Transfer learning with CNN backbones</h2>
+<p>Early-to-mid CNN layers encode low-level features (edges, textures, object parts) hierarchically, so a pre-trained <b>backbone</b> + new head is reused instead of training from scratch. Fine-tuning options, from cheapest to most flexible:</p>
+<ol><li>Freeze the backbone, fine-tune the final fully connected layer.</li><li>Freeze the backbone, fine-tune several FC layers.</li><li>Fine-tune both the backbone and the FC layers.</li></ol>
+<p>Pre-trained backbones also feed other downstream tasks — U-Net segmentation, image captioning (CNN + RNN), detection.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A6</span> Week 6 assignment — every question explained</h2>
+<div class="qb" data-week="6" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P6</span> Practice MCQs — Week 6</h2>
+<div class="qb" data-week="6" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

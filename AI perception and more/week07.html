@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 7 · Sequence Models — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week07.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 7 · Feedback networks, RNNs &amp; LSTMs, Attention &amp; Transformers, PyTorch tutorial 6</div>
+  <h1>Sequence Models: Memory Neurons, RNNs, LSTMs &amp; Attention</h1>
+  <p class="lead">Data whose order carries meaning — speech, text, sensor streams, video, drone dynamics. The chain MNN → RNN → LSTM → Attention: what each adds and which weakness pushes us to the next. Memory Neuron Networks for drone system identification, backpropagation through time, vanishing gradients, LSTM gates, Bahdanau attention, self-attention and the Transformer.</p>
+  <div class="meta"><span class="chip acc">Memory neuron</span><span class="chip acc">BPTT</span><span class="chip acc">LSTM gates</span><span class="chip acc">QKᵀ/√dₖ</span><span class="chip"><span data-qcount="7:A"></span> assignment Qs · <span data-qcount="7:P"></span> practice Qs</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="sequential">
+<h2><span class="num">7.1</span> Sequential data</h2>
+<div class="concept">
+<div class="f-exp"><b>Sequential data</b>: the <b>order of elements carries meaning</b> — reordering changes or destroys the information (speech, text, stock prices, sensor data, video). A time series X = {x<sub>1</sub>, …, x<sub>T</sub>} has <b>temporal dependency</b>: current values depend on earlier ones.</div>
+<div class="f-imp">Characteristics: ordered observations, temporal correlations, dynamic evolution, <b>variable sequence length</b>. Components to understand: <b>trend</b>, <b>seasonality</b> (regular repeating patterns at fixed intervals), <b>cyclic</b> component (long-term fluctuations without fixed period).</div>
+<div class="f-use">Sequence-learning problems: inputs are <b>not independent</b>; input and output lengths may <b>differ</b>; the same task is performed at every step; the temporal context is variable. Video understanding: find the frame of interest, track across frames.</div>
+</div>
+<table class="compact">
+<tr><th></th><th>Feedforward network</th><th>Recurrent (feedback) network</th></tr>
+<tr><td>Dependence</td><td>Output a nonlinear function of the current input only</td><td>Output depends on the current input <b>and past inputs/outputs</b> (x<sub>t−1</sub>, y<sub>t−1</sub>) via a delay (z<sup>−1</sup>)</td></tr>
+<tr><td>Connections</td><td>One direction</td><td>Feedback loops</td></tr>
+<tr><td>Stability</td><td>No stability problem</td><td><b>Stability is an issue</b></td></tr>
+<tr><td>Good for</td><td>Function approximation, classification</td><td>Dynamical systems, sequence prediction, trajectory prediction, system identification, control, memory</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="evolution">
+<h2><span class="num">7.2</span> The evolution: MNN → RNN → LSTM → Attention</h2>
+<p>This chain (one drawback motivating the next) is the most-tested idea of the week:</p>
+<table class="compact">
+<tr><th>Model</th><th>What it does</th><th>Drawback</th><th>→ Motivates</th></tr>
+<tr><td><b>Memory Neural Network</b></td><td>Stores patterns as fixed, <b>content-addressable associative memory</b></td><td>Static — <b>no sense of sequence or order</b> (can't tell "A before B" from "B before A")</td><td>A network that processes inputs <b>one step at a time, updating an internal state</b> → RNN</td></tr>
+<tr><td><b>RNN</b></td><td>Processes sequences step by step, keeping a hidden state updated at each time step</td><td><b>Vanishing/exploding gradients</b> during backpropagation through time</td><td>A mechanism to <b>selectively preserve information over long distances</b> → LSTM</td></tr>
+<tr><td><b>LSTM</b></td><td>Adds a separate <b>cell state</b> ("memory highway") plus forget/input/output gates that learn what to keep, discard or output</td><td><b>Still fundamentally sequential</b> (step t needs step t − 1)</td><td>A way to look back at <b>all positions directly and in parallel</b> → Attention</td></tr>
+<tr><td><b>Attention</b></td><td>At each step, a <b>weighted combination over all positions</b> (query–key–value scoring)</td><td>—</td><td>Removes both the vanishing-gradient problem (direct paths) and the sequential bottleneck</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="mnn">
+<h2><span class="num">7.3</span> Memory Neuron Networks (Sastry, Santharam &amp; Unnikrishnan, 1994)</h2>
+<div class="concept">
+<div class="f-exp">Each network neuron (except those in the output layer) has a <b>memory neuron</b> whose single scalar output summarises the <b>history</b> of that neuron's past activations. A memory neuron takes its input from its network neuron and has a <b>self-feedback</b>. Output-layer neurons have a chain of memory neurons that feed back into their parent network neuron.</div>
+<div class="f-imp">Network neuron: s(k) = g(x(k)). Memory neuron: <b>v(k) = α·s(k − 1) + (1 − α)·v(k − 1)</b> — α (memory coefficient) trades off the newest activation against the accumulated memory of all previous steps (an exponential moving average).<br>
+Hidden neuron: h(k) = g(Σ w·s(k) + Σ f·v(k)) — weights w from network neurons, f from memory neurons. Output neuron: h<sup>3</sup>(k) = g(Σ w·s + Σ f·v + β<sub>11</sub>v<sub>11</sub><sup>3</sup>(k) + β<sub>12</sub>v<sub>12</sub><sup>3</sup>(k)), with output memory neurons v<sub>11</sub><sup>3</sup>(k) = α<sub>11</sub>h<sup>3</sup>(k − 1) + (1 − α<sub>11</sub>)v<sub>11</sub><sup>3</sup>(k − 1) and v<sub>12</sub><sup>3</sup>(k) = α<sub>12</sub>v<sub>11</sub><sup>3</sup>(k − 1) + (1 − α<sub>12</sub>)v<sub>12</sub><sup>3</sup>(k − 1).<br>
+<b>Learning (BPTT)</b>, error E(k) = ½(s(k) − y(k))², e(k) = (s(k) − y(k))·ĝ′:
+<ul style="margin:4px 0"><li>Network weights: w(k + 1) = w(k) − η e(k) s(k); memory-to-network weights f and output weights β: β(k + 1) = β(k) − η e(k) v(k).</li>
+<li>Memory coefficients: <b>α<sub>11</sub>(k + 1) = α<sub>11</sub>(k) − η β<sub>11</sub>(k) v<sub>11</sub>(k) (h<sup>3</sup>(k − 1) − v<sub>11</sub>(k − 1))</b> — an extra <b>difference term</b>, because α controls a recurrent blend: its gradient must account for how the earlier memory value was itself shaped by α (∂v/∂α = s(k − 1) − v(k − 1)). β has no such dependency.</li></ul></div>
+<div class="f-lim">α is a single (learned) scalar shared across all time steps — the decay rate is <b>content-blind</b>, not input-dependent. LSTMs replace it with gates computed afresh from the input at every step.</div>
+</div>
+<div class="demo box" data-demo="memneuron" data-title="Interactive — how a memory neuron remembers"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="sysid">
+<h2><span class="num">7.4</span> Drone system identification and GPS-denied operation</h2>
+<div class="concept">
+<div class="f-exp"><b>System identification</b>: learn the input–output dynamics of the drone, e.g. the <b>yaw subsystem</b> ṙ = f<sub>r</sub>(r, Ω<sub>d</sub>, V<sub>d</sub>, Θ<sub>d</sub>), from data (step response to a unit yaw-stick change). Temporal data is captured by unrolling the subsystem over time with a hidden state h: y = f(U, h).</div>
+<div class="f-imp"><b>Billings' theorem:</b> a dynamical system's input–output model can be written y<sub>k+1</sub> = f(y<sub>k</sub>, …, y<sub>0</sub>, u<sub>k</sub>, …, u<sub>0</sub>). <b>Universal approximation theorem:</b> a single-hidden-layer network with enough hidden neurons can approximate that nonlinear f, given the past k inputs and outputs (k = order of the system).<br>Procedure: generate data with <b>persistently exciting</b> inputs → train the MNN to approximate the relationship (error e(k) between drone and network output) → test and validate on new inputs.</div>
+<div class="f-use"><b>GPS-denied operation</b> (indoors, near buildings, under forest canopy, clutter): use the <b>IMU</b> to estimate change in velocity, attitude and position — but it <b>drifts over time</b>. Sensor suite: magnetometer (heading reference), barometer (altitude drift correction), optical flow (relative velocity at low altitude). Fusion with an <b>Extended Kalman Filter</b> (or Unscented KF for strong nonlinearity); map/terrain-aided navigation; <b>SLAM</b> (visual or LiDAR) — build a map of the unknown environment ("what does it look like?") and localise within it ("where am I?") simultaneously.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="rnn">
+<h2><span class="num">7.5</span> Recurrent neural networks</h2>
+<div class="concept">
+<div class="f-exp">A "black box" with an <b>internal state</b> updated as the sequence is processed: <b>h<sub>t</sub> = tanh(W<sub>hh</sub>h<sub>t−1</sub> + W<sub>xh</sub>x<sub>t</sub>)</b>, y<sub>t</sub> = W<sub>hy</sub>h<sub>t</sub>. Course notation: <b>s<sub>t</sub> = tanh(Ux<sub>t</sub> + Ws<sub>t−1</sub>)</b>, <b>ŷ<sub>t</sub> = softmax(Vs<sub>t</sub>)</b>. Recurrent because the <b>same task, with the same parameters U, V, W, is performed for every element</b>; the output depends on previous computations.</div>
+<div class="f-imp"><b>Why share parameters?</b> The same learned transformation applies at every step, so the model handles sequences of <b>any length with a fixed number of parameters</b>, and a pattern learned at one position is recognised wherever it occurs. CNNs need fixed-size inputs and cannot do this.<br>
+<b>Architectures:</b> one-to-many (image captioning: one image → a sentence), many-to-one (video frames → action label; sentiment), many-to-many (video captioning, machine translation). Example: a <b>character-level language model</b> predicts the next character at every step.</div>
+<div class="f-use"><b>Bidirectional RNNs</b>: two RNNs, one reading forwards and one backwards; the output uses both hidden states (e.g. fill in a missing word using left and right context).</div>
+<div class="f-lim"><b>Long-term dependencies</b>: as the gap between the relevant information and where it is needed grows, RNNs become unable to connect them.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="bptt">
+<h2><span class="num">7.6</span> Backpropagation through time and vanishing gradients</h2>
+<div class="concept">
+<div class="f-exp">Find U, V, W minimising the total loss — cross-entropy over all steps: E<sub>t</sub> = −y<sub>t</sub> log ŷ<sub>t</sub>, E = Σ<sub>t</sub> E<sub>t</sub>. Unroll the network in time and backpropagate; learn with SGD.</div>
+<div class="f-imp">Output weights: ∂E<sub>3</sub>/∂V = (ŷ<sub>3</sub> − y<sub>3</sub>) ⊗ s<sub>3</sub> — depends only on the current step.<br>Recurrent weights: because W is shared, s<sub>3</sub> depends on W through s<sub>2</sub>, s<sub>1</sub>, …:<br>
+<b>∂E<sub>3</sub>/∂W = Σ<sub>k=0</sub><sup>3</sup> (∂E<sub>3</sub>/∂ŷ<sub>3</sub>)(∂ŷ<sub>3</sub>/∂s<sub>3</sub>)(∂s<sub>3</sub>/∂s<sub>k</sub>)(∂s<sub>k</sub>/∂W)</b> — every earlier hidden state that fed into s<sub>3</sub> contributes, so the contributions are summed.</div>
+<div class="f-lim">∂s<sub>3</sub>/∂s<sub>k</sub> is a product of Jacobians W·tanh′(·). tanh′ ≤ 1 (and tiny when saturated), so the product <b>vanishes</b> for distant steps → long-range dependencies are not learned. Large weights make it <b>explode</b> (fix: gradient clipping).</div>
+</div>
+<div class="demo box" data-demo="rnnunroll" data-title="Interactive — unroll an RNN and watch the gradient fade or explode"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="lstm">
+<h2><span class="num">7.7</span> Long Short-Term Memory (LSTM)</h2>
+<div class="concept">
+<div class="f-exp">Designed to avoid the long-term dependency problem — remembering information for long periods is practically its default behaviour. The repeating module has <b>four interacting layers</b> instead of one tanh.</div>
+<div class="f-imp"><b>Cell state</b> C<sub>t</sub>: the horizontal line through the top of the diagram; information flows along it almost unchanged, modified only through <b>gates</b> (a sigmoid layer + point-wise multiplication).
+<ol style="margin:4px 0">
+<li><b>Forget gate</b>: f<sub>t</sub> = σ(W<sub>f</sub>·[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>f</sub>) — what to throw away from C<sub>t−1</sub>.</li>
+<li><b>Input gate</b>: i<sub>t</sub> = σ(W<sub>i</sub>·[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>i</sub>) and <b>candidate</b> C̃<sub>t</sub> = tanh(W<sub>C</sub>·[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>C</sub>) — what new information to store.</li>
+<li><b>Update</b>: <b>C<sub>t</sub> = f<sub>t</sub> ⊙ C<sub>t−1</sub> + i<sub>t</sub> ⊙ C̃<sub>t</sub></b>.</li>
+<li><b>Output gate</b>: o<sub>t</sub> = σ(W<sub>o</sub>·[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>o</sub>); <b>h<sub>t</sub> = o<sub>t</sub> ⊙ tanh(C<sub>t</sub>)</b> — a filtered version of the cell state.</li></ol></div>
+<div class="f-use"><b>Why the cell state preserves information:</b> it is updated by <b>addition</b> (identity-like), not squashed through tanh at every step, so with f ≈ 1 the gradient ∂C<sub>t</sub>/∂C<sub>t−1</sub> ≈ 1. <b>Why two gates:</b> "retain" and "add" are independent decisions — sometimes you must keep the old memory <i>and</i> write new information.</div>
+<div class="f-lim">Still sequential (no parallelism across time). Variants: <b>peephole connections</b> (gates also look at the cell state; Gers &amp; Schmidhuber, 2000); <b>GRU</b> (Cho et al., 2014) merges forget and input gates into one update gate and the cell into the hidden state.</div>
+</div>
+<div class="demo box" data-demo="lstmcell" data-title="Interactive — one LSTM step"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="attention">
+<h2><span class="num">7.8</span> Attention (Bahdanau et al., 2015)</h2>
+<div class="concept">
+<div class="f-exp">In a vanilla encoder–decoder, the encoder's last hidden state is a <b>single fixed-length context vector</b> used at every decoding step — no weights for other inputs. This is an <b>information bottleneck that worsens with source length</b>.</div>
+<div class="f-imp">Attention = a vector of <b>importance weights</b>. It creates <b>shortcuts between the context vector and the entire source input</b>, with weights customised for each output element:<br>
+encoder = bidirectional RNN with states h<sub>1</sub> … h<sub>n</sub>; for output position t, an <b>alignment model</b> (a small feed-forward network) scores how well input i matches output t: score(s<sub>t−1</sub>, h<sub>i</sub>); α<sub>t,i</sub> = softmax over i; <b>context c<sub>t</sub> = Σ<sub>i</sub> α<sub>t,i</sub>h<sub>i</sub></b>, recomputed at every decoder step; decoder s<sub>t</sub> = f(s<sub>t−1</sub>, y<sub>t−1</sub>, c<sub>t</sub>).<br>
+Alignment score functions: additive/content-based (Bahdanau) v<sup>T</sup>tanh(W[s; h]), dot-product s<sup>T</sup>h, general s<sup>T</sup>Wh, <b>scaled dot-product</b> s<sup>T</sup>h/√n (Transformer).</div>
+<div class="f-use">The context vector relates encoder states, decoder states and the source–target alignment, which is <b>learned</b>; it can be visualised as an alignment matrix.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="transformer">
+<h2><span class="num">7.9</span> Self-attention and the Transformer</h2>
+<div class="concept">
+<div class="f-exp">In "The animal didn't cross the street because <b>it</b> was too tired", self-attention lets "it" attend strongly to "animal" — each word attends to every word of the same sentence.</div>
+<div class="f-imp"><ol style="margin:4px 0"><li>From each input vector create a <b>query</b>, <b>key</b> and <b>value</b> vector (multiply by learned W<sup>Q</sup>, W<sup>K</sup>, W<sup>V</sup>).</li>
+<li>Score = q · k for every word.</li>
+<li>Divide by <b>√d<sub>k</sub></b> (= 8 for d<sub>k</sub> = 64) → more stable gradients.</li>
+<li>Softmax → weights all positive, less than 1, summing to 1.</li>
+<li>Multiply each value vector by its weight and sum — keeps the words to focus on, drowns out irrelevant ones.</li></ol>
+In matrix form: <b>Attention(Q, K, V) = softmax(QK<sup>T</sup>/√d<sub>k</sub>)V</b>.<br>
+<b>Multi-head attention</b>: several Q/K/V weight sets → several "representation subspaces"; heads are concatenated and projected. <b>Positional encoding</b> adds word order (attention itself is order-agnostic). The Transformer stacks encoder blocks (self-attention + feed-forward) and decoder blocks (masked self-attention + encoder–decoder attention + FFN).</div>
+<div class="f-use">Whole sequence processed <b>in parallel</b>; any position reaches any other in one step. Vision use: <b>DETR</b> — a transformer decoder takes encoded image features plus a set of learned <b>object queries</b> (Week 8).</div>
+</div>
+<div class="demo box" data-demo="attention" data-title="Interactive — scaled dot-product attention on a sentence"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A7</span> Week 7 assignment — every question explained</h2>
+<div class="qb" data-week="7" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P7</span> Practice MCQs — Week 7</h2>
+<div class="qb" data-week="7" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

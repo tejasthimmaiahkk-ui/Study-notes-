@@ -201,4 +201,154 @@
     ["Computes an inner product and responds globally", "Computes a distance to its centre and responds locally", "Has no parameters", "Uses a step activation"], [1], "MLP: wᵀx (global half-space response); RBF: ‖x − c‖ (local bump).");
   P(4, "Which radial basis function increases with distance from the centre?",
     ["Gaussian", "Inverse multiquadric", "Multiquadric √(r² + c²)", "None of them"], [2], "Which is why \"RBF output always increases with distance\" is false — Gaussians decrease.");
+
+  /* ----------------------------- WEEK 5 ----------------------------- */
+  P(5, "According to Hubel and Wiesel, simple cells respond to:",
+    ["Oriented bars at a specific retinal position", "Any object regardless of position", "Colour only", "Motion only"], [0], "Complex cells respond to the orientation over a range of positions (position-invariant).");
+  P(5, "Which list gives the four neuroscience findings the lecture maps onto CNNs?",
+    ["Local receptive fields, hierarchical processing, shared weights, spatial pooling", "Dropout, batch norm, residuals, attention", "Recurrence, gating, memory, attention", "Full connectivity, deep supervision, softmax, momentum"], [0], "");
+  P(5, "Which is NOT a limitation of fully connected networks for images listed in the lecture?",
+    ["Parameter explosion", "No spatial awareness", "The same feature at a new location needs new weights", "They cannot use nonlinear activations"], [3], "FC networks can use any activation.");
+  P(5, "In the Neocognitron, learning was:",
+    ["Supervised backpropagation", "Unsupervised (competitive learning)", "Reinforcement learning", "Not possible"], [1], "Fukushima, 1980.");
+  P(5, "AlexNet's first layer: 227 × 227 input, 11 × 11 filters, stride 4, no padding. Output spatial size?",
+    ["55 × 55", "54 × 54", "56 × 56", "57 × 57"], [0], "(227 − 11)/4 + 1 = 55.");
+  P(5, "A 7 × 7 input, 3 × 3 filter, stride 2, padding 1. Output size?",
+    ["3 × 3", "4 × 4", "5 × 5", "7 × 7"], [1], "⌊(7 + 2 − 3)/2⌋ + 1 = 4.");
+  P(5, "How many parameters does a conv layer with 64 filters of 3 × 3 on a 3-channel input have (with biases)?",
+    ["576", "1728", "1792", "192"], [2], "64 × (3·3·3 + 1) = 64 × 28 = 1792.");
+  P(5, "2 × 2 max pooling with stride 2 on a 32 × 32 × 64 map gives:",
+    ["16 × 16 × 64, with 0 parameters", "16 × 16 × 32, with 4 parameters per channel", "32 × 32 × 64", "16 × 16 × 64, with 64 parameters"], [0], "Pooling acts per channel and has no learnable parameters.");
+  P(5, "For stride 1 and a 7 × 7 filter, how much zero-padding keeps the output the same size as the input?",
+    ["1", "2", "3", "7"], [2], "p = (f − 1)/2 = 3 — the filter's radius.");
+  P(5, "Cross-correlate the 1-D signal [1, 2, 3, 4] with kernel [1, 0, −1] (valid, stride 1):",
+    ["[−2, −2]", "[2, 2]", "[1, 2, 3]", "[4, 6]"], [0], "1·1 + 2·0 + 3·(−1) = −2; 2·1 + 3·0 + 4·(−1) = −2.");
+  P(5, "In the lecture's pooling example, the top-left 2 × 2 window is [[4, 3], [5, 4]]. Its max and average are:",
+    ["5 and 4", "4 and 4", "5 and 3.5", "16 and 4"], [0], "Max 5; average (4 + 3 + 5 + 4)/4 = 4.");
+  P(5, "Which statement about convolution and pooling is correct?",
+    ["Convolution is translation-equivariant (a shifted input gives a shifted feature map); pooling adds local translation invariance", "Convolution is translation-invariant; pooling is equivariant", "Both are nonlinear operations", "Pooling increases spatial precision"], [0], "Pooling loses spatial precision.");
+  P(5, "The MNIST dataset contains:",
+    ["70,000 grey-scale 28 × 28 images of digits", "60,000 colour 32 × 32 images in 10 classes", "1000 classes of natural images", "21 land-use classes"], [0], "60,000 32 × 32 colour images in 10 classes is CIFAR-10; 21 land-use classes is UC Merced.");
+  P(5, "Which challenge of ReLU does the lecture list?",
+    ["It saturates for large positive inputs", "Not zero-centred, and no activation/gradient for negative inputs", "It is computationally expensive", "It is not biologically plausible"], [1], "Leaky ReLU (max(0.01x, x)) keeps a small slope for negative inputs.");
+  P(5, "Which activation gives outputs close to zero mean and saturates only in the negative region?",
+    ["ReLU", "ELU", "Softplus", "Maxout"], [1], "ELU = α(eˣ − 1) for x ≤ 0.");
+  P(5, "Softplus log(1 + eˣ) is best described as:",
+    ["A smooth approximation of ReLU", "A step function", "Zero-centred like tanh", "A piecewise-linear learned function"], [0], "Maxout is the learned piecewise-linear one.");
+  P(5, "A dataset has 60,000 training images and the batch size is 100. How many iterations make one epoch?",
+    ["100", "600", "6,000", "60,000"], [1], "Iterations per epoch = dataset size / batch size.");
+  P(5, "In a PyTorch training loop, what does optimizer.zero_grad() do?",
+    ["Sets the weights to zero", "Clears the accumulated gradients of every parameter before the next backward pass", "Sets the learning rate to zero", "Evaluates the model without gradients"], [1], "loss.backward() adds to .grad; zero_grad() resets it. torch.no_grad() is for evaluation.");
+  P(5, "nn.Conv2d(1, 20, 5) creates a layer with:",
+    ["1 input channel, 20 output channels (filters), 5 × 5 kernel", "20 input channels, 1 output channel, stride 5", "1 filter of size 20 × 5", "5 input channels and 20 outputs"], [0], "Arguments: in_channels, out_channels, kernel_size.");
+  P(5, "A drone model trained on daytime RGB images must work at night and in fog. Which augmentation family helps most?",
+    ["Photometric (brightness, contrast, noise, blur)", "Geometric (rotation, scaling)", "None", "Label smoothing"], [0], "Photometric changes mimic illumination, weather and sensor differences; geometric ones mimic viewpoint/altitude changes.");
+  P(5, "Why are arbitrary rotations a valid augmentation for top-down drone images of vehicles but not for handwritten digits?",
+    ["Vehicles seen from above can point in any direction, so the label is preserved; rotating digits can change their identity (6 ↔ 9)", "Drone images are larger", "Digits are grey-scale", "Rotation is never valid"], [0], "Validity of an augmentation depends on the task semantics.");
+  P(5, "You have only 500 labelled aerial images similar to ImageNet scenes. The safest transfer-learning choice is:",
+    ["Train from scratch", "Feature extraction: freeze the pre-trained backbone and train a new classifier head", "Fine-tune all layers with a large learning rate", "Use no pre-trained weights"], [1], "Little data → freeze to avoid overfitting; with more data, fine-tune more layers with a small learning rate.");
+  P(5, "Why does weight sharing make CNNs data-efficient?",
+    ["The same filter is learned once and reused at every position, so far fewer parameters must be estimated", "It increases the number of parameters", "It removes the need for labels", "It makes the network fully connected"], [0], "An inductive bias: a feature useful in one place is useful everywhere.");
+
+  /* ----------------------------- WEEK 6 ----------------------------- */
+  P(6, "Input features have very different scales ([0, 1] and [0, 10,000]). What happens to gradient descent, according to the lecture?",
+    ["Nothing changes", "The loss landscape becomes elongated and ill-conditioned, giving uneven gradients", "Training becomes faster", "The network becomes linear"], [1], "Normalise so features are centred with comparable variances (Hessian closer to identity).");
+  P(6, "Xavier/Glorot initialisation for a layer with fan-in n = 256 sets Var(w) to about:",
+    ["1/256 ≈ 0.0039", "256", "1/16", "1"], [0], "Var(y) = n·Var(w)·Var(x) ≈ 1 when Var(w) = 1/n and Var(x) ≈ 1.");
+  P(6, "Which problems are caused by internal covariate shift?",
+    ["Slower training", "Need for lower learning rates", "Sensitivity to weight initialisation", "Guaranteed overfitting"], [0, 1, 2], "Also vanishing/exploding gradients.");
+  P(6, "At inference time, Batch Normalisation uses:",
+    ["The statistics of the test mini-batch", "Running averages of mean and variance collected during training, with γ and β frozen", "No normalisation at all", "Layer statistics"], [1], "So BN becomes a fixed linear (affine) operation — and behaves differently from training, a common bug source.");
+  P(6, "Group Normalisation with G = 1 group is equivalent to:",
+    ["Batch Norm", "Layer Norm", "Instance Norm", "No normalisation"], [1], "G = C gives Instance Norm.");
+  P(6, "Which normalisation does NOT depend on the batch size?",
+    ["Batch Norm", "Layer Norm", "Instance Norm", "Group Norm"], [1, 2, 3], "Only BN computes statistics across samples.");
+  P(6, "In style transfer, \"style\" is mainly carried by:",
+    ["The spatial arrangement of edges", "The per-channel mean and standard deviation of feature maps", "The number of layers", "The image resolution"], [1], "Content = spatial structure; style = channel statistics.");
+  P(6, "AdaIN(x, y) computes:",
+    ["σ(y)·(x − μ(x))/σ(x) + μ(y)", "σ(x)·(y − μ(y))/σ(y) + μ(x)", "(x − μ(x))/σ(x)", "x + y"], [0], "Normalise content features x, then apply style y's channel statistics — style transfer in one forward pass.");
+  P(6, "Normalisation perturbation (Fan et al.) is used for:",
+    ["Speeding up inference", "Domain generalisation — perturbing channel statistics to simulate style/domain shifts", "Pruning channels", "Computing saliency maps"], [1], "");
+  P(6, "With stride-1 3 × 3 convolutions, the receptive field after 4 stacked layers is:",
+    ["7 × 7", "9 × 9", "12 × 12", "4 × 4"], [1], "1 + 4 × (3 − 1) = 9.");
+  P(6, "Two stacked 3 × 3 convs (C → C channels) vs one 5 × 5 conv: parameters (no bias)?",
+    ["18C² vs 25C²", "9C² vs 25C²", "18C² vs 10C²", "Equal"], [0], "Same 5 × 5 receptive field, fewer parameters, one more nonlinearity.");
+  P(6, "AlexNet CONV1 gives 55 × 55 × 96. After POOL1 (3 × 3, stride 2) the size and number of parameters are:",
+    ["27 × 27 × 96, 0 parameters", "26 × 26 × 96, 864 parameters", "27 × 27 × 48, 0 parameters", "55 × 55 × 96, 0 parameters"], [0], "(55 − 3)/2 + 1 = 27; pooling has no parameters.");
+  P(6, "How many parameters (with biases) does VGG's first conv layer (64 filters, 3 × 3, RGB input) have?",
+    ["1,728", "1,792", "36,864", "64"], [1], "64 × (3·3·3 + 1) = 1,792 (1,728 without biases, as on the slide).");
+  P(6, "ZFNet improved AlexNet's ImageNet top-5 error from about:",
+    ["26 % to 16 %", "16.4 % to 11.7 %", "11.7 % to 7.3 %", "3.6 % to 2 %"], [1], "By changing CONV1 to 7 × 7/stride 2 and widening CONV3–5 (512, 1024, 512).");
+  P(6, "The three steps of a DeConvNet layer are:",
+    ["Unpool, rectify, filter", "Convolve, pool, normalise", "Encode, decode, classify", "Train, validate, test"], [0], "Unpooling uses the recorded max locations (switches); DeConvNets have no learning stage.");
+  P(6, "In ZFNet's visualisations, which layer responds to corners and edge/colour conjunctions?",
+    ["Layer 1", "Layer 2", "Layer 4", "Layer 5"], [1], "Layer 1: oriented edges/colours; 3: mesh, wheels, text; 4: dog faces, bird legs; 5: whole objects.");
+  P(6, "How is a vanilla saliency map (Simonyan et al.) obtained?",
+    ["Gradient of the class score with respect to the input pixels, in one backward pass", "By training a second network", "By occluding every pixel", "From the first-layer filters"], [0], "A first-order Taylor approximation of the score around the image.");
+  P(6, "In Grad-CAM, the importance weight α_k of feature map k is:",
+    ["The global average of ∂yᶜ/∂Aᵏ over the map", "The maximum activation of Aᵏ", "Always 1", "The softmax probability"], [0], "Then L = ReLU(Σ α_k Aᵏ), upsampled.");
+  P(6, "Why does Grad-CAM apply a ReLU to the weighted sum of feature maps?",
+    ["To keep only features with a positive influence on the target class", "To make the map binary", "To speed up computation", "Because CNNs use ReLU"], [0], "");
+  P(6, "Unlike CAM, Grad-CAM:",
+    ["Requires global average pooling before the classifier", "Works on many CNN families without changing the architecture", "Needs retraining the network", "Only works for VGG"], [1], "CNNs with FC layers, captioning, VQA, RL.");
+  P(6, "Why did GoogLeNet have far fewer parameters than VGG-16?",
+    ["It used fewer layers", "Global average pooling instead of large FC layers, plus 1 × 1 bottlenecks", "It shared weights between modules", "It used 7 × 7 convs"], [1], "");
+  P(6, "A 1 × 1 convolution reducing a 28 × 28 × 192 map to 64 channels has how many parameters (with biases)?",
+    ["12,352", "12,288", "64", "1,204,224"], [0], "192 × 64 + 64.");
+  P(6, "ResNet's \"degradation problem\" means that deeper plain networks:",
+    ["Overfit (low training error, high test error)", "Have higher training and test error than shallower ones — an optimisation difficulty", "Cannot use ReLU", "Need more GPUs"], [1], "Residual connections make the identity easy to learn.");
+  P(6, "Which training choices were used in the original ResNet?",
+    ["Batch Norm after every conv", "Xavier initialisation", "No dropout", "Heavy dropout in every layer"], [0, 1, 2], "");
+  P(6, "Which fine-tuning option updates the most parameters?",
+    ["Freeze backbone, train last FC", "Freeze backbone, train several FC layers", "Fine-tune both backbone and FC layers", "Train nothing"], [2], "");
+
+  /* ----------------------------- WEEK 7 ----------------------------- */
+  P(7, "What defines sequential data?",
+    ["Data stored in a table", "Data whose element order carries meaning — reordering changes or destroys the information", "Data with many features", "Images only"], [1], "Speech, text, stock prices, sensor streams, video.");
+  P(7, "Compared with feedforward networks, recurrent networks:",
+    ["Have no stability issues", "Have feedback connections, model dynamical systems and memory, but stability is an issue", "Cannot be trained with gradients", "Only do classification"], [1], "");
+  P(7, "A memory neuron has α = 0.3, previous memory v(k − 1) = 0.5 and network output s(k − 1) = 1. What is v(k)?",
+    ["0.65", "0.80", "0.35", "0.50"], [0], "v(k) = 0.3 × 1 + 0.7 × 0.5 = 0.65.");
+  P(7, "In a Memory Neuron Network, which network neurons have a corresponding memory neuron?",
+    ["Only output neurons", "Every network neuron except those in the output layer (output neurons have their own chain feeding the parent)", "Only input neurons", "None"], [1], "Sastry et al., 1994.");
+  P(7, "What is the role of the MNN's memory neuron output?",
+    ["It stores the class label", "A single scalar summarising the history of past activations of its network neuron", "It sets the learning rate", "It replaces the activation function"], [1], "");
+  P(7, "Billings' theorem says a dynamical system's input–output model can be written as:",
+    ["y(k+1) = f(y(k), …, y(0), u(k), …, u(0))", "y = Wx + b", "y(k+1) = u(k)", "y = softmax(Vs)"], [0], "With the universal approximation theorem, a network fed past inputs/outputs can identify the system.");
+  P(7, "For training a system-identification network, the input signal should be:",
+    ["Constant zero", "Persistently exciting (rich enough to reveal the dynamics)", "Random labels", "A single impulse only"], [1], "");
+  P(7, "In GPS-denied flight, which sensor is listed for altitude drift correction?",
+    ["Magnetometer", "Barometer", "Optical flow", "Thermal camera"], [1], "Magnetometer: heading; optical flow: relative velocity at low altitude.");
+  P(7, "Which filter does the lecture list for fusing IMU with other sensors under strong nonlinearity?",
+    ["Kalman filter only", "Unscented Kalman Filter", "Median filter", "Sobel filter"], [1], "EKF is the standard choice; UKF for high nonlinearity.");
+  P(7, "A vanilla RNN has input size 10, hidden size 20 and output size 5. How many weights are in U, W and V (no biases)?",
+    ["700", "725", "350", "620"], [0], "U: 20 × 10 = 200; W: 20 × 20 = 400; V: 5 × 20 = 100. With biases (20 + 5) it would be 725.");
+  P(7, "Classifying the action shown in a sequence of video frames is which RNN pattern?",
+    ["One-to-one", "One-to-many", "Many-to-one", "Many-to-many"], [2], "Image captioning is one-to-many; video captioning/translation is many-to-many.");
+  P(7, "With |W·tanh′| ≈ 0.5 at every step, roughly how much of the gradient survives 10 steps back?",
+    ["0.5", "0.1", "about 0.001", "1"], [2], "0.5¹⁰ ≈ 0.00098 — vanishing gradient.");
+  P(7, "Which fix is standard for exploding gradients in RNNs?",
+    ["Gradient clipping", "Larger learning rate", "Removing the hidden state", "More layers"], [0], "");
+  P(7, "A bidirectional RNN is useful when:",
+    ["Only past context matters", "Both past and future context help (e.g. filling in a missing word)", "Inputs have fixed length", "There is no sequence"], [1], "");
+  P(7, "LSTM step: f = 0.5, C(t−1) = 2, i = 0.8, C̃ = 0.5. What is C(t)?",
+    ["1.4", "1.0", "2.4", "0.4"], [0], "0.5 × 2 + 0.8 × 0.5 = 1.4.");
+  P(7, "Which LSTM gate decides what to throw away from the cell state?",
+    ["Input gate", "Forget gate", "Output gate", "Candidate layer"], [1], "f(t) = σ(W_f[h(t−1), x(t)] + b_f).");
+  P(7, "The candidate values C̃(t) in an LSTM use which activation?",
+    ["Sigmoid", "tanh", "ReLU", "Softmax"], [1], "Gates use sigmoid (0…1); the candidate uses tanh (−1…1).");
+  P(7, "LSTM hidden output h(t) is:",
+    ["f(t) · C(t)", "o(t) ⊙ tanh(C(t))", "C(t) + C(t−1)", "σ(C(t))"], [1], "A filtered version of the cell state.");
+  P(7, "A GRU differs from an LSTM in that it:",
+    ["Has more gates", "Merges forget and input into an update gate and has no separate cell state", "Uses no gates", "Cannot be trained with BPTT"], [1], "Cho et al., 2014.");
+  P(7, "In Bahdanau attention, the context vector for output step t is:",
+    ["The last encoder hidden state", "c(t) = Σᵢ α(t,i) h(i), with weights recomputed at every decoder step", "The average of all inputs", "The first decoder state"], [1], "");
+  P(7, "Attention weights for one query are obtained from scores [2, 0, 0] by softmax. The largest weight is about:",
+    ["0.33", "0.50", "0.79", "1.00"], [2], "e² / (e² + 1 + 1) = 7.39 / 9.39 ≈ 0.787.");
+  P(7, "Why are attention scores divided by √d_k in the Transformer?",
+    ["To make them integers", "Large dot products would push softmax into saturation; scaling keeps gradients stable", "To reduce memory", "To add position information"], [1], "For d_k = 64 the divisor is 8.");
+  P(7, "What does multi-head attention provide?",
+    ["Several sets of Q/K/V projections, giving multiple representation subspaces", "More layers of RNN", "Positional information", "A single attention map"], [0], "");
+  P(7, "Why does a Transformer need positional encoding?",
+    ["Self-attention by itself ignores the order of the inputs", "To normalise activations", "To reduce parameters", "To compute gradients"], [0], "");
 })();

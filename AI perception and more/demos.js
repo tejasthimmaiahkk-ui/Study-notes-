@@ -588,5 +588,334 @@
     on(host, "input", "input", run); run();
   };
 
-  /*__WEEK5__*/
+  /* ===================================================================
+     WEEK 5
+     =================================================================== */
+  function gridHTML(M, opt) {
+    opt = opt || {};
+    var h = '<table class="cnn-grid" style="border-collapse:collapse;font-family:var(--mono);font-size:.8rem">';
+    M.forEach(function (row, i) {
+      h += "<tr>" + row.map(function (v, j) {
+        var hl = opt.hl && opt.hl(i, j), pad = opt.pad && opt.pad(i, j);
+        var bg = hl ? "var(--acc-soft)" : pad ? "var(--line)" : opt.heat ? "rgba(112,72,232," + Math.min(0.85, Math.abs(v) / (opt.heat || 1) * 0.85).toFixed(2) + ")" : "var(--card)";
+        return '<td data-i="' + i + '" data-j="' + j + '" style="width:26px;height:26px;text-align:center;border:1px solid var(--line);padding:0;cursor:' + (opt.click ? "pointer" : "default") + ";background:" + bg + ";" + (hl ? "outline:2px solid var(--acc);outline-offset:-2px;" : "") + '">' + (typeof v === "number" ? +v.toFixed(2) : v) + "</td>";
+      }).join("") + "</tr>";
+    });
+    return h + "</table>";
+  }
+  window.AID.gridHTML = gridHTML;
+
+  D.convdemo = function (host) {
+    var I = [[1, 1, 0, 1, 0], [0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [0, 0, 1, 0, 0], [0, 1, 1, 1, 0]];
+    var KER = { x: { n: "Lecture \"X\" filter", k: [[1, 0, 1], [0, 1, 0], [1, 0, 1]] }, v: { n: "Vertical edge", k: [[1, 0, -1], [1, 0, -1], [1, 0, -1]] }, h: { n: "Horizontal edge", k: [[1, 1, 1], [0, 0, 0], [-1, -1, -1]] }, b: { n: "Box blur (÷9)", k: [[1 / 9, 1 / 9, 1 / 9], [1 / 9, 1 / 9, 1 / 9], [1 / 9, 1 / 9, 1 / 9]] }, id: { n: "Identity", k: [[0, 0, 0], [0, 1, 0], [0, 0, 0]] } };
+    var pos = 0;
+    host.innerHTML = '<div class="demo-row"><label>Filter<select id="kf">' + Object.keys(KER).map(function (k) { return '<option value="' + k + '">' + KER[k].n + "</option>"; }).join("") + '</select></label><label>Padding p<select id="p"><option>0</option><option>1</option><option>2</option></select></label><label>Stride s<select id="s"><option>1</option><option>2</option></select></label><label>Input size<select id="n"><option value="5">5 × 5 (lecture)</option><option value="7">7 × 7</option></select></label><button class="btn ghost" id="prev">◀ step</button><button class="btn ghost" id="next">step ▶</button></div>' +
+      '<p style="margin:0;font-size:.85rem">Click input cells to toggle 0/1.</p><div class="three-col" style="align-items:start"><div><b>Input</b><div id="in"></div></div><div><b>Filter F</b><div id="kk"></div></div><div><b>Feature map</b><div id="out"></div></div></div><div class="out" id="o"></div>';
+    function cur() { var n = +el(host, "#n").value; if (I.length !== n) { var J = []; for (var i = 0; i < n; i++) { J.push([]); for (var j = 0; j < n; j++) J[i].push(I[i] && I[i][j] !== undefined ? I[i][j] : (i * 3 + j * 5) % 4 === 0 ? 1 : 0); } I = J; } return I; }
+    function run() {
+      var A = cur(), K = KER[el(host, "#kf").value].k, p = +el(host, "#p").value, s = +el(host, "#s").value, n = A.length, k = 3;
+      var Pd = []; for (var i = 0; i < n + 2 * p; i++) { Pd.push([]); for (var j = 0; j < n + 2 * p; j++) { var a = i - p, b = j - p; Pd[i].push(a >= 0 && b >= 0 && a < n && b < n ? A[a][b] : 0); } }
+      var m = Math.floor((n + 2 * p - k) / s) + 1, O = [];
+      for (i = 0; i < m; i++) { O.push([]); for (j = 0; j < m; j++) { var sum = 0; for (var u = 0; u < k; u++) for (var v = 0; v < k; v++) sum += Pd[i * s + u][j * s + v] * K[u][v]; O[i].push(sum); } }
+      pos = ((pos % (m * m)) + m * m) % (m * m);
+      var oi = Math.floor(pos / m), oj = pos % m, r0 = oi * s, c0 = oj * s;
+      el(host, "#in").innerHTML = gridHTML(Pd, { click: true, hl: function (i, j) { return i >= r0 && i < r0 + k && j >= c0 && j < c0 + k; }, pad: function (i, j) { return i < p || j < p || i >= n + p || j >= n + p; } });
+      el(host, "#kk").innerHTML = gridHTML(K.map(function (r) { return r.map(function (v) { return Math.abs(v - 1 / 9) < 1e-9 ? "1/9" : v; }); }));
+      el(host, "#out").innerHTML = gridHTML(O, { hl: function (i, j) { return i === oi && j === oj; } });
+      var terms = []; for (var u2 = 0; u2 < k; u2++) for (var v2 = 0; v2 < k; v2++) if (K[u2][v2]) terms.push(Pd[r0 + u2][c0 + v2] + "×" + (Math.abs(K[u2][v2] - 1 / 9) < 1e-9 ? "1/9" : K[u2][v2]));
+      el(host, "#o").innerHTML = "Output size = ⌊(n + 2p − f)/s⌋ + 1 = ⌊(" + n + " + " + 2 * p + " − 3)/" + s + "⌋ + 1 = <b>" + m + " × " + m + "</b><br>Highlighted output (" + oi + ", " + oj + ") = Σ I(i + m, j + n)F(m, n) = " + (terms.length ? terms.join(" + ") : "0") + " = <b>" + +O[oi][oj].toFixed(3) + "</b>" +
+        (el(host, "#kf").value === "x" && n === 5 && p === 0 && s === 1 ? "<br><small>Lecture example. Its slide shows the bottom row as 2 2 2, but the middle value is 3 (window rows 2–4, columns 1–3 hits three 1s).</small>" : "");
+      el(host, "#in").querySelectorAll("td").forEach(function (td) {
+        td.addEventListener("click", function () { var i = +td.getAttribute("data-i") - p, j = +td.getAttribute("data-j") - p; if (i >= 0 && j >= 0 && i < n && j < n) { A[i][j] = A[i][j] ? 0 : 1; run(); } });
+      });
+    }
+    on(host, "select", "input", function () { pos = 0; run(); });
+    el(host, "#next").addEventListener("click", function () { pos++; run(); });
+    el(host, "#prev").addEventListener("click", function () { pos--; run(); });
+    run();
+  };
+
+  D.convsize = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Input n (H = W)<input type="number" id="n" value="32"></label><label>Input channels C<input type="number" id="c" value="3"></label><label>Filter f<input type="number" id="f" value="5"></label><label>Padding p<input type="number" id="p" value="0"></label><label>Stride s<input type="number" id="s" value="1"></label><label>Number of filters K<input type="number" id="k" value="16"></label></div>' +
+      '<div class="demo-row"><span class="seg" id="pre"><button data-p="32,1,5,0,1,6">32×32, 5×5</button><button data-p="32,1,5,2,1,6">+ pad 2 (same)</button><button data-p="64,3,3,1,1,16">64×64×3, 16 × 3×3</button><button data-p="227,3,11,0,4,96">AlexNet conv1</button><button data-p="224,3,7,3,2,64">ResNet stem</button></span></div><div class="out" id="o"></div>';
+    function run() {
+      var n = +el(host, "#n").value, c = +el(host, "#c").value, fz = +el(host, "#f").value, p = +el(host, "#p").value, s = +el(host, "#s").value || 1, k = +el(host, "#k").value;
+      var raw = (n + 2 * p - fz) / s + 1, m = Math.floor(raw);
+      var params = k * (fz * fz * c + 1);
+      el(host, "#o").innerHTML = "Output size = ⌊(n + 2p − f)/s⌋ + 1 = ⌊(" + n + " + " + 2 * p + " − " + fz + ")/" + s + "⌋ + 1 = <b>" + m + " × " + m + " × " + k + "</b>" + (raw !== m ? " <small>(not an integer before flooring — the last positions don't fit)</small>" : "") +
+        "<br>Each filter is <b>" + fz + " × " + fz + " × " + c + "</b> (always spans all input channels) → produces one map; " + k + " filters → " + k + " maps." +
+        "<br>Parameters = K × (f·f·C + 1 bias) = " + k + " × (" + fz * fz * c + " + 1) = <b>" + params.toLocaleString() + "</b>" +
+        "<br>Multiply–accumulates ≈ output pixels × f·f·C × K = " + (m * m * fz * fz * c * k).toLocaleString() +
+        "<br>A fully connected layer from the same input to the same output would need " + (n * n * c * m * m * k).toLocaleString() + " weights — that is why convolution (local + shared weights) matters." +
+        "<br><small>\"Same\" padding for stride 1: p = (f − 1)/2 (radius) — 3×3 → 1, 5×5 → 2, 7×7 → 3.</small>";
+    }
+    on(host, "input", "input", run);
+    on(host, "#pre button", "click", function () { var v = this.getAttribute("data-p").split(","); ["#n", "#c", "#f", "#p", "#s", "#k"].forEach(function (id, i) { el(host, id).value = v[i]; }); run(); });
+    run();
+  };
+
+  D.pooldemo = function (host) {
+    var base = [[0, 0, 0, 0, 0, 0], [0, 9, 2, 0, 0, 0], [0, 3, 7, 1, 0, 0], [0, 0, 1, 8, 0, 0], [0, 0, 0, 2, 0, 0], [0, 0, 0, 0, 0, 0]];
+    var shift = 0;
+    host.innerHTML = '<div class="demo-row"><label>Pooling<select id="t"><option value="max">Max</option><option value="avg">Average</option></select></label><label>Window / stride<select id="w"><option value="2">2 × 2, stride 2</option><option value="3">3 × 3, stride 3</option></select></label><button class="btn ghost" id="sh">Shift feature right by 1 pixel</button><button class="btn ghost" id="lec">Lecture example (3×3, 2×2 window, stride 1)</button></div><div class="two-col"><div><b>Feature map</b><div id="in"></div></div><div><b>Pooled</b><div id="out"></div></div></div><div class="out" id="o"></div>';
+    var lec = false;
+    function run() {
+      var t = el(host, "#t").value, w = +el(host, "#w").value, s = w, M;
+      if (lec) { M = [[4, 3, 0], [5, 4, 1], [2, 1, 1]]; w = 2; s = 1; }
+      else M = base.map(function (r) { var z = r.slice(); for (var q = 0; q < shift; q++) { z.pop(); z.unshift(0); } return z; });
+      var n = M.length, m = Math.floor((n - w) / s) + 1, O = [];
+      for (var i = 0; i < m; i++) { O.push([]); for (var j = 0; j < m; j++) { var vals = []; for (var u = 0; u < w; u++) for (var v = 0; v < w; v++) vals.push(M[i * s + u][j * s + v]); O[i].push(t === "max" ? Math.max.apply(null, vals) : vals.reduce(function (a, b) { return a + b; }, 0) / vals.length); } }
+      el(host, "#in").innerHTML = gridHTML(M, { heat: 9 }); el(host, "#out").innerHTML = gridHTML(O, { heat: 9 });
+      el(host, "#o").innerHTML = (lec ? "Lecture example: max-pool = [[5, 4], [5, 4]]; average-pool = [[4, 2], [3, 1.75]] (the slide rounds 1.75 to 2). " : "Shifted by " + shift + " pixel(s). ") +
+        "Pooling has <b>no learnable parameters</b>. It shrinks the map and keeps whether a feature is present; small shifts inside a window barely change the max → local translation invariance. Price: it <b>loses spatial precision</b>. Max-pooling is nonlinear; average pooling is linear.";
+    }
+    on(host, "select", "input", function () { lec = false; run(); });
+    el(host, "#sh").addEventListener("click", function () { lec = false; shift = (shift + 1) % 3; run(); });
+    el(host, "#lec").addEventListener("click", function () { lec = true; run(); });
+    run();
+  };
+
+  D.augment = function (host) {
+    var SIX = ["0011100", "0100000", "1000000", "1011100", "1100010", "1000010", "0111100"];
+    var SEVEN = ["1111110", "0000010", "0000100", "0001000", "0010000", "0010000", "0010000"];
+    var CAR = ["0000000", "0011100", "0111110", "0101010", "0111110", "0011100", "0000000"];
+    var SRC = { six: { g: SIX, n: "digit 6" }, seven: { g: SEVEN, n: "digit 7" }, car: { g: CAR, n: "car seen from a drone" } };
+    host.innerHTML = '<div class="demo-row"><label>Image<select id="im"><option value="six">Digit 6</option><option value="seven">Digit 7</option><option value="car">Car (top-down drone view)</option></select></label></div>' +
+      '<div class="demo-row"><span class="seg" id="ops"><button data-o="id" class="on">Original</button><button data-o="hf">Horizontal flip</button><button data-o="vf">Vertical flip</button><button data-o="r90">Rotate 90°</button><button data-o="r180">Rotate 180°</button><button data-o="tr">Shift right</button><button data-o="br">Brightness −</button><button data-o="no">Noise</button></span></div>' +
+      '<div class="two-col"><div id="g"></div><div class="out" id="o"></div></div>';
+    var op = "id";
+    function run() {
+      var k = el(host, "#im").value, G = SRC[k].g.map(function (r) { return r.split("").map(Number); }), n = G.length, H, i, j;
+      H = G.map(function (r) { return r.slice(); });
+      if (op === "hf") H = G.map(function (r) { return r.slice().reverse(); });
+      if (op === "vf") H = G.slice().reverse();
+      if (op === "r180") H = G.slice().reverse().map(function (r) { return r.slice().reverse(); });
+      if (op === "r90") { H = []; for (i = 0; i < n; i++) { H.push([]); for (j = 0; j < n; j++) H[i].push(G[n - 1 - j][i]); } }
+      if (op === "tr") H = G.map(function (r) { return [0].concat(r.slice(0, n - 1)); });
+      if (op === "br") H = G.map(function (r) { return r.map(function (v) { return v * 0.45; }); });
+      if (op === "no") { var rr = rng(5); H = G.map(function (r) { return r.map(function (v) { return Math.max(0, Math.min(1, v + (rr() - 0.5) * 0.7)); }); }); }
+      var s = svgEl(7 * 30, 7 * 30);
+      H.forEach(function (r, a) { r.forEach(function (v, b) { css(S(s, "rect", { x: b * 30, y: a * 30, width: 29, height: 29, rx: 3 }), { fill: "var(--ink)", opacity: (0.08 + 0.92 * v).toFixed(2) }); }); });
+      s.style.maxWidth = "210px"; el(host, "#g").innerHTML = ""; el(host, "#g").appendChild(s);
+      var digit = k !== "car", kind = { id: "", hf: "geometric", vf: "geometric", r90: "geometric", r180: "geometric", tr: "geometric", br: "photometric", no: "photometric" }[op];
+      var verdict = op === "id" ? "Original image." :
+        digit && (op === "r180") && k === "six" ? '<span class="no">Label broken:</span> a 6 rotated by 180° looks like a <b>9</b>, but it keeps the label "6" — label noise.' :
+          digit && (op === "vf" || op === "hf" || op === "r90" || op === "r180") ? '<span class="no">Risky for digits:</span> flips and large rotations can change a symbol\'s meaning or create shapes that never occur.' :
+            !digit && kind === "geometric" ? '<span class="ok">Safe:</span> from a top-down drone view a car can point in any direction, so flips and rotations are realistic.' :
+              '<span class="ok">Label-preserving:</span> small shifts, brightness and noise mimic real variation.';
+      el(host, "#o").innerHTML = verdict + (kind ? "<br>Type: <b>" + kind + "</b> augmentation — " + (kind === "geometric" ? "improves spatial invariance (viewpoint, orientation, scale, pose)." : "improves appearance robustness (illumination, weather, sensor noise, blur).") : "") +
+        "<br><small>Rule: an augmentation is valid only if it preserves the label — validity depends on the task's semantics.</small>";
+    }
+    on(host, "select", "input", run);
+    on(host, "#ops button", "click", function () { host.querySelectorAll("#ops button").forEach(function (b) { b.classList.remove("on"); }); this.classList.add("on"); op = this.getAttribute("data-o"); run(); });
+    run();
+  };
+
+  /* ===================================================================
+     WEEK 6
+     =================================================================== */
+  D.normviz = function (host) {
+    var N = 4, C = 6;
+    host.innerHTML = '<div class="demo-row"><label>Method<select id="m"><option value="bn">Batch Norm</option><option value="ln">Layer Norm</option><option value="in">Instance Norm</option><option value="gn">Group Norm</option></select></label><label>Groups G (GN)<select id="g"><option>1</option><option selected>2</option><option>3</option><option>6</option></select></label><label>Pick sample n<select id="n">' + [0, 1, 2, 3].map(function (i) { return "<option>" + i + "</option>"; }).join("") + '</select></label><label>Pick channel c<select id="c">' + [0, 1, 2, 3, 4, 5].map(function (i) { return "<option>" + i + "</option>"; }).join("") + '</select></label></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var m = el(host, "#m").value, G = +el(host, "#g").value, n0 = +el(host, "#n").value, c0 = +el(host, "#c").value, gs = C / G;
+      function inSet(n, c) {
+        if (m === "bn") return c === c0;
+        if (m === "ln") return n === n0;
+        if (m === "in") return n === n0 && c === c0;
+        return n === n0 && Math.floor(c / gs) === Math.floor(c0 / gs);
+      }
+      var s = svgEl(330, 250), cw = 44, ch = 46, X0 = 50, Y0 = 30;
+      S(s, "text", { x: X0 + C * cw / 2, y: 16, "text-anchor": "middle" }, "channels C →");
+      for (var n = 0; n < N; n++) {
+        S(s, "text", { x: X0 - 8, y: Y0 + n * ch + ch / 2 + 4, "text-anchor": "end" }, "n=" + n);
+        for (var c = 0; c < C; c++) {
+          var on = inSet(n, c);
+          var r = S(s, "rect", { x: X0 + c * cw + 2, y: Y0 + n * ch + 2, width: cw - 4, height: ch - 4, rx: 4 });
+          css(r, { fill: on ? "var(--acc)" : "var(--card)", stroke: n === n0 && c === c0 ? "var(--warn)" : "var(--line)", strokeWidth: n === n0 && c === c0 ? 3 : 1 });
+          for (var a = 0; a < 3; a++) for (var b = 0; b < 3; b++) css(S(s, "rect", { x: X0 + c * cw + 8 + b * 10, y: Y0 + n * ch + 8 + a * 10, width: 8, height: 8 }), { fill: on ? "#fff" : "var(--line)", opacity: on ? 0.55 : 1 });
+        }
+      }
+      S(s, "text", { x: 10, y: Y0 + N * ch + 18 }, "each block = one H × W map; samples N ↓");
+      el(host, "#pl").innerHTML = ""; el(host, "#pl").appendChild(s);
+      var txt = { bn: "<b>Batch Norm</b>: μ, σ per <b>channel</b>, computed over (N, H, W) — across the whole mini-batch. Training uses batch statistics; inference uses running averages (then BN is just a fixed linear map). Breaks down for very small batches.",
+        ln: "<b>Layer Norm</b>: μ, σ per <b>sample</b>, over (C, H, W). Independent of batch size; same computation at train and test time (used in RNNs/Transformers). Assumes all channels contribute similarly.",
+        "in": "<b>Instance Norm</b>: μ, σ per <b>sample and per channel</b>, over (H, W) only. Removes each image's own contrast/brightness statistics — ideal for style transfer, but cannot exploit channel dependence.",
+        gn: "<b>Group Norm</b>: channels split into G groups (paper default G = 32); μ, σ per sample per group over (C/G, H, W). <b>G = 1 → Layer Norm; G = C → Instance Norm.</b> Batch-size independent." }[m];
+      el(host, "#o").innerHTML = txt + "<br><br>Highlighted: all values that share one mean and variance with the chosen (n = " + n0 + ", c = " + c0 + ").<br>Each method then applies a learnable per-channel affine map: y = γ x̂ + β, with x̂ = (x − μ)/√(σ² + ε).";
+    }
+    on(host, "select", "input", run); run();
+  };
+
+  D.archcalc = function (host) {
+    var PRE = {
+      alex: "227, 3\nconv 96 11 4 0\npool 3 2\nconv 256 5 1 2\npool 3 2\nconv 384 3 1 1\nconv 384 3 1 1\nconv 256 3 1 1\npool 3 2\nfc 4096\nfc 4096\nfc 1000",
+      lenet: "32, 1\nconv 6 5 1 0\npool 2 2\nconv 16 5 1 0\npool 2 2\nfc 120\nfc 84\nfc 10",
+      vgg: "224, 3\nconv 64 3 1 1\nconv 64 3 1 1\npool 2 2\nconv 128 3 1 1\nconv 128 3 1 1\npool 2 2\nconv 256 3 1 1\nconv 256 3 1 1\nconv 256 3 1 1\npool 2 2\nconv 512 3 1 1\nconv 512 3 1 1\nconv 512 3 1 1\npool 2 2\nconv 512 3 1 1\nconv 512 3 1 1\nconv 512 3 1 1\npool 2 2\nfc 4096\nfc 4096\nfc 1000",
+      gap: "224, 3\nconv 64 3 1 1\npool 2 2\nconv 128 3 1 1\npool 2 2\nconv 512 3 1 1\npool 2 2\ngap\nfc 1000"
+    };
+    host.innerHTML = '<div class="demo-row"><span class="seg" id="pre"><button data-k="lenet">LeNet-5</button><button data-k="alex" class="on">AlexNet (single-GPU view)</button><button data-k="vgg">VGG-16</button><button data-k="gap">Small net with global average pooling</button></span></div>' +
+      '<div class="demo-row"><label class="grow">Layers — first line "input size, channels"; then conv K f s p | pool f s | fc units | gap<textarea id="L" rows="6"></textarea></label></div><div class="out" id="o" style="overflow-x:auto"></div>';
+    function run() {
+      var lines = el(host, "#L").value.split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
+      var first = nums(lines[0] || ""), H = first[0], Cc = first[1], flat = null, total = 0, rows = "", convP = 0, fcP = 0;
+      for (var i = 1; i < lines.length; i++) {
+        var t = lines[i].split(/\s+/), k = t[0], v = t.slice(1).map(Number), p = 0, out;
+        if (k === "conv") { var K = v[0], fz = v[1], s = v[2] || 1, pd = v[3] || 0; H = Math.floor((H + 2 * pd - fz) / s) + 1; p = K * (fz * fz * Cc + 1); Cc = K; convP += p; out = H + "×" + H + "×" + Cc; }
+        else if (k === "pool") { H = Math.floor((H - v[0]) / (v[1] || v[0])) + 1; out = H + "×" + H + "×" + Cc; }
+        else if (k === "gap") { flat = Cc; H = 1; out = "1×1×" + Cc + " (global average pool)"; }
+        else if (k === "fc") { var nin = flat !== null ? flat : H * H * Cc; p = nin * v[0] + v[0]; flat = v[0]; fcP += p; out = String(v[0]); }
+        else { out = "?"; }
+        total += p;
+        rows += "<tr><td>" + K_esc(lines[i]) + "</td><td>" + out + "</td><td>" + (p ? p.toLocaleString() : "0") + "</td></tr>";
+      }
+      el(host, "#o").innerHTML = '<table class="num compact"><tr><th>Layer</th><th>Output</th><th>Parameters (weights + biases)</th></tr>' + rows + '<tr class="total"><td>Total</td><td></td><td>' + total.toLocaleString() + "</td></tr></table>" +
+        "Conv layers: " + convP.toLocaleString() + " · FC layers: " + fcP.toLocaleString() + " (" + (total ? Math.round(100 * fcP / total) : 0) + " % of all parameters)<br><small>Output size ⌊(W − F + 2P)/S⌋ + 1; conv parameters (F·F·C<sub>in</sub> + 1)·K; FC parameters N<sub>in</sub>·N<sub>out</sub> + N<sub>out</sub>; pooling has none. Global average pooling replaces the huge first FC layer — the main reason GoogLeNet has ~5 M parameters vs VGG-16's ~138 M.</small>";
+    }
+    function K_esc(s) { return K.esc(s); }
+    on(host, "textarea", "input", run);
+    on(host, "#pre button", "click", function () { host.querySelectorAll("#pre button").forEach(function (b) { b.classList.remove("on"); }); this.classList.add("on"); el(host, "#L").value = PRE[this.getAttribute("data-k")]; run(); });
+    el(host, "#L").value = PRE.alex; run();
+  };
+
+  D.bottleneck = function (host) {
+    host.innerHTML = '<div class="demo-row"><span class="seg" id="pre"><button data-k="vgg" class="on">VGG: 3 × (3×3) vs 1 × (7×7)</button><button data-k="inc">Inception: 1×1 before 5×5</button><button data-k="res">ResNet bottleneck</button></span><label>Channels C<input type="number" id="c" value="64"></label></div><div class="out" id="o"></div>';
+    var mode = "vgg";
+    function run() {
+      var C = +el(host, "#c").value || 64, h = "";
+      if (mode === "vgg") {
+        h = "<b>Receptive field</b> of L stacked k × k convs (stride 1): R<sub>L</sub> = R<sub>L−1</sub> + (k − 1), R<sub>0</sub> = 1 → 3×3: 3 → 5 → <b>7</b>.<br>" +
+          "<b>Parameters</b> (C in, C out, no bias): one 7×7 = 49C² = " + (49 * C * C).toLocaleString() + "; three 3×3 = 3 × 9C² = 27C² = " + (27 * C * C).toLocaleString() + " (" + Math.round(100 * (1 - 27 / 49)) + " % fewer).<br>" +
+          "Plus: three ReLUs instead of one → more nonlinearity, deeper block. Same spatial size (stride 1, pad 1) — it does not downsample faster.";
+      } else if (mode === "inc") {
+        var Hh = 28, Cin = 192, out = 32, red = 16;
+        var direct = Hh * Hh * out * 5 * 5 * Cin, b1 = Hh * Hh * red * Cin, b2 = Hh * Hh * out * 5 * 5 * red;
+        h = "Input 28 × 28 × 192 → 5 × 5 conv with 32 filters.<br>Direct: 28·28·32 × (5·5·192) = <b>" + (direct / 1e6).toFixed(1) + " M</b> multiplications.<br>" +
+          "With a 1 × 1 bottleneck to 16 channels first: 28·28·16 × 192 + 28·28·32 × (5·5·16) = " + (b1 / 1e6).toFixed(1) + " M + " + (b2 / 1e6).toFixed(1) + " M = <b>" + ((b1 + b2) / 1e6).toFixed(1) + " M</b> (" + (direct / (b1 + b2)).toFixed(1) + "× cheaper).<br>" +
+          "A 1 × 1 conv mixes channels at each pixel (cross-channel mixing) and can reduce their number; it does not enlarge the receptive field or downsample. Branch outputs (1×1, 3×3, 5×5, pool) are <b>concatenated along depth</b>.";
+      } else {
+        var W = 4 * C;
+        var p1 = W * C, p2 = 9 * C * C, p3 = C * W, basic = 2 * 9 * W * W;
+        h = "Bottleneck block on " + W + " channels (ResNet-50/101/152): 1×1 (" + W + "→" + C + ") → 3×3 (" + C + "→" + C + ") → 1×1 (" + C + "→" + W + ").<br>Parameters ≈ " + p1.toLocaleString() + " + " + p2.toLocaleString() + " + " + p3.toLocaleString() + " = <b>" + (p1 + p2 + p3).toLocaleString() + "</b>.<br>Two plain 3×3 convs on " + W + " channels would need " + basic.toLocaleString() + " (" + (basic / (p1 + p2 + p3)).toFixed(1) + "× more).<br>" +
+          "The 3×3 works on the <b>reduced</b> channels; the identity shortcut adds 0 parameters when dimensions match, and a 1×1 projection (or zero-padding) is used when they don't. ResNet-18/34 use the <b>basic block</b> (two 3×3 convs) instead.";
+      }
+      el(host, "#o").innerHTML = h;
+    }
+    on(host, "input", "input", run);
+    on(host, "#pre button", "click", function () { host.querySelectorAll("#pre button").forEach(function (b) { b.classList.remove("on"); }); this.classList.add("on"); mode = this.getAttribute("data-k"); run(); });
+    run();
+  };
+
+  D.gradcam = function (host) {
+    host.innerHTML = '<p style="margin:0">Two 3 × 3 feature maps A¹, A² from the last conv layer and the gradients ∂y<sup>c</sup>/∂A of the class score. Edit any number.</p>' +
+      '<div class="demo-row"><label class="grow">A¹<input class="wide" id="a1" value="0 1 0, 1 3 1, 0 1 0"></label><label class="grow">∂y/∂A¹<input class="wide" id="g1" value="0.2 0.2 0.2, 0.2 0.4 0.2, 0.2 0.2 0.2"></label></div>' +
+      '<div class="demo-row"><label class="grow">A²<input class="wide" id="a2" value="2 0 0, 0 0 0, 0 0 1"></label><label class="grow">∂y/∂A²<input class="wide" id="g2" value="-0.3 -0.1 -0.1, -0.1 -0.1 -0.1, -0.1 -0.1 -0.1"></label></div>' +
+      '<div class="two-col"><div id="m"></div><div class="out" id="o"></div></div>';
+    function mat(s) { return s.split(",").map(nums); }
+    function run() {
+      var A = [mat(el(host, "#a1").value), mat(el(host, "#a2").value)], Gd = [mat(el(host, "#g1").value), mat(el(host, "#g2").value)];
+      var al = Gd.map(function (g) { var s = 0, z = 0; g.forEach(function (r) { r.forEach(function (v) { s += v; z++; }); }); return s / z; });
+      var L = A[0].map(function (r, i) { return r.map(function (_, j) { var v = al[0] * A[0][i][j] + al[1] * A[1][i][j]; return Math.max(0, v); }); });
+      el(host, "#m").innerHTML = "<b>Grad-CAM map</b>" + gridHTML(L.map(function (r) { return r.map(function (v) { return +v.toFixed(3); }); }), { heat: Math.max.apply(null, L.map(function (r) { return Math.max.apply(null, r); })) || 1 });
+      el(host, "#o").innerHTML = "Step 1 — importance weights by global average pooling of the gradients: α₁ = " + f(al[0], 4) + ", α₂ = " + f(al[1], 4) + "<br>Step 2 — weighted sum Σ α<sub>k</sub>A<sup>k</sup>, then <b>ReLU</b> keeps only regions with a positive influence on class c.<br>Step 3 — upsample to the image size and overlay as a heat map.<br><small>Feature map 2 has a negative weight (it argues against the class), so its strong top-left value is suppressed. A saliency map instead takes ∂y<sup>c</sup>/∂(image pixels) in one backward pass.</small>";
+    }
+    on(host, "input", "input", run); run();
+  };
+
+  /* ===================================================================
+     WEEK 7
+     =================================================================== */
+  function seqPlot(series, T, yr, opt) {
+    var s = plot([], [0, T - 1], yr, opt || { w: 460, h: 230 });
+    series.forEach(function (se, k) {
+      var d = ""; se.v.forEach(function (v, t) { d += (t ? "L" : "M") + s._X(t) + "," + s._Y(Math.max(yr[0], Math.min(yr[1], v))); });
+      css(S(s, "path", { d: d }), { fill: "none", stroke: se.color || K.PALETTE[k], strokeWidth: 2.2, strokeDasharray: se.dash || "" });
+      se.v.forEach(function (v, t) { css(S(s, "circle", { cx: s._X(t), cy: s._Y(Math.max(yr[0], Math.min(yr[1], v))), r: 2.5 }), { fill: se.color || K.PALETTE[k] }); });
+    });
+    return s;
+  }
+  D.memneuron = function (host) {
+    var SIG = { pulse: function (t) { return t === 2 ? 1 : 0; }, step: function (t) { return t >= 3 ? 1 : 0; }, sq: function (t) { return Math.floor(t / 5) % 2 ? 1 : 0; }, rnd: function (t) { return [0.2, 0.9, 0.1, 0.5, 1, 0, 0.3, 0.8, 0.4, 0.6, 0.1, 0.9, 0.7, 0.2, 0.5, 0.3, 0.9, 0, 0.6, 0.4][t % 20]; } };
+    host.innerHTML = '<div class="demo-row"><label>Input s(k)<select id="sg"><option value="pulse">Single pulse at k = 2</option><option value="step">Step at k = 3</option><option value="sq">Square wave</option><option value="rnd">Irregular</option></select></label><label>Memory coefficient α = <span id="al"></span><input type="range" id="a" min="0.05" max="1" step="0.05" value="0.3"></label></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var a = +el(host, "#a").value, fn = SIG[el(host, "#sg").value], T = 20, s = [], v = [0];
+      el(host, "#al").textContent = f(a, 2);
+      for (var k = 0; k < T; k++) s.push(fn(k));
+      for (k = 1; k < T; k++) v.push(a * s[k - 1] + (1 - a) * v[k - 1]);
+      el(host, "#pl").innerHTML = legend([{ name: "network-neuron output s(k)", color: K.PALETTE[0] }, { name: "memory-neuron output v(k)", color: K.PALETTE[1] }]);
+      el(host, "#pl").appendChild(seqPlot([{ v: s }, { v: v }], T, [-0.05, 1.1]));
+      var w = [0, 1, 2, 3, 4].map(function (j) { return a * Math.pow(1 - a, j); });
+      el(host, "#o").innerHTML = "v(k) = α·s(k − 1) + (1 − α)·v(k − 1)<br>Unrolled: v(k) = α Σ<sub>j≥0</sub> (1 − α)<sup>j</sup> s(k − 1 − j) — an <b>exponentially fading</b> summary of the neuron's past outputs.<br>Weights on s(k−1), s(k−2), …: " + w.map(function (x) { return f(x, 3); }).join(", ") + " …<br><br>" +
+        (a > 0.8 ? "α close to 1: memory ≈ last output only (short memory)." : a < 0.2 ? "α small: long, slowly fading memory." : "Moderate α: balances the current contribution and accumulated history.") +
+        "<br><small>α is one scalar for all time steps (learned, but the same whatever the input) — the decay rate is <b>content-blind</b>. LSTM gates instead compute a forget/keep factor from the current input at every step.</small>";
+    }
+    on(host, "select,input", "input", run); run();
+  };
+
+  D.rnnunroll = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Recurrent weight W = <span id="wl"></span><input type="range" id="w" min="0" max="3" step="0.05" value="0.9"></label><label>Input weight U = <span id="ul"></span><input type="range" id="u" min="0" max="2" step="0.05" value="1"></label><label>Sequence length T<select id="T"><option>10</option><option selected>20</option><option>40</option></select></label><label><span><input type="checkbox" id="lin"> linear activation (no tanh)</span></label></div><div class="two-col"><div id="pl"></div><div id="pl2"></div></div><div class="out" id="o"></div>';
+    function run() {
+      var W = +el(host, "#w").value, U = +el(host, "#u").value, T = +el(host, "#T").value, lin = el(host, "#lin").checked;
+      el(host, "#wl").textContent = f(W, 2); el(host, "#ul").textContent = f(U, 2);
+      var x = [], s = [], prev = 0, z = [];
+      for (var t = 0; t < T; t++) { x.push(t === 0 ? 1 : 0.1 * Math.sin(t)); var a = U * x[t] + W * prev; z.push(a); prev = lin ? a : Math.tanh(a); s.push(prev); }
+      var g = [], lg = [];
+      for (var k = 0; k < T; k++) { var p = 1; for (var j = k + 1; j < T; j++) p *= W * (lin ? 1 : 1 - Math.tanh(z[j]) * Math.tanh(z[j])); g.push(Math.abs(p)); lg.push(Math.log10(Math.max(1e-12, Math.abs(p)))); }
+      var ymin = Math.min.apply(null, s.concat([-1])), ymax = Math.max.apply(null, s.concat([1]));
+      el(host, "#pl").innerHTML = '<div style="font-size:.8rem;color:var(--ink-2)">Hidden state s<sub>t</sub> (input: a spike at t = 0)</div>';
+      el(host, "#pl").appendChild(seqPlot([{ v: s.map(function (q) { return Math.max(-50, Math.min(50, q)); }) }], T, [Math.max(-50, ymin), Math.min(50, ymax)], { w: 420, h: 220 }));
+      var lmin = Math.min.apply(null, lg), lmax = Math.max.apply(null, lg);
+      el(host, "#pl2").innerHTML = '<div style="font-size:.8rem;color:var(--ink-2)">log₁₀ |∂s<sub>T</sub>/∂s<sub>k</sub>| — how much step k can still influence the last step</div>';
+      el(host, "#pl2").appendChild(seqPlot([{ v: lg, color: "var(--bad)" }], T, [Math.min(-1, Math.floor(lmin)), Math.max(1, Math.ceil(lmax))], { w: 420, h: 220 }));
+      el(host, "#o").innerHTML = "s<sub>t</sub> = " + (lin ? "" : "tanh(") + "U·x<sub>t</sub> + W·s<sub>t−1</sub>" + (lin ? "" : ")") + " — the <b>same</b> U and W at every step (parameter sharing).<br>" +
+        "BPTT: ∂E<sub>T</sub>/∂W sums over every earlier step k, each term containing ∂s<sub>T</sub>/∂s<sub>k</sub> = Π<sub>j=k+1</sub><sup>T</sup> W·tanh′(z<sub>j</sub>).<br>Gradient reaching the first step: <b>" + (g[0] < 1e-6 ? g[0].toExponential(1) : f(g[0], 4)) + "</b> → " +
+        (g[0] < 1e-3 ? '<span class="no">vanishing</span> — the network cannot learn long-range dependencies.' : g[0] > 1e3 ? '<span class="no">exploding</span> — use gradient clipping.' : "still usable.") +
+        "<br><small>tanh′ ≤ 1, so with |W| &lt; 1 the product shrinks geometrically; with large W and a linear activation it explodes. LSTMs keep an additive cell-state path whose factor is the forget gate (≈ 1 when remembering).</small>";
+    }
+    on(host, "select,input", "input", run); run();
+  };
+
+  D.lstmcell = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Previous cell C<sub>t−1</sub><input type="number" id="c" value="2" step="0.1"></label><label>Forget gate f<sub>t</sub> = <span id="fl"></span><input type="range" id="f" min="0" max="1" step="0.01" value="0.5"></label><label>Input gate i<sub>t</sub> = <span id="il"></span><input type="range" id="i" min="0" max="1" step="0.01" value="0.8"></label><label>Candidate C̃<sub>t</sub> = <span id="ccl"></span><input type="range" id="cc" min="-1" max="1" step="0.01" value="0.5"></label><label>Output gate o<sub>t</sub> = <span id="ol"></span><input type="range" id="o2" min="0" max="1" step="0.01" value="0.9"></label></div>' +
+      '<div class="demo-row"><span class="seg" id="pre"><button data-p="2,0.5,0.8,0.5,0.9">Mixed</button><button data-p="2,1,0,0.5,0.9">Remember (f = 1, i = 0)</button><button data-p="2,0,1,-0.7,0.9">Overwrite (f = 0, i = 1)</button><button data-p="2,1,1,0.5,0.9">Keep and add (f = 1, i = 1)</button><button data-p="2,1,0,0.5,0">Hide output (o = 0)</button></span></div><div class="out" id="out"></div>';
+    function run() {
+      var C = +el(host, "#c").value, fg = +el(host, "#f").value, ig = +el(host, "#i").value, cc = +el(host, "#cc").value, og = +el(host, "#o2").value;
+      el(host, "#fl").textContent = f(fg, 2); el(host, "#il").textContent = f(ig, 2); el(host, "#ccl").textContent = f(cc, 2); el(host, "#ol").textContent = f(og, 2);
+      var Cn = fg * C + ig * cc, h = og * Math.tanh(Cn);
+      var keep = []; var cc2 = C; for (var t = 0; t < 30; t++) cc2 = fg * cc2; keep = cc2;
+      el(host, "#out").innerHTML = "<b>Cell state</b> C<sub>t</sub> = f<sub>t</sub>·C<sub>t−1</sub> + i<sub>t</sub>·C̃<sub>t</sub> = " + f(fg, 2) + "×" + f(C, 2) + " + " + f(ig, 2) + "×" + f(cc, 2) + " = <b>" + f(Cn, 4) + "</b><br>" +
+        "<b>Hidden output</b> h<sub>t</sub> = o<sub>t</sub>·tanh(C<sub>t</sub>) = " + f(og, 2) + " × tanh(" + f(Cn, 3) + ") = <b>" + f(h, 4) + "</b><br><br>" +
+        "Gates are sigmoid layers (values 0…1) multiplied point-wise: f<sub>t</sub> = σ(W<sub>f</sub>[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>f</sub>), i<sub>t</sub> = σ(W<sub>i</sub>[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>i</sub>), C̃<sub>t</sub> = tanh(W<sub>C</sub>[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>C</sub>), o<sub>t</sub> = σ(W<sub>o</sub>[h<sub>t−1</sub>, x<sub>t</sub>] + b<sub>o</sub>).<br>" +
+        "With this forget gate held for 30 steps, C<sub>t−1</sub> would shrink to " + f(keep, 4) + " — with f = 1 the memory passes unchanged (∂C<sub>t</sub>/∂C<sub>t−1</sub> = f<sub>t</sub>): the additive \"memory highway\".<br><small>Two separate gates: \"how much to keep\" and \"how much to write\" are independent decisions — e.g. keep and add (f = 1, i = 1) is impossible with one gate g and (1 − g).</small>";
+    }
+    on(host, "input", "input", run);
+    on(host, "#pre button", "click", function () { var p = this.getAttribute("data-p").split(","); ["#c", "#f", "#i", "#cc", "#o2"].forEach(function (id, k) { el(host, id).value = p[k]; }); run(); });
+    run();
+  };
+
+  D.attention = function (host) {
+    var WORDS = ["The", "animal", "didn't", "cross", "it", "tired"];
+    var EMB = [[0.1, 0.0, 0.2], [1.0, 0.9, 0.1], [0.0, 0.2, 0.8], [0.1, 0.1, 1.0], [0.9, 1.0, 0.2], [0.8, 0.6, 0.3]];
+    host.innerHTML = '<div class="demo-row"><label>Query word<select id="q">' + WORDS.map(function (w, i) { return '<option value="' + i + '"' + (i === 4 ? " selected" : "") + ">" + w + "</option>"; }).join("") + '</select></label><label>Key dimension d<sub>k</sub><select id="dk"><option value="3">3 (toy)</option><option value="64">64 (Transformer: √64 = 8)</option></select></label><label><span><input type="checkbox" id="sc" checked> divide scores by √d<sub>k</sub></span></label><label>Score scale (sharpness) <input type="range" id="t" min="1" max="12" value="4"></label></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var qi = +el(host, "#q").value, dk = +el(host, "#dk").value, sc = el(host, "#sc").checked, mul = +el(host, "#t").value;
+      var q = EMB[qi], scores = EMB.map(function (k) { return mul * dot(q, k) * (dk === 64 ? 8 : 1); });
+      var div = sc ? Math.sqrt(dk) : 1, z = scores.map(function (s) { return s / div; }), mx = Math.max.apply(null, z);
+      var e = z.map(function (v) { return Math.exp(v - mx); }), sum = e.reduce(function (a, b) { return a + b; }, 0), a = e.map(function (v) { return v / sum; });
+      var s = svgEl(420, 40 + WORDS.length * 30);
+      WORDS.forEach(function (w, i) {
+        S(s, "text", { x: 80, y: 30 + i * 30, "text-anchor": "end" }, w);
+        css(S(s, "rect", { x: 90, y: 16 + i * 30, width: 300 * a[i], height: 20, rx: 3 }), { fill: "var(--acc)", opacity: (0.25 + 0.75 * a[i]).toFixed(2) });
+        S(s, "text", { x: 96 + 300 * a[i], y: 31 + i * 30 }, f(a[i], 3));
+      });
+      S(s, "text", { x: 90, y: 10 }, "attention weights of \"" + WORDS[qi] + "\" (softmax, sum = 1)");
+      el(host, "#pl").innerHTML = ""; el(host, "#pl").appendChild(s);
+      el(host, "#o").innerHTML = "Scaled dot-product attention: <b>Attention(Q, K, V) = softmax(QK<sup>T</sup>/√d<sub>k</sub>) V</b><br>1. Make query, key and value vectors from each word embedding (×W<sup>Q</sup>, W<sup>K</sup>, W<sup>V</sup>).<br>2. Score = q·k for every word.<br>3. Divide by √d<sub>k</sub> (= 8 for d<sub>k</sub> = 64) → stable gradients.<br>4. Softmax → weights all positive, &lt; 1, summing to 1.<br>5. Output = Σ weight × value vector: relevant words kept, irrelevant ones drowned out.<br><br>" +
+        (!sc && dk === 64 ? '<span class="no">Without scaling</span> the large scores push softmax to an almost one-hot output (saturated → tiny gradients).' : "Here \"" + WORDS[qi] + "\" attends most to \"" + WORDS[a.indexOf(Math.max.apply(null, a))] + "\".") +
+        "<br><small>Multi-head attention repeats this with several W<sup>Q</sup>, W<sup>K</sup>, W<sup>V</sup> sets (different representation subspaces) and concatenates the heads; positional encodings add word order.</small>";
+    }
+    on(host, "select,input", "input", run); run();
+  };
+
+  /*__WEEK8__*/
 })();

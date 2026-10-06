@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 5 · CNN Foundations — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week05.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 5 · Lectures 9, 10, CNN operations + PyTorch and transfer-learning tutorials</div>
+  <h1>CNN Foundations: Vision Biology, Convolution, Pooling &amp; Transfer Learning</h1>
+  <p class="lead">Why vision is hard for fully connected networks, what Hubel &amp; Wiesel and the Neocognitron taught us, the convolution and pooling operations (padding, stride, channels, output size), CNN activation functions, the paradigm shift from hand-crafted features, data augmentation, the PyTorch pipeline and transfer learning.</p>
+  <div class="meta"><span class="chip acc">Hubel &amp; Wiesel</span><span class="chip acc">Neocognitron</span><span class="chip acc">(n + 2p − f)/s + 1</span><span class="chip acc">Pooling</span><span class="chip acc">Augmentation</span><span class="chip acc">Transfer learning</span><span class="chip"><span data-qcount="5:A"></span> assignment Qs · <span data-qcount="5:P"></span> practice Qs</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="vision-hard">
+<h2><span class="num">5.1</span> Why vision is hard</h2>
+<ul>
+<li><b>Images are numbers:</b> a matrix of values in [0, 255]; an RGB image of 1080 × 1080 × 3 has about 3.5 million inputs — a fully connected first layer would need millions of weights per neuron.</li>
+<li><b>Appearance changes</b> with lighting, scale, viewpoint and occlusion — the same object gives very different numbers.</li>
+<li><b>Hand-crafting features is difficult:</b> manual feature extraction needs domain knowledge (window, door, wheel, roof for a house; wheel, headlight for a car; wing, tail, engine for a plane), and domain-independent hand-crafted features are hard to design.</li>
+<li>Vision tasks can be <b>regression</b> (continuous output) or <b>classification</b> (class label, often with a probability per class).</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="hubel-wiesel">
+<h2><span class="num">5.2</span> Hubel &amp; Wiesel: the visual cortex</h2>
+<div class="concept">
+<div class="f-exp">Experiments on the primary visual cortex showed that the visual system is built from <b>receptive fields</b> — each neuron responds only to a small region of the visual field.</div>
+<div class="f-imp"><ul style="margin:0">
+<li><b>Simple cells</b> respond to <b>oriented bars at a specific retinal position</b>.</li>
+<li><b>Complex cells</b> are <b>position-invariant</b> — they respond to the orientation over a range of positions.</li>
+<li><b>First layer, V1</b>: neurons activate depending on <b>orientation</b>; the lecture lists <b>spatial invariance</b> and receptive fields here.</li>
+<li><b>Second layer, V2</b>: neurons form a <b>hierarchical organisation</b>.</li>
+</ul></div>
+<div class="f-use"><b>Takeaway for deep learning:</b> the visual cortex is <b>hierarchical and locally connected</b>, and each layer builds more abstract representations — e.g. for faces: edges and dark spots (low level) → eyes, ears, nose (mid level) → facial structure (high level) (Lee et al., 2009). This structure is closely related to modern CNN architectures.</div>
+</div>
+<div class="box warn" data-title="Assignment key to remember"><p>In the Week 5 assignment, the official key accepted <b>"V1 cells are spatially invariant"</b>, <b>"There is a hierarchy in V2 cells"</b> and <b>"The proposed structure is closely related to modern CNN architectures"</b>. "Stimulus for vertically placed objects is highest" was wrong.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="neuro-to-ann">
+<h2><span class="num">5.3</span> From neuroscience to CNNs, and why fully connected networks fail</h2>
+<div class="two-col">
+<div class="concept"><h3>Four key findings → four CNN ingredients</h3><ul>
+<li><b>Local receptive fields</b> — each neuron sees only a local region.</li>
+<li><b>Hierarchical processing</b> — each layer builds more abstract features.</li>
+<li><b>Shared weights</b> — the same detector is reused across the whole image.</li>
+<li><b>Spatial pooling</b> — tolerance to spatial shifts.</li></ul>
+<p>Goal: an architecture that <b>preserves spatial structure</b> and moves away from "everything connected to everything".</p></div>
+<div class="concept"><h3>Limitations of fully connected networks</h3><ul>
+<li><b>Parameter explosion</b> — image size makes the input enormous.</li>
+<li><b>No spatial awareness</b> — the image is flattened; moving an object creates a completely new input pattern.</li>
+<li><b>No weight sharing</b> — the same feature at a different location needs different weights.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="neocognitron">
+<h2><span class="num">5.4</span> The Neocognitron (Fukushima, 1980)</h2>
+<div class="concept">
+<div class="f-exp">A self-organising neural network for pattern recognition "unaffected by shift in position" — the <b>first architecture to explicitly implement hierarchical feature extraction</b>, and the direct ancestor of LeNet, AlexNet and modern CNNs.</div>
+<div class="f-imp"><ul style="margin:0">
+<li><b>Hierarchical structure</b> — several layers extract increasingly complex, abstract features, like the biological system.</li>
+<li><b>Alternating S-cells and C-cells</b>: <b>S-cells (simple) extract local features</b>; <b>C-cells (complex) provide spatial invariance</b>.</li>
+<li>Learning: <b>unsupervised</b> (competitive learning).</li>
+<li>Demonstrated that <b>spatial invariance can emerge from a structured hierarchy</b>.</li>
+</ul></div>
+<div class="f-lim">Exam trap: "S-cells give spatial invariance and C-cells extract local features" is the roles <b>swapped</b>.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="local-features">
+<h2><span class="num">5.5</span> Local features and the spatial network</h2>
+<div class="concept">
+<div class="f-exp">Input: the 2-D array of pixels. Idea: connect a <b>patch</b> of the image to one hidden neuron, then <b>slide</b> the patch across the image to produce a map of the same local feature everywhere (LeCun et al., 1998).</div>
+<div class="f-imp">A <b>local feature</b> is a pattern detectable within a small neighbourhood: edge, corner, blob, gradient direction, texture element. Semantic content emerges from local structure (edges → corners → parts such as eyes, nose, mouth).</div>
+<div class="f-use"><b>Compositionality:</b> objects are made of simple local parts in specific spatial relationships, which helps generalisation across domains. <b>Data efficiency:</b> locality and weight sharing are an <b>inductive bias</b> that reduces the need for massive data — so a better understanding of local features means less training data is needed. <b>Complex (global) features</b> built in later layers are more <b>robust</b> to perturbations.</div>
+<div class="f-lim">The <b>global structure</b> matters too: spatial relationships between distant local features need non-local reasoning (scene understanding, context, interactions between objects, robustness to cropping, occlusion and clutter).</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="convolution">
+<h2><span class="num">5.6</span> The convolution operation</h2>
+<div class="box formula" data-title="Convolution (as used in CNNs — technically cross-correlation)"><p>(I ⊗ F)(i, j) = Σ<sub>m</sub> Σ<sub>n</sub> I(i + m, j + n) F(m, n) — I is the image patch at pixel (i, j), F the filter (kernel) that extracts one local feature. The filter's weights are learned.</p></div>
+<div class="concept">
+<div class="f-imp"><ul style="margin:0">
+<li><b>Lecture example:</b> 5 × 5 binary image ⊗ 3 × 3 "X" filter → a 3 × 3 activation map (computed correctly in the demo: [[3, 3, 2], [2, 2, 2], [2, 3, 2]]).</li>
+<li><b>Padding</b>: convolution shrinks the image (6 × 6 with 3 × 3 → 4 × 4). Zero-padding keeps the size; pad by the filter's radius — 3 × 3 → 1, 5 × 5 → 2, 7 × 7 → 3 layers of zeros.</li>
+<li><b>Stride</b> s: move the filter s pixels at a time — reduces the map size; useful for large (high-resolution or satellite) images.</li>
+<li><b>Output size: ⌊(n + 2p − f)/s⌋ + 1</b> in each dimension. 32 × 32 with 5 × 5, s = 1, p = 0 → 28 × 28; with p = 2 → 32 × 32.</li>
+<li><b>Multi-channel input</b>: a filter always spans <b>all input channels</b> (f × f × C) and sums over them → one 2-D map per filter. N × n × n input with F filters of size N × f × f → F × n × n output (with same padding). RGB 64 × 64 × 3 with 16 filters 3 × 3 → filters are 3 × 3 × 3, output 64 × 64 × 16.</li>
+<li><b>Convolution is a linear operation</b> with special structure: it can be written as multiplication by a structured (Toeplitz-like) matrix — matrix–matrix multiplication.</li>
+</ul></div>
+</div>
+<div class="demo box" data-demo="convdemo" data-title="Interactive — slide a filter over an image (padding, stride, step through)"></div>
+<div class="demo box" data-demo="convsize" data-title="Interactive — output size and parameter calculator"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="pooling">
+<h2><span class="num">5.7</span> Pooling</h2>
+<div class="concept">
+<div class="f-exp">Pooling <b>compresses a feature map while keeping the most important information</b> — it reports whether a local feature is present. <b>Max pooling</b> keeps the strongest response; <b>average pooling</b> the overall presence.</div>
+<div class="f-use">Purpose: reduce the dimension, robustness against (small) translations, keep the presence of the feature. A digit shifted by a few pixels gives almost the same pooled output, because pooling <b>summarises activations within a local neighbourhood</b>.</div>
+<div class="f-lim">Pooling <b>loses spatial precision</b> (a problem later for segmentation). Max-pooling is <b>nonlinear</b>; average pooling is linear. Pooling has no learnable parameters.</div>
+</div>
+<div class="demo box" data-demo="pooldemo" data-title="Interactive — max vs average pooling and shift tolerance"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="cnn-activations">
+<h2><span class="num">5.8</span> Activation functions used in CNNs</h2>
+<table class="compact">
+<tr><th>Function</th><th>Formula</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><b>ReLU</b></td><td>max(0, x)</td><td>Biologically plausible; does not saturate for x &gt; 0; converges better than sigmoid; very cheap</td><td>Not zero-centred; gradient not defined at 0 and zero for negative inputs (no activation in the negative region — "dead" units)</td></tr>
+<tr><td><b>Leaky ReLU</b></td><td>max(0.01x, x); parametric: max(αx, x)</td><td>Does not saturate; cheap; can be parametrised</td><td>Not zero-centred</td></tr>
+<tr><td><b>ELU</b></td><td>x if x &gt; 0; α(e<sup>x</sup> − 1) if x ≤ 0</td><td>Close to zero-mean output; some robustness to noise</td><td>Negative region saturates; heavier computation</td></tr>
+<tr><td><b>Maxout</b></td><td>max(w<sub>1</sub><sup>T</sup>x + b<sub>1</sub>, …, w<sub>k</sub><sup>T</sup>x + b<sub>k</sub>)</td><td>Learned piecewise-linear shape; approximates any convex function; good for audio</td><td>Heavy; slower convergence (k times the parameters)</td></tr>
+<tr><td><b>Softplus</b></td><td>log(1 + e<sup>x</sup>)</td><td>Smooth approximation of ReLU; differentiable; non-zero gradients; numerically stable</td><td>Heavier; slower convergence</td></tr>
+</table>
+<p>Also listed: tanh, SELU (scaled ELU), hard sigmoid. Nonlinearity between conv layers is essential — without it, stacked conv layers collapse to one linear map.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="mnist-cnn">
+<h2><span class="num">5.9</span> A one-layer CNN for digit recognition</h2>
+<div class="concept">
+<div class="f-exp"><b>MNIST</b>: 70,000 handwritten digits, 28 × 28 grey-scale. Challenges: writing styles vary; digits shift, rotate, stretch; similar pairs (1, 7), (4, 9), (5, 6). But there is strong local structure — curves in "3", a horizontal stroke and diagonal in "7", a closed loop in "0".</div>
+<div class="f-imp">Input image → <b>conv layer with 4 learnable filters</b> → 4 activation maps → <b>pooling</b> → 4 class scores → <b>cross-entropy loss</b>. Deeper versions: conv → ReLU → pool repeated, then fully connected layers. All filter and FC weights are learned by <b>backpropagation</b> of the cross-entropy loss.</div>
+</div>
+<table class="compact">
+<tr><th>Before CNNs</th><th>After CNNs</th></tr>
+<tr><td>Hand-crafted features (SIFT, HOG); domain expertise needed</td><td>Automatic, data-driven feature learning</td></tr>
+<tr><td>Shallow networks; limited performance</td><td>Deep architectures; superior performance</td></tr>
+<tr><td>Feature extractor and classifier designed separately</td><td><b>End-to-end</b> training of the whole pipeline</td></tr>
+<tr><td>Slow, computationally expensive</td><td>GPU acceleration</td></tr>
+</table>
+<p><b>Key innovations:</b> weight sharing (same filter everywhere — no translation bias), local connectivity (keeps spatial awareness), hierarchical features (simple → complex, layer by layer), end-to-end training. <b>Why it matters:</b> better accuracy on complex visual tasks, more data → better results (unlike fixed features), scalability to many tasks. Modern CNNs trade accuracy against model size and operations (Canziani et al., 2017).</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="augmentation">
+<h2><span class="num">5.10</span> Data augmentation</h2>
+<div class="concept">
+<div class="f-exp">Artificially increase the diversity and size of the training set by creating <b>modified versions</b> of existing samples, so the model sees variations it will meet in the real world (e.g. motion blur, lighting and weather for a drone perception model).</div>
+<div class="f-imp"><b>Photometric</b> (appearance robustness): contrast, brightness, Gaussian noise, blur, colour jitter, invert, solarize.<br><b>Geometric</b> (spatial invariance): rotation, translation, scaling, cropping (random crop, FiveCrop), affine and perspective transforms, flips.</div>
+<div class="f-use"><table class="compact" style="margin:0"><tr><th>Use geometric when the target domain differs in…</th><th>Use photometric when it differs in…</th></tr>
+<tr><td>camera viewpoint, object orientation, scale, motion dynamics, platform pose — e.g. drone imagery at varying altitude and angle, driving (lane curvature, ego-motion), sports, robot pose</td><td>illumination, weather, sensor noise, motion blur, sensor modality — e.g. outdoor robotics in changing weather, night/day adaptation, infrared or SAR imaging</td></tr></table></div>
+<div class="f-lim">An augmentation is valid only if it <b>preserves the label</b> — validity depends on the task's semantics. Rotating a "6" by 180° gives a "9"; vertically flipping some symbols changes their meaning. When a model has high training but low test accuracy, realistic augmentation helps generalisation (it discourages memorising exact training images) — but guarantees nothing.</div>
+</div>
+<div class="demo box" data-demo="augment" data-title="Interactive — which augmentations keep the label?"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="pytorch">
+<h2><span class="num">5.11</span> Datasets and the PyTorch pipeline</h2>
+<div class="two-col">
+<div class="concept"><h3>Classification datasets</h3><ul>
+<li><b>ImageNet</b> — 1000 classes, used for pre-training.</li>
+<li><b>CIFAR-10</b> — 32 × 32 RGB, 10 classes, 60,000 images; <b>CIFAR-100</b> — 100 fine-grained classes.</li>
+<li><b>MNIST</b>, <b>Fashion-MNIST</b>; Caltech-101/256; Food-101; Oxford-IIIT Pets; <b>Stanford Cars</b> (196 classes, ~16,000 images).</li>
+<li><b>Aerial:</b> UC Merced Land Use (21 classes, one of the earliest), AID, <b>EuroSAT</b> (Sentinel-2 land cover), PatternNet, <b>MAVOC</b> (automatic target recognition, EO 31 × 31 and SAR 55 × 55 images; NTIRE 2021 PBVS challenge).</li></ul></div>
+<div class="concept"><h3>Pipeline</h3><ol>
+<li>Import libraries; <b>Dataset</b> (samples + labels + transforms) and <b>DataLoader</b> (iterates in mini-batches).</li>
+<li><b>Batch size</b> = samples per mini-batch; <b>iteration</b> = one batch; <b>epoch</b> = one full pass over the dataset (iterations per epoch = dataset size / batch size).</li>
+<li>Model: subclass <b>nn.Module</b>; e.g. nn.Conv2d(1, 20, 5) = (in_channels 1, out_channels 20, kernel 5); forward: x = F.relu(self.conv1(x)).</li>
+<li>Train loop: model.train() → pred → loss_fn(pred, y) → <b>loss.backward()</b> (accumulates gradients) → <b>optimizer.step()</b> (x += −lr·x.grad) → <b>optimizer.zero_grad()</b>.</li>
+<li>Test loop under <b>torch.no_grad()</b>; save the checkpoint with the <b>lowest validation loss</b> and use it for inference.</li></ol></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="transfer">
+<h2><span class="num">5.12</span> Transfer learning</h2>
+<div class="concept">
+<div class="f-exp">Reuse a network <b>pre-trained on a large general dataset</b> (e.g. ImageNet) for a new, usually smaller task. Early conv layers learn generic low-level detectors (edges, colours, textures) that transfer across visual tasks; later layers are more task-specific.</div>
+<div class="f-imp"><b>Feature extraction:</b> keep the pre-trained layers <b>fixed (frozen)</b>, replace and train only the classifier head.<br><b>Fine-tuning:</b> also <b>update some or all</b> pre-trained parameters (usually with a small learning rate), starting from the pre-trained weights.<br>Small dataset similar to the source → feature extraction; larger or more different dataset → fine-tune more layers.</div>
+<div class="f-use">Reduces the amount of task-specific data and training; standard practice for aerial models (ImageNet backbones).</div>
+<div class="f-lim">No guarantee of good (let alone perfect) performance — if the domains differ a lot (RGB → SAR/IR, ground → top-down) the transferred features may help little (negative transfer).</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A5</span> Week 5 assignment — every question explained</h2>
+<div class="qb" data-week="5" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P5</span> Practice MCQs — Week 5</h2>
+<div class="qb" data-week="5" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>
