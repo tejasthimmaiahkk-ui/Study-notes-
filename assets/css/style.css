@@ -208,6 +208,7 @@ section.topic > h2 .num { color: var(--acc); font-size: .85em; }
   text-transform: uppercase; margin-bottom: 6px;
 }
 .box > .box-h .ic { font-size: 1rem; }
+.box > .box-h .nc { text-transform: none; }
 .box > :last-child { margin-bottom: 0; }
 .box.def     { background: var(--acc-soft); border-color: transparent; }   .box.def > .box-h { color: var(--acc); }
 .box.found   { background: var(--found-soft); border-color: transparent; } .box.found > .box-h { color: var(--found); }

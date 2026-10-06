@@ -193,7 +193,8 @@
       if (!title) return;
       var h = document.createElement("div");
       h.className = "box-h";
-      h.innerHTML = '<span class="ic">' + lab[0] + "</span><span>" + title + "</span>";
+      // keep Greek symbols (η, λ, τ, γ) lower-case inside the upper-cased heading
+      h.innerHTML = '<span class="ic">' + lab[0] + "</span><span>" + title.replace(/([Ͱ-Ͽ]+)/g, '<span class="nc">$1</span>') + "</span>";
       b.insertBefore(h, b.firstChild);
     });
   }

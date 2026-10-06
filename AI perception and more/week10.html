@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 10 · Efficient &amp; Self-Supervised Learning — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week10.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 10 · Lecture X (distillation &amp; contrastive learning) + Lecture Xb (multi-modal perception &amp; continual learning)</div>
+  <h1>Distributions, Knowledge Distillation, Contrastive Learning, Multi-Modal Fusion, Pruning &amp; Continual Learning</h1>
+  <p class="lead">Networks output probability distributions, and losses compare distributions. That view leads to distilling a large teacher into a small, real-time student, and to learning features without labels through contrastive learning. The second half applies these tools to drones: fusing RGB with infrared when a sensor may fail, pruning channels, learning new tasks without forgetting old ones, and segmenting classes described in plain language.</p>
+  <div class="meta"><span class="chip acc">KL(P‖Q) ≠ KL(Q‖P)</span><span class="chip acc">softmax(z/T)</span><span class="chip acc">InfoNCE</span><span class="chip acc">CEN: swap low-γ channels</span><span class="chip acc">stability–plasticity</span><span class="chip"><span data-qcount="10:A"></span> assignment Qs · <span data-qcount="10:P"></span> practice Qs</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="distributions">
+<h2><span class="num">10.1</span> Networks as probability distributions</h2>
+<div class="concept">
+<div class="f-exp">A <b>probability distribution</b> assigns a likelihood to every outcome of a random variable. Discrete: a <b>probability mass function</b> P(x) with Σ<sub>x</sub> P(x) = 1. Continuous: a <b>probability density function</b> p(x) with ∫ p(x) dx = 1.</div>
+<div class="f-use">Almost every ML task models a distribution. <b>Classification</b> models P(y | x) over labels; <b>generative modelling</b> models P(x) over the data itself (images, text, audio). Every softmax at the end of a network produces a <b>probability distribution</b>, not just a list of scores.</div>
+<div class="f-imp"><b>Two views of what a network learns.</b> In the <i>function-approximation</i> view, f<sub>θ</sub>(x) approximates a target mapping. In the <i>distribution</i> view, the network learns P<sub>θ</sub>(y | x) or P<sub>θ</sub>(x, y), and training pulls that distribution towards the true (empirical) data distribution. So the <b>loss function is a distribution-comparison tool</b>, and training a network means minimising a distance between distributions. Intermediate activations across a batch also form empirical distributions, which is what distillation exploits.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="divergence">
+<h2><span class="num">10.2</span> Measuring the gap: KL divergence, MMD, Wasserstein</h2>
+<div class="box formula"><p><b>KL divergence</b>: D<sub>KL</sub>(P‖Q) = Σ<sub>x</sub> P(x) log(P(x)/Q(x)) (continuous: ∫ p log(p/q) dx).<br>
+<b>Cross-entropy</b>: H(P<sub>data</sub>, P<sub>θ</sub>) = D<sub>KL</sub>(P<sub>data</sub>‖P<sub>θ</sub>) + H(P<sub>data</sub>). The data entropy is a constant, so <b>minimising cross-entropy = minimising KL</b>.<br>
+<b>MMD</b>: MMD²(P, Q) = ‖E<sub>x∼P</sub>[φ(x)] − E<sub>y∼Q</sub>[φ(y)]‖²<sub>ℋ</sub>, where k(x, x′) = ⟨φ(x), φ(x′)⟩<sub>ℋ</sub>.</p></div>
+<table class="compact">
+<tr><th></th><th>KL divergence</th><th>Maximum Mean Discrepancy (MMD)</th></tr>
+<tr><td>Symmetric?</td><td><b>No</b>: D<sub>KL</sub>(P‖Q) ≠ D<sub>KL</sub>(Q‖P)</td><td><b>Yes</b></td></tr>
+<tr><td>Needs</td><td>Densities on a measurable space with a base measure; <b>absolute continuity</b> (Q(x) = 0 ⇒ P(x) = 0) so the Radon–Nikodym derivative exists</td><td>Only <b>samples</b>. Built on a <b>Reproducing Kernel Hilbert Space</b> from a positive semi-definite kernel (Moore–Aronszajn theorem)</td></tr>
+<tr><td>Little or no overlap</td><td><b>Not effective</b>: it blows up to ∞ or saturates</td><td>Still defined when the supports don't overlap</td></tr>
+<tr><td>Idea</td><td>Compare densities point by point</td><td>Embed samples with a kernel and compare the <b>mean embeddings</b></td></tr>
+</table>
+<p>The lecture also lists the <b>Wasserstein distance</b> (the "earth mover's" cost of moving probability mass from P to Q). Like MMD, it stays meaningful when the distributions don't overlap, which is why it is used for GAN training in Week 11.</p>
+<div class="box warn" data-title="KL direction is an exam favourite"><p>D<sub>KL</sub>(P‖Q) averages over <b>P</b>. Wherever P(x) &gt; 0 but Q(x) → 0, the term log(P/Q) → ∞. Putting the teacher first, D<sub>KL</sub>(P<sub>T</sub>‖P<sub>S</sub>), is <b>mass-covering</b>: the student is punished heavily for giving near-zero probability to any class the teacher thinks plausible. Example: P = [0.5, 0.5], Q = [0.9, 0.1] gives D<sub>KL</sub>(P‖Q) = 0.511 nats but D<sub>KL</sub>(Q‖P) = 0.368 nats.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="kd">
+<h2><span class="num">10.3</span> Knowledge distillation (teacher → student)</h2>
+<div class="concept">
+<div class="f-exp"><b>Motivation.</b> Speech and object recognition must extract structure from very large, highly redundant datasets, which may need a large model, but deployment (a drone!) must run in <b>real time</b>. <b>Distillation</b> is a different kind of training that transfers the knowledge of the large trained <b>teacher</b> into a small <b>student</b> that is suitable for deployment.</div>
+<div class="f-imp"><b>Soft targets with temperature.</b> p<sub>i</sub> = exp(z<sub>i</sub>/T) / Σ<sub>j</sub> exp(z<sub>j</sub>/T). At T = 1 the teacher is nearly one-hot. A higher T <b>softens</b> the distribution and reveals the "<b>dark knowledge</b>": the relative similarity between wrong classes (a "2" looks more like a "3" than a "7"). Hard labels carry none of this. A typical loss is α·CE(y, p<sub>S</sub>) + (1 − α)·T²·D<sub>KL</sub>(p<sub>T</sub><sup>(T)</sup>‖p<sub>S</sub><sup>(T)</sup>). The T² factor keeps the soft-target gradients on the same scale as T changes.</div>
+<div class="f-use"><b>What to match?</b> The lecture lists three options:
+<ul>
+<li><b>Output logits</b> (soft targets).</li>
+<li><b>Intermediate features.</b> The student mimics the distribution of the teacher's hidden activations (Neuron Selectivity Transfer). FitNets "hints" compare teacher and student layers after a <b>linear transformation to match dimensions</b>. <b>Attention maps</b> transfer too: activation statistics correlate spatially with the predicted objects, and stronger networks have sharper attention peaks (Network-in-Network 62%, ResNet-34 73%, ResNet-101 77.3% ImageNet accuracy).</li>
+<li><b>Gradients.</b> ∂L/∂x highlights the input pixels with the highest importance (a gradient-based spatial attention map).</li>
+</ul></div>
+</div>
+<div class="demo box" data-demo="kdtemp" data-title="Interactive — temperature, soft targets and the KL distillation loss"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="contrastive">
+<h2><span class="num">10.4</span> Contrastive learning: CPC, SimCLR, MoCo, CMC</h2>
+<div class="concept">
+<div class="f-exp">Learn representations by <b>comparing pairs of samples</b> rather than fitting labels. <b>Pull together</b> the embeddings of <b>positives</b> (two augmented views of the same image) and <b>push apart</b> the <b>negatives</b> (views of different images). <b>No labels are needed</b>: the supervisory signal comes from the data's own structure.</div>
+<div class="f-imp"><b>CPC (Contrastive Predictive Coding, van den Oord et al. 2018)</b> predicts a <i>future latent representation</i> from past context. It discriminates the true future embedding from distractor (negative) embeddings instead of reconstructing raw future data, so effort goes into high-level, predictable structure rather than pixel-level noise. CPC introduced the <b>InfoNCE</b> loss:<br>
+ℒ = −log [ exp(sim(z, z<sup>+</sup>)/τ) / Σ<sub>i=1..K</sub> exp(sim(z, z<sub>i</sub>)/τ) ]<br>
+Here z<sup>+</sup> is the positive, the z<sub>i</sub> range over K candidates (one positive plus negatives), sim is cosine similarity or a dot product, and τ is the temperature. It is a softmax cross-entropy where the "correct class" is the positive.</div>
+</div>
+<div class="two-col">
+<div class="concept"><h3>SimCLR (Chen et al., 2020)</h3>
+<p>Two augmentations t, t′ ∼ 𝒯 sampled from the <b>same family</b> are applied to each example → two correlated views. These pass through the base encoder <b>f(·)</b> (representation h) and then a small <b>projection head g(·)</b> (z), where the <b>NT-Xent loss</b> (normalised-temperature InfoNCE) is applied over a minibatch of N examples (2N views). After pretraining, <b>g is discarded</b> and h is used downstream. The contrastive loss makes z invariant to augmentations (colour, crop…), which throws away information. g absorbs that loss, so h keeps richer features. SimCLR depends on <b>very large batches</b> to get many negatives.</p></div>
+<div class="concept"><h3>MoCo (He et al., 2020)</h3>
+<p>Momentum Contrast removes SimCLR's large-batch dependence. It keeps a <b>queue (dictionary) of negative embeddings</b> from previous batches and encodes keys with a <b>momentum-averaged encoder</b> (θ<sub>k</sub> ← m·θ<sub>k</sub> + (1 − m)·θ<sub>q</sub>), so the queued keys stay consistent. The <b>number of negatives is decoupled from the batch size</b>.</p></div>
+</div>
+<div class="concept">
+<div class="f-exp"><b>Contrastive Multiview Coding (CMC, Tian et al. 2020).</b> The supervisory signal is the natural <b>co-occurrence of several views of the same scene</b>. Views of the same scene map to nearby points, and views of different scenes map far apart. For two views V<sub>1</sub>, V<sub>2</sub>, two encoders f<sub>θ1</sub>, f<sub>θ2</sub> extract compact latents, and a <b>critic h<sub>θ</sub>(·)</b> is trained to score <b>congruent</b> (positive) pairs high and <b>incongruent</b> (negative) pairs low.</div>
+<div class="f-use">This extends directly to <b>multispectral remote sensing</b>: different spectral bands act as different views of the same scene, giving self-supervised pre-training without labels.</div>
+</div>
+<div class="demo box" data-demo="infonce" data-title="Interactive — InfoNCE loss: positives, negatives and temperature τ"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="pixelcl">
+<h2><span class="num">10.5</span> Pixel-level contrastive learning for segmentation</h2>
+<div class="concept">
+<div class="f-exp">Segmentation networks mine only <b>local</b> context: each pixel's embedding uses its surroundings, and per-pixel cross-entropy compares a pixel only with its own label. They ignore the <b>global context of the whole dataset</b>.</div>
+<div class="f-imp"><b>Pixel contrast</b> (Wang et al., ICCV 2021): for an anchor pixel embedding i, distinguish a positive (a pixel of the same class, <b>from any image</b>) from negatives (pixels of other classes) in a projected embedding space, using an InfoNCE loss with dot products and temperature τ. This builds a <b>well-structured pixel embedding space</b> from the global semantic similarities among labelled pixels across images. Many negatives are needed, so a large external <b>memory bank</b> stores pixel embeddings beyond the mini-batch.</div>
+<div class="f-use"><b>Sampling strategies.</b> <b>Hardest-example sampling</b>: for each anchor, take only the top-K hardest negatives and positives from the memory bank. <b>Semi-hard sampling</b>: collect the <b>top 10% nearest negatives</b> and the <b>10% farthest positives</b>.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="multimodal">
+<h2><span class="num">10.6</span> Multi-modal perception: RGB + IR/SAR</h2>
+<div class="concept">
+<div class="f-exp">Perception is fundamental to robotics (detection, visual SLAM, segmentation), and a perception failure propagates errors through the whole system. RGB-only perception fails in <b>low light and adverse weather</b> (e.g. a model trained on sunny Cityscapes breaks at night). <b>Complementary sensors</b> help: <b>infrared (IR)</b> and <b>SAR</b>. Domain gaps come from sim-to-real, from geography, weather and illumination, and from <b>different sensors</b>.</div>
+<div class="f-imp"><b>Multi-modal perception</b> learns complementary information. It usually assumes <b>calibrated / co-registered</b> images (RGB, depth, event, LiDAR…) and must also cope with sim-to-real, <b>missing-modality / sensor-failure</b> scenarios, and unseen target domains.<br>
+<b>Key insight for multi-spectral systems.</b> Different imaging systems observe the same object. <b>Low frequencies capture shared information</b> (modality-shared features: shallow layers and the <b>convolutional layers</b> of the backbone). <b>High frequencies carry each modality's distinct features</b> (modality-specific features: deeper layers and the <b>BatchNorm layers</b>). <b>Leveraging the correlation between low and high frequencies constrains the solution space</b>: shared structure anchors the alignment while modality-specific detail is preserved.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="fusion">
+<h2><span class="num">10.7</span> Fusion strategies and the Channel Exchange Network</h2>
+<table class="compact">
+<tr><th>Family</th><th>How</th><th>Drawback</th></tr>
+<tr><td><b>Multi-Modal Image Fusion</b> (MMIF), e.g. PIAFusion, CDDFuse</td><td>Fuse RGB and IR into one <b>fused image</b>, optimised with image-quality metrics, then segment it</td><td>Modality-shared and modality-specific information are not used in training (the high–low frequency correlation is unexplored); <b>cannot handle sensor failure</b> (missing modality)</td></tr>
+<tr><td><b>Multi-Modal Feature-level Fusion</b> (MMFF): aggregation</td><td>Separate encoders for RGB and IR; output features fused and passed to one decoder</td><td>Needs both inputs</td></tr>
+<tr><td>MMFF: alignment, e.g. <b>CEN</b></td><td>Exchange or align features between branches</td><td>For modalities with a <b>large domain gap</b>, forcing modality-specific features to align causes <b>negative transfer</b></td></tr>
+<tr><td>MMFF: knowledge distillation</td><td>A teacher from one modality guides the other</td><td>Teacher/student design needed</td></tr>
+</table>
+<div class="concept">
+<div class="f-imp"><b>Channel Exchange Network (CEN, Wang et al. 2022).</b> The modality branches <b>share convolutional weights</b> but keep <b>distinct BatchNorm layers</b> per modality. A channel whose BN scaling factor <b>γ is below a threshold</b> is "inhibited": it contributes little, so its feature map is <b>replaced by the other modality's feature map at the same position</b>. This is parameter-free fusion built on the <b>network-pruning philosophy</b>: the smallest γ has the least impact on the output.</div>
+</div>
+<div class="demo box" data-demo="cen" data-title="Interactive — channel exchange vs pruning with BN scaling factors γ"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ogp">
+<h2><span class="num">10.8</span> Missing-modality segmentation: SKD-Net and OGP-Net</h2>
+<div class="concept">
+<div class="f-exp"><b>Problem formulation.</b> The goal is to bridge the cross-modal gap between RGB and IR for semantic segmentation. Training uses co-registered RGB–IR pairs from dataset D with pixel-wise labels Y, and the model outputs a segmentation mask S with parameters θ. At inference, the <b>multi-modal</b> setting feeds both images, and the <b>missing-modality</b> setting (night, low light, failed camera) feeds <b>only IR</b>.</div>
+<div class="f-imp">These are knowledge-distillation methods from the instructors' lab (Sikdar, Teotia &amp; Sundaram): <b>SKD-Net</b> (Spectral-based KD, ICRA 2024) and <b>OGP-Net</b> (Optically-Guided Pixel-level contrastive learning, AAAI 2025). Step 1 pre-trains an RGB teacher. Step 2 trains OGP-Net (the student) with pixel-level distillation from that teacher, using two components:
+<ul>
+<li><b>DMC</b> (Distillation with Multi-view Contrastive) combines (i) <b>feature exchange</b>, (ii) <b>pixel-level knowledge distillation</b> and (iii) <b>multi-view contrastive learning</b>. It projects semantics from both modalities into a unified latent space as <b>multi-view feature maps (MVFM)</b> and applies contrastive learning on them. This removes the need for extra augmentations or explicit views from other sensors, and balances intra- and inter-modal learning.</li>
+<li><b>DUR</b> preserves <b>modality-specific</b> representations within the latent space.</li>
+</ul></div>
+<div class="f-use"><b>Results.</b> OGP-Net (IR only) beats the IR baseline by <b>4.81%</b>, and OGP-Net (RGB-IR) beats the RGB baseline by <b>5.64%</b>. The ablation on MSRS shows the best setting is <b>shared conv layers + unshared BatchNorm + feature exchange</b>, the channel-exchange philosophy.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="pruning">
+<h2><span class="num">10.9</span> Pruning: network slimming and its limits</h2>
+<div class="concept">
+<div class="f-exp"><b>Network slimming</b> (Liu et al., ICCV 2017) puts an L1 penalty on the BatchNorm scaling factors γ during training, so unimportant channels are pushed towards zero. Channels with the <b>smallest γ</b> (or smallest weight norm) are then pruned and the slimmer network is fine-tuned. The result is fewer parameters and FLOPs and faster inference on embedded drone hardware.</div>
+<div class="f-lim"><b>"Smaller-norm-less-informative" is only a heuristic</b> (Ye et al., ICLR 2018). A small γ does not guarantee zero contribution, because later layers can rescale it and channels interact. Each removed channel deletes some representational capacity, so <b>pruning more and more channels eventually hurts accuracy</b>, especially without fine-tuning. A pruning ratio must be chosen and validated.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="continual">
+<h2><span class="num">10.10</span> Continual (incremental / lifelong) learning</h2>
+<div class="concept">
+<div class="f-exp">Intelligent systems must adapt to dynamic environments. Continual learning moves from capturing a <b>static</b> data distribution to learning from <b>dynamic</b> ones. The major challenge is <b>catastrophic forgetting</b>: adapting to a new distribution sharply reduces the ability to handle the old ones.</div>
+<div class="f-imp"><b>Stability–plasticity trade-off.</b> Too much plasticity (learning new tasks) interferes with stability (remembering old ones), and vice versa. Updates should also be <b>resource-efficient</b>, ideally close to training only on the new samples. Because labels are expensive and scarce, continual learning must also work in <b>few-shot, semi-supervised and even unsupervised</b> settings (e.g. few-shot continual learning: many samples for the base classes, then novel classes with only a few each).<br>
+<b>Formal set-up.</b> A batch of task t is D<sub>t,b</sub> = {X<sub>t,b</sub>, Y<sub>t,b</sub>}, with task identity t ∈ {1, …, k} and batch index b. A task is defined by its distribution D<sub>t</sub> := p(X<sub>t</sub>, Y<sub>t</sub>). The objective is p(D<sub>1:k</sub> | θ) = Π<sub>t=1</sub><sup>k</sup> p(D<sub>t</sub> | θ), but <b>when learning task k the old sets D<sub>1</sub> … D<sub>k−1</sub> are inaccessible</b>. A <b>flatter converged loss landscape</b> gives a balanced solution that generalises better across the task sequence.</div>
+</div>
+<table class="compact">
+<tr><th>Scenario</th><th>Label space across tasks</th><th>Task identity given?</th></tr>
+<tr><td><b>IIL</b> Instance-Incremental</td><td>One task; samples arrive in batches</td><td>—</td></tr>
+<tr><td><b>DIL</b> Domain-Incremental</td><td><b>Same</b> label space, <b>different input distributions</b></td><td>—</td></tr>
+<tr><td><b>TIL</b> Task-Incremental</td><td>Disjoint</td><td>In <b>training and testing</b></td></tr>
+<tr><td><b>CIL</b> Class-Incremental</td><td>Disjoint</td><td><b>Only in training</b></td></tr>
+<tr><td><b>TFCL</b> Task-Free</td><td>Disjoint</td><td><b>Never</b></td></tr>
+<tr><td><b>OCL</b> Online</td><td>Disjoint; each task arrives as a <b>one-pass data stream</b></td><td>—</td></tr>
+</table>
+<div class="box warn" data-title="Why not just freeze everything?"><p>Freezing all weights after task 1 gives zero forgetting (perfect stability) but <b>zero plasticity</b>: the network can no longer adapt to new tasks. Continual learning is about the <b>balance</b>, not either extreme.</p></div>
+<p><b>Class-incremental segmentation</b> (e.g. VISTA-CLIP, CVPRW 2025): at step t the labels cover only the current classes C<sub>t</sub>, with past and future classes unlabelled. After each step the model must segment all of C<sub>1:t</sub>, avoiding forgetting of C<sub>1:t−1</sub> (stability) while learning C<sub>t</sub> (plasticity). Findings: VLMs like CLIP are not great for panoptic segmentation as-is, the CLIP text encoder works well with other vision backbones, and <b>prompts</b> help continual learning.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ovss">
+<h2><span class="num">10.11</span> Open-vocabulary semantic segmentation and prompt learning</h2>
+<div class="concept">
+<div class="f-exp"><b>Closed-set</b> segmentation fixes the class set for both training and inference. In <b>open-vocabulary semantic segmentation (OVSS)</b>, an image I comes with candidate classes C = {C<sub>1</sub>, …, C<sub>N</sub>}, each <b>described in natural language</b>. A zero-shot model assigns one C<sub>i</sub> to each pixel. <b>N can vary at inference</b> (different downstream tasks), and the model <b>may never have seen the candidate classes in training</b>.</div>
+<div class="f-imp">OVSS is built on <b>CLIP</b> vision–language backbones and comes in two architecture types: <b>mask-proposal networks</b> (propose masks, then classify each against the text embeddings) and <b>cost-aggregation models</b> (CAT-Seg: aggregate the image–text similarity cost volume). Out-of-domain generalisation is tested on the <b>MESS</b> multi-domain benchmark.<br>
+<b>Parameter-efficient fine-tuning</b> of VLMs optimises a few task-specific learnable tokens: <b>visual prompt tuning (VPT)</b> injects trainable prompt tokens into the visual encoder's input sequence across several Transformer layers; <b>text prompt learning</b> refines contextual word embeddings with learnable vectors; <b>multi-modal prompts</b> do both. The lab's CoLoRA (IROS 2026) combines optimal transport with LoRA for multi-domain OVSS. The AetherVision-Bench benchmark covers open-vocabulary RGB-IR segmentation across aerial and ground views.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A10</span> Week 10 assignment — every question explained</h2>
+<div class="qb" data-week="10" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P10</span> Practice MCQs — Week 10</h2>
+<div class="qb" data-week="10" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

@@ -1181,5 +1181,77 @@
     run();
   };
 
-  /*__WEEK10__*/
+  /* ===================================================================
+     WEEK 10
+     =================================================================== */
+  function softmaxT(z, T) { var m = Math.max.apply(null, z), e = z.map(function (v) { return Math.exp((v - m) / T); }), s = e.reduce(function (a, b) { return a + b; }, 0); return e.map(function (v) { return v / s; }); }
+  function KL(p, q) { var s = 0; for (var i = 0; i < p.length; i++) if (p[i] > 0) s += p[i] * Math.log(p[i] / Math.max(q[i], 1e-300)); return s; }
+  window.AID.softmaxT = softmaxT; window.AID.KL = KL;
+  function bars(labels, series, opt) {
+    opt = opt || {};
+    var W = opt.w || 420, H = opt.h || 200, n = labels.length, gw = (W - 40) / n, s = svgEl(W, H + 24);
+    css(S(s, "line", { x1: 30, x2: W - 5, y1: H, y2: H }), { stroke: "var(--ink-3)" });
+    labels.forEach(function (l, i) {
+      series.forEach(function (se, k) {
+        var bw = gw * 0.8 / series.length, x = 34 + i * gw + k * bw, h = Math.max(0, Math.min(1, se.v[i])) * (H - 20);
+        css(S(s, "rect", { x: x, y: H - h, width: bw - 2, height: h, rx: 2 }), { fill: se.color || K.PALETTE[k] });
+        S(s, "text", { x: x + bw / 2 - 1, y: H - h - 3, "text-anchor": "middle" }, f(se.v[i], 2));
+      });
+      S(s, "text", { x: 34 + i * gw + gw * 0.4, y: H + 16, "text-anchor": "middle" }, l);
+    });
+    return s;
+  }
+  D.kdtemp = function (host) {
+    var CL = ["cat", "dog", "tiger", "car", "truck"];
+    host.innerHTML = '<div class="demo-row"><label class="grow">Teacher logits (cat, dog, tiger, car, truck)<input class="wide" id="t" value="6, 3.5, 2.5, -1, -1.5"></label><label class="grow">Student logits<input class="wide" id="s" value="5, 0.5, 0.2, 0.5, 0"></label></div><div class="demo-row"><label>Temperature T = <span id="tl"></span><input type="range" id="T" min="1" max="10" step="0.5" value="1"></label><span class="seg" id="pre"><button data-p="2, 1, 0.1|1, 1, 1">Lecture softmax example [2, 1, 0.1]</button><button data-p="6, 3.5, 2.5, -1, -1.5|5, 0.5, 0.2, 0.5, 0">Cat image</button></span></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var zt = nums(el(host, "#t").value), zs = nums(el(host, "#s").value), T = +el(host, "#T").value;
+      el(host, "#tl").textContent = f(T, 1);
+      var n = Math.min(zt.length, zs.length); zt = zt.slice(0, n); zs = zs.slice(0, n);
+      var labels = n === 5 ? CL : zt.map(function (_, i) { return "class " + (i + 1); });
+      var pt = softmaxT(zt, T), ps = softmaxT(zs, T), pt1 = softmaxT(zt, 1);
+      var H = -pt.reduce(function (a, p) { return a + (p > 0 ? p * Math.log(p) : 0); }, 0);
+      el(host, "#pl").innerHTML = legend([{ name: "teacher P_T (at T)", color: K.PALETTE[0] }, { name: "student P_S (at T)", color: K.PALETTE[1] }]);
+      el(host, "#pl").appendChild(bars(labels, [{ v: pt }, { v: ps }]));
+      el(host, "#o").innerHTML = "Softmax with temperature: p<sub>i</sub> = exp(z<sub>i</sub>/T) / Σ<sub>j</sub> exp(z<sub>j</sub>/T)<br>Teacher at T = 1: [" + pt1.map(function (p) { return f(p, 3); }).join(", ") + "]<br>Teacher at T = " + f(T, 1) + ": [" + pt.map(function (p) { return f(p, 3); }).join(", ") + "] · entropy " + f(H, 3) + " nats<br><br>" +
+        "KL(P<sub>T</sub> ‖ P<sub>S</sub>) = <b>" + f(KL(pt, ps), 4) + "</b> · KL(P<sub>S</sub> ‖ P<sub>T</sub>) = " + f(KL(ps, pt), 4) + " (not symmetric)<br>" +
+        (T >= 3 ? "Higher T <b>softens</b> the teacher: the relative probabilities of the wrong classes (dog and tiger are cat-like, vehicles are not) become visible — the \"dark knowledge\" a one-hot label throws away." : "At T = 1 the teacher is nearly one-hot; raise T to reveal the similarity structure.") +
+        "<br><small>Distillation loss (Hinton): α·CE(y, P<sub>S</sub>(T=1)) + (1 − α)·T²·KL(P<sub>T</sub><sup>(T)</sup> ‖ P<sub>S</sub><sup>(T)</sup>); the T² keeps gradient sizes comparable. Teacher first = mass-covering: the student is heavily penalised wherever it puts ~0 on a class the teacher finds plausible.</small>";
+    }
+    on(host, "input", "input", run);
+    on(host, "#pre button", "click", function () { var p = this.getAttribute("data-p").split("|"); el(host, "#t").value = p[0]; el(host, "#s").value = p[1]; run(); });
+    run();
+  };
+
+  D.infonce = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>sim(anchor, positive) = <span id="pl2"></span><input type="range" id="p" min="-1" max="1" step="0.05" value="0.8"></label><label>Mean sim to negatives = <span id="nl"></span><input type="range" id="n" min="-1" max="1" step="0.05" value="0.1"></label><label>Number of negatives K − 1<select id="k"><option>1</option><option>7</option><option selected>63</option><option>1023</option><option>65535</option></select></label><label>Temperature τ = <span id="tl"></span><input type="range" id="t" min="0.05" max="1" step="0.05" value="0.1"></label><label>Hard negative (one negative with sim) <input type="range" id="h" min="-1" max="1" step="0.05" value="0.1"></label></div><div class="out" id="o"></div>';
+    function run() {
+      var sp = +el(host, "#p").value, sn = +el(host, "#n").value, K1 = +el(host, "#k").value, t = +el(host, "#t").value, hn = +el(host, "#h").value;
+      el(host, "#pl2").textContent = f(sp, 2); el(host, "#nl").textContent = f(sn, 2); el(host, "#tl").textContent = f(t, 2);
+      var ep = Math.exp(sp / t), en = (K1 - 1) * Math.exp(sn / t) + Math.exp(hn / t), prob = ep / (ep + en), L = -Math.log(prob);
+      el(host, "#o").innerHTML = "InfoNCE: ℒ = −log [ exp(sim(z, z<sup>+</sup>)/τ) / Σ<sub>i</sub> exp(sim(z, z<sub>i</sub>)/τ) ] — a softmax classification of the positive among " + (K1 + 1) + " candidates.<br>" +
+        "Probability assigned to the positive: <b>" + f(prob, 4) + "</b> → loss <b>" + f(L, 4) + "</b> (minimum 0; chance level log " + (K1 + 1) + " = " + f(Math.log(K1 + 1), 3) + ")<br><br>" +
+        "Smaller τ sharpens the softmax and concentrates the gradient on the <b>hardest</b> negatives (move the hard-negative slider). More negatives make the task harder and the representation better — why SimCLR needs huge batches and MoCo keeps a <b>queue</b> of negatives with a momentum encoder." +
+        "<br><small>CPC uses this to pick the true future latent among distractors instead of reconstructing raw, high-entropy future pixels.</small>";
+    }
+    on(host, "input,select", "input", run); run();
+  };
+
+  D.cen = function (host) {
+    var gA = [0.92, 0.05, 0.61, 0.33, 0.02, 0.77], gB = [0.10, 0.85, 0.04, 0.58, 0.69, 0.03];
+    host.innerHTML = '<div class="demo-row"><label>Threshold on |γ| = <span id="tl"></span><input type="range" id="t" min="0" max="0.6" step="0.01" value="0.08"></label><label>Mode<select id="m"><option value="cen">Channel exchange (RGB ↔ IR)</option><option value="prune">Pruning (RGB network alone)</option></select></label></div><div class="out" id="o"></div>';
+    function run() {
+      var t = +el(host, "#t").value, m = el(host, "#m").value; el(host, "#tl").textContent = f(t, 2);
+      function row(name, g, other, oname) {
+        return "<tr><th>" + name + "</th>" + g.map(function (v, i) { var low = Math.abs(v) < t; return '<td style="background:' + (low ? (m === "cen" ? "var(--warn-soft)" : "var(--bad-soft)") : "var(--card)") + '">ch' + i + "<br>γ = " + v + (low ? (m === "cen" ? "<br><b>← " + oname + " ch" + i + "</b>" : "<br><b>pruned</b>") : "") + "</td>"; }).join("") + "</tr>";
+      }
+      var nLow = gA.filter(function (v) { return Math.abs(v) < t; }).length;
+      el(host, "#o").innerHTML = '<table class="num compact">' + row("RGB branch", gA, gB, "IR") + (m === "cen" ? row("IR branch", gB, gA, "RGB") : "") + "</table>" +
+        (m === "cen" ? "<b>Channel Exchange Network</b>: the two modality branches <b>share convolution weights but keep separate BatchNorm layers</b>. A channel whose BN scaling factor γ is below the threshold contributes little, so it is <b>replaced by the other modality's channel at the same position</b> — cross-modal fusion without extra parameters." :
+          "<b>Network slimming</b>: train with an L1 penalty on BN γ, then remove channels with the smallest |γ| (here " + nLow + " of 6) and fine-tune. \"Smallest γ → least impact\" is only a <b>heuristic</b>: prune too many and the network loses capacity the remaining channels relied on, so accuracy eventually drops.");
+    }
+    on(host, "input,select", "input", run); run();
+  };
+
+  /*__WEEK11__*/
 })();

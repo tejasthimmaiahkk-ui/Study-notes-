@@ -453,4 +453,65 @@
     ["Label shift", "Covariate shift", "Concept shift", "No shift"], [1], "Label shift: P(y) changes; concept shift: P(y | x) changes.");
   P(9, "A segmentation model must use only SAR images at inference although EO, IR and SAR were available during training. This is the:",
     ["Missing-modality problem", "Label-shift problem", "Overfitting problem", "Anchor problem"], [0], "SpaceNet 6 MSAW setting.");
+  /* ---------- Week 10 ---------- */
+  P(10, "Every time a softmax is placed at the end of a network, the output is:",
+    ["A set of unnormalised scores", "A probability distribution over the classes", "A one-hot vector", "A density over the input space"], [1], "Softmax outputs are non-negative and sum to 1, so they form a PMF over classes. They are only one-hot in the limit of very confident logits.");
+  P(10, "Classification and generative modelling, in the distribution view, model respectively:",
+    ["P(x) and P(y | x)", "P(y | x) and P(x)", "P(y) and P(x | y)", "P(x, y) and P(y)"], [1], "Classification models the label distribution given the input; generative models model the data itself.");
+  P(10, "Cross-entropy H(P<sub>data</sub>, P<sub>θ</sub>) equals:",
+    ["D<sub>KL</sub>(P<sub>θ</sub>‖P<sub>data</sub>)", "D<sub>KL</sub>(P<sub>data</sub>‖P<sub>θ</sub>) + H(P<sub>data</sub>)", "D<sub>KL</sub>(P<sub>data</sub>‖P<sub>θ</sub>) − H(P<sub>θ</sub>)", "H(P<sub>data</sub>) − H(P<sub>θ</sub>)"], [1], "Since H(P<sub>data</sub>) does not depend on θ, minimising cross-entropy is the same as minimising this KL.");
+  P(10, "For P = [0.5, 0.5] and Q = [0.9, 0.1], D<sub>KL</sub>(P‖Q) in nats is closest to:",
+    ["0.368", "0.511", "0", "0.693"], [1], "0.5·ln(0.5/0.9) + 0.5·ln(0.5/0.1) = −0.294 + 0.805 = 0.511. The reverse, D<sub>KL</sub>(Q‖P), is 0.368: KL is not symmetric.");
+  P(10, "Which statements about Maximum Mean Discrepancy (MMD) are correct? (Select all that apply)",
+    ["It is symmetric", "It is defined even when the supports of P and Q do not overlap", "It needs explicit densities, not just samples", "It compares mean embeddings in a Reproducing Kernel Hilbert Space"], [0, 1, 3], "MMD² = ‖E[φ(x)] − E[φ(y)]‖² in an RKHS. It needs only samples, which is its advantage over KL.");
+  P(10, "KL divergence is said to be ineffective when:",
+    ["The distributions are identical", "The two distributions have very little overlap", "The distributions are discrete", "The temperature is above 1"], [1], "Where Q → 0 but P &gt; 0, log(P/Q) blows up. KL also needs absolute continuity. MMD and Wasserstein remain meaningful in that case.");
+  P(10, "Teacher logits [2, 1, 0.1]. With temperature T = 1 the softmax is ≈ [0.659, 0.242, 0.099]. With T = 2 it becomes approximately:",
+    ["[0.867, 0.117, 0.016]", "[0.502, 0.304, 0.194]", "[0.333, 0.333, 0.333]", "[0.659, 0.242, 0.099]"], [1], "softmax([1, 0.5, 0.05]) = [0.502, 0.304, 0.194]. A higher T flattens the distribution and reveals how the teacher ranks the wrong classes. Option A is what you get by sharpening (T = 0.5).");
+  P(10, "As the distillation temperature T → ∞, the softened teacher distribution tends to:",
+    ["One-hot on the top class", "Uniform over all classes", "The ground-truth label", "Zero for every class"], [1], "z/T → 0 for every logit, so all exponentials → 1 and the softmax → 1/K. Very large T washes out the information; moderate T is used.");
+  P(10, "Why is the KL distillation term usually multiplied by T²?",
+    ["To make the loss symmetric", "The gradients of soft targets scale as 1/T², so T² keeps their magnitude comparable to the hard-label loss", "To convert nats to bits", "To prevent the student from overfitting the hard labels"], [1], "Hinton et al.: soft-target gradients scale as 1/T²; multiplying by T² keeps the relative contribution stable when T is changed.");
+  P(10, "In the teacher–student framework, which of these can the student be trained to match? (Select all that apply)",
+    ["Output logits (soft targets)", "Intermediate feature activations", "Attention maps", "Input-gradient maps ∂L/∂x"], [0, 1, 2, 3], "The lecture lists logits, intermediate features (with a linear map to match dimensions, as in FitNets), attention maps and gradients.");
+  P(10, "When the student's intermediate feature map has a different number of channels from the teacher's, FitNets-style hints:",
+    ["Cannot be used", "Apply a learned linear transformation (regressor) to match dimensions before comparing", "Compare only the output logits", "Average both maps to a scalar first"], [1], "A linear transformation is applied to match dimensions, then the features are compared.");
+  P(10, "Attention-transfer observation: Network-in-Network (62%), ResNet-34 (73%), ResNet-101 (77.3%). Which trend in their activation attention maps was reported?",
+    ["Weaker networks have sharper peaks", "Stronger (more accurate) networks have sharper attention peaks on the objects", "All three have identical maps", "Attention maps are uncorrelated with the objects"], [1], "Activation statistics correlate spatially with the predicted objects, and the correlation is stronger in more accurate networks. That is why the attention maps are worth transferring.");
+  P(10, "InfoNCE with one positive of similarity 0.8, three negatives of similarity 0.2 and temperature τ = 0.1. The loss is closest to:",
+    ["0.0074", "0.973", "1.386", "0.693"], [0], "Positive term e<sup>8</sup> = 2981; each negative e<sup>2</sup> = 7.39. Loss = −ln(2981/(2981 + 22.2)) = 0.0074. With τ = 1 it would be 0.973. A small τ sharpens the contrast.");
+  P(10, "If an encoder is untrained and gives every candidate the same similarity, the InfoNCE loss with K candidates (1 positive + K−1 negatives) equals:",
+    ["0", "1", "ln K", "K"], [2], "The softmax gives 1/K to the positive, so the loss is −ln(1/K) = ln K. For K = 8 that is 2.08. This is the chance-level value to beat.");
+  P(10, "In SimCLR, which statements are correct? (Select all that apply)",
+    ["Two augmentations t, t′ from the same family produce two correlated views", "The contrastive (NT-Xent) loss is applied after the projection head g(·)", "The representation h = f(x) from the encoder is kept for downstream tasks; g is discarded", "It needs only very small batches"], [0, 1, 2], "SimCLR relies on large batches to get many negatives; MoCo was designed to remove that dependence.");
+  P(10, "MoCo decouples the number of negatives from the batch size by:",
+    ["Using no negatives at all", "Keeping a queue of past key embeddings encoded by a momentum-averaged encoder", "Using pixel-level labels", "Increasing the temperature"], [1], "The queue acts as a large dictionary of negatives. The momentum encoder (θ<sub>k</sub> ← mθ<sub>k</sub> + (1−m)θ<sub>q</sub>) keeps the queued keys consistent.");
+  P(10, "In Contrastive Multiview Coding, the critic h<sub>θ</sub>(·) is trained to:",
+    ["Reconstruct view 2 from view 1", "Give high scores to congruent (same-scene) view pairs and low scores to incongruent pairs", "Classify the scene into labelled classes", "Predict the BN scaling factors"], [1], "Two encoders f<sub>θ1</sub>, f<sub>θ2</sub> embed the two views, and the critic discriminates positive from negative pairs. Different spectral bands can serve as views.");
+  P(10, "For pixel-level contrastive learning, \"semi-hard\" example sampling collects for each anchor:",
+    ["All pixels of the same image", "The top 10% nearest negatives and the 10% farthest positives from the memory bank", "Random pixels only", "Only the single hardest negative"], [1], "Hardest sampling takes the top-K hardest negatives and positives; semi-hard takes the 10% nearest negatives and 10% farthest positives. A memory bank supplies negatives beyond the mini-batch.");
+  P(10, "In multi-spectral (RGB–IR) networks, modality-specific, high-frequency information is mainly associated with:",
+    ["Shallow convolutional layers", "Deeper layers and the BatchNorm layers", "The input normalisation only", "The loss function"], [1], "Low-frequency, modality-shared features sit in shallow and convolutional layers; high-frequency, modality-specific features sit in deeper and BatchNorm layers. This motivates shared convs with separate BNs.");
+  P(10, "A key drawback of Multi-Modal Image Fusion (e.g. PIAFusion, CDDFuse) for drone perception is that it:",
+    ["Needs no training", "Cannot handle sensor failure (missing modality) and does not exploit modality-shared/specific features in training", "Works only on IR images", "Always outperforms feature fusion"], [1], "It builds one fused image from both sensors, so a missing sensor breaks the pipeline.");
+  P(10, "In the Channel Exchange Network (CEN):",
+    ["Each modality has its own convolution weights and a shared BatchNorm", "Convolution weights are shared, BatchNorm is modality-specific, and channels with BN γ below a threshold are replaced by the other modality's channel at the same position", "Channels with the largest γ are exchanged", "Low-γ channels are deleted permanently"], [1], "CEN is alignment-based feature fusion built on the pruning idea that a small γ means little impact. Deleting low-γ channels would be pruning, not exchange.");
+  P(10, "Directly forcing alignment between modality-specific features of modalities with a large domain gap tends to cause:",
+    ["Positive transfer", "Negative transfer", "Zero change", "Faster convergence only"], [1], "This is why OGP-Net adds DUR to preserve modality-specific representations.");
+  P(10, "OGP-Net's DMC module combines which three ingredients?",
+    ["Pruning, quantisation, distillation", "Feature exchange, pixel-level knowledge distillation, multi-view contrastive learning", "Data augmentation, dropout, weight decay", "RPN, RoI Align, NMS"], [1], "DMC maps semantics from both modalities into a unified latent space as multi-view feature maps and applies contrastive learning to them. DUR preserves modality-specific features.");
+  P(10, "OGP-Net ablation: the best configuration was:",
+    ["Unshared conv, shared BN, no exchange", "Shared conv, unshared BN, with feature exchange", "Shared conv, shared BN, no exchange", "Unshared everything"], [1], "This follows the channel-exchange philosophy: shared low-frequency filters and modality-specific BN statistics.");
+  P(10, "In continual learning, tasks with the same label space but different input distributions (e.g. the same classes in day → night → fog) form:",
+    ["Task-Incremental Learning", "Domain-Incremental Learning", "Class-Incremental Learning", "Instance-Incremental Learning"], [1], "DIL: same labels, shifting inputs. TIL and CIL have disjoint label spaces.");
+  P(10, "Task identities are provided during training but NOT at test time, and tasks have disjoint label spaces. This is:",
+    ["TIL", "CIL", "TFCL", "IIL"], [1], "Class-Incremental: the model must choose among all classes seen so far without being told the task. TIL gives the task ID at test; TFCL never gives it.");
+  P(10, "In the continual-learning objective p(D<sub>1:k</sub> | θ) = Π<sub>t</sub> p(D<sub>t</sub> | θ), the central difficulty is that:",
+    ["The product is not differentiable", "When learning task k, the old datasets D<sub>1</sub> … D<sub>k−1</sub> are inaccessible", "Tasks always share labels", "θ must be frozen"], [1], "Training only on D<sub>k</sub> lets the new task overwrite what the old ones needed: catastrophic forgetting.");
+  P(10, "According to the lecture, a balanced continual-learning solution generalises better across the task sequence when the converged loss landscape is:",
+    ["Sharper", "Flatter", "Non-convex", "Discontinuous"], [1], "Flat minima tolerate the parameter drift caused by later tasks.");
+  P(10, "In open-vocabulary semantic segmentation (OVSS), which statements hold? (Select all that apply)",
+    ["Candidate classes are described in natural language", "The number of candidate classes N can change at inference", "The model may face classes it never saw during training", "The class set must be fixed at training time"], [0, 1, 2], "A fixed class set is the closed-set setting. OVSS typically uses CLIP backbones and is evaluated out of domain on MESS.");
+  P(10, "Visual Prompt Tuning (VPT) adapts a frozen vision–language model by:",
+    ["Fine-tuning all backbone weights", "Injecting trainable prompt tokens into the visual encoder's input sequence across Transformer layers", "Changing the text vocabulary", "Pruning attention heads"], [1], "Parameter-efficient fine-tuning: only the small set of task-specific tokens is learned. Text prompt learning instead learns context vectors for the word embeddings.");
 })();
