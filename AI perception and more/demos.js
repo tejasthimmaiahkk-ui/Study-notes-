@@ -917,5 +917,269 @@
     on(host, "select,input", "input", run); run();
   };
 
-  /*__WEEK8__*/
+  /* ===================================================================
+     WEEK 8
+     =================================================================== */
+  function iou(a, b) { // boxes [x1, y1, x2, y2]
+    var ix = Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])), iy = Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
+    var inter = ix * iy, ua = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter;
+    return { i: inter, u: ua, v: ua > 0 ? inter / ua : 0 };
+  }
+  window.AID.iou = iou;
+  function boxSvg(boxes, W, H, sc) {
+    var s = svgEl(W * sc + 20, H * sc + 20);
+    css(S(s, "rect", { x: 10, y: 10, width: W * sc, height: H * sc }), { fill: "var(--card)", stroke: "var(--line)" });
+    boxes.forEach(function (b) {
+      var r = S(s, "rect", { x: 10 + b.b[0] * sc, y: 10 + b.b[1] * sc, width: (b.b[2] - b.b[0]) * sc, height: (b.b[3] - b.b[1]) * sc });
+      css(r, { fill: b.fill || "none", stroke: b.color, strokeWidth: b.w || 2.5, strokeDasharray: b.dash || "", opacity: b.op || 1 });
+      if (b.label) css(S(s, "text", b.lpos === "b" ? { x: 6 + b.b[2] * sc, y: 4 + b.b[3] * sc, "text-anchor": "end" } : { x: 14 + b.b[0] * sc, y: 24 + b.b[1] * sc }, b.label), { fill: b.color, fontWeight: 700 });
+    });
+    return s;
+  }
+  D.iou = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Box A [x1, y1, x2, y2]<input id="a" value="0, 0, 4, 4"></label><label>Box B<input id="b" value="2, 0, 6, 4"></label></div><div class="demo-row"><label>Move B horizontally <input type="range" id="dx" min="-6" max="6" step="0.1" value="0"></label><span class="seg" id="pre"><button data-p="0,0,2,2|1,1,3,3">Diagonal overlap</button><button data-p="0,0,4,4|2,0,6,4">Half overlap</button><button data-p="0,0,10,10|6,5,10,10">Small box inside</button><button data-p="0,0,4,4|5,5,7,7">No overlap</button></span></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var a = nums(el(host, "#a").value), b0 = nums(el(host, "#b").value), dx = +el(host, "#dx").value;
+      if (a.length < 4 || b0.length < 4) return;
+      var b = [b0[0] + dx, b0[1], b0[2] + dx, b0[3]], r = iou(a, b);
+      var xs = [a[0], a[2], b[0], b[2], 0], ys = [a[1], a[3], b[1], b[3], 0], mx = Math.min.apply(null, xs), my = Math.min.apply(null, ys), Mx = Math.max.apply(null, xs), My = Math.max.apply(null, ys);
+      var sc = 260 / Math.max(Mx - mx, My - my, 1);
+      function sh(q) { return [q[0] - mx, q[1] - my, q[2] - mx, q[3] - my]; }
+      var bx = [{ b: sh(a), color: "var(--acc)", label: "A" }, { b: sh(b), color: "var(--warn)", label: "B" }];
+      var ix1 = Math.max(a[0], b[0]), iy1 = Math.max(a[1], b[1]), ix2 = Math.min(a[2], b[2]), iy2 = Math.min(a[3], b[3]);
+      if (ix2 > ix1 && iy2 > iy1) bx.unshift({ b: sh([ix1, iy1, ix2, iy2]), color: "transparent", fill: "var(--good)", op: 0.35 });
+      el(host, "#pl").innerHTML = ""; el(host, "#pl").appendChild(boxSvg(bx, Mx - mx, My - my, sc));
+      el(host, "#o").innerHTML = "Intersection area = " + f(r.i, 3) + "<br>Union = area(A) + area(B) − intersection = " + f(r.u, 3) + "<br><b>IoU = " + f(r.v, 4) + "</b><br><small>IoU = 1 for identical boxes, 0 for disjoint ones. Detection counts as correct (TP) if IoU with a ground-truth box ≥ a threshold (often 0.5); NMS treats boxes with IoU above its threshold as duplicates.</small>";
+    }
+    on(host, "input", "input", run);
+    on(host, "#pre button", "click", function () { var p = this.getAttribute("data-p").split("|"); el(host, "#a").value = p[0]; el(host, "#b").value = p[1]; el(host, "#dx").value = 0; run(); });
+    run();
+  };
+
+  D.nms = function (host) {
+    var SETS = {
+      asg: { n: "Assignment Q2 (one car)", W: 14, H: 12, B: [{ id: "A", s: 0.95, b: [0, 0, 10, 10] }, { id: "B", s: 0.80, b: [1.7647, 0, 11.7647, 10], lpos: "b" }, { id: "C", s: 0.75, b: [6, 5, 10, 10] }] },
+      two: { n: "Two cars + duplicates", W: 24, H: 12, B: [{ id: "A", s: 0.92, b: [1, 2, 9, 9] }, { id: "B", s: 0.85, b: [2, 2.5, 10, 9.5] }, { id: "C", s: 0.30, b: [0, 1, 8, 8] }, { id: "D", s: 0.88, b: [14, 3, 22, 10] }, { id: "E", s: 0.70, b: [13, 2, 21, 9] }, { id: "F", s: 0.10, b: [9, 0, 13, 4] }] }
+    };
+    host.innerHTML = '<div class="demo-row"><label>Scene<select id="sc">' + Object.keys(SETS).map(function (k) { return '<option value="' + k + '">' + SETS[k].n + "</option>"; }).join("") + '</select></label><label>IoU threshold = <span id="tl"></span><input type="range" id="t" min="0.1" max="0.9" step="0.05" value="0.5"></label><label>Score threshold = <span id="sl"></span><input type="range" id="s" min="0" max="0.9" step="0.05" value="0.2"></label><button class="btn ghost" id="st">Next step</button><button class="btn ghost" id="rs">Restart</button></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    var step = 0;
+    function run() {
+      var set = SETS[el(host, "#sc").value], T = +el(host, "#t").value, st = +el(host, "#s").value;
+      el(host, "#tl").textContent = f(T, 2); el(host, "#sl").textContent = f(st, 2);
+      var boxes = set.B.slice().sort(function (a, b) { return b.s - a.s; });
+      var log = ["1. Sort by score: " + boxes.map(function (b) { return b.id + " (" + b.s + ")"; }).join(", ")];
+      var low = boxes.filter(function (b) { return b.s < st; }); boxes = boxes.filter(function (b) { return b.s >= st; });
+      log.push("2. Discard scores below " + f(st, 2) + ": " + (low.length ? low.map(function (b) { return b.id; }).join(", ") : "none"));
+      var keep = [], removed = {}, remaining = boxes.slice(), k = 0;
+      while (remaining.length && k < step) {
+        var top = remaining.shift(); keep.push(top);
+        var msg = "3." + (k + 1) + " Keep " + top.id + " (" + top.s + ")";
+        var sup = [];
+        remaining = remaining.filter(function (b) { var v = iou(top.b, b.b).v; if (v > T) { sup.push(b.id + " (IoU " + f(v, 2) + ")"); removed[b.id] = top.id; return false; } return true; });
+        log.push(msg + (sup.length ? "; suppress " + sup.join(", ") : "; nothing overlaps more than " + f(T, 2)));
+        k++;
+      }
+      var done = !remaining.length;
+      var vis = set.B.map(function (b) {
+        var isK = keep.indexOf(b) >= 0, isR = removed[b.id] || low.indexOf(b) >= 0;
+        return { b: b.b, color: isK ? "var(--good)" : isR ? "var(--bad)" : "var(--ink-3)", dash: isR ? "4 3" : "", label: b.id + " " + b.s, w: isK ? 3.5 : 2, lpos: b.lpos };
+      });
+      el(host, "#pl").innerHTML = ""; el(host, "#pl").appendChild(boxSvg(vis, set.W, set.H, 300 / set.W));
+      el(host, "#o").innerHTML = log.join("<br>") + "<br>" + (done ? '<b class="ok">Done.</b> Kept: ' + keep.map(function (b) { return b.id; }).join(", ") : "Press <b>Next step</b>.") +
+        (el(host, "#sc").value === "asg" && done ? "<br><small>C (mirror region) survives: its IoU with A is only 0.2, so NMS does not treat it as a duplicate — NMS cannot remove every false positive.</small>" : "") +
+        "<br><small>Green = kept, red dashed = suppressed/discarded.</small>";
+    }
+    on(host, "select,input", "input", function () { step = 0; run(); });
+    el(host, "#st").addEventListener("click", function () { step++; run(); });
+    el(host, "#rs").addEventListener("click", function () { step = 0; run(); });
+    run();
+  };
+
+  D.bboxreg = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Proposal p (cx, cy, w, h)<input id="p" value="50, 50, 40, 20"></label><label>Ground truth g (cx, cy, w, h)<input id="g" value="56, 47, 60, 24"></label></div><div class="two-col"><div class="out" id="o"></div><div id="pl"></div></div>';
+    function run() {
+      var p = nums(el(host, "#p").value), g = nums(el(host, "#g").value);
+      if (p.length < 4 || g.length < 4) return;
+      var t = [(g[0] - p[0]) / p[2], (g[1] - p[1]) / p[3], Math.log(g[2] / p[2]), Math.log(g[3] / p[3])];
+      el(host, "#o").innerHTML = "<b>Targets</b> (what the regressor learns):<br>t<sub>x</sub> = (g<sub>x</sub> − p<sub>x</sub>)/p<sub>w</sub> = " + f(t[0], 4) + "<br>t<sub>y</sub> = (g<sub>y</sub> − p<sub>y</sub>)/p<sub>h</sub> = " + f(t[1], 4) + "<br>t<sub>w</sub> = log(g<sub>w</sub>/p<sub>w</sub>) = " + f(t[2], 4) + "<br>t<sub>h</sub> = log(g<sub>h</sub>/p<sub>h</sub>) = " + f(t[3], 4) +
+        "<br><br><b>Applying predictions</b> d(p) = t: ĝ<sub>x</sub> = p<sub>w</sub>d<sub>x</sub> + p<sub>x</sub>, ĝ<sub>y</sub> = p<sub>h</sub>d<sub>y</sub> + p<sub>y</sub>, ĝ<sub>w</sub> = p<sub>w</sub>e<sup>d<sub>w</sub></sup>, ĝ<sub>h</sub> = p<sub>h</sub>e<sup>d<sub>h</sub></sup> → recovers g exactly." +
+        "<br><small>Centres: scale-invariant shifts (relative to box size); widths/heights: log-scale ratios. R-CNN fits these with regularised least squares on pooled CNN features; Fast/Faster R-CNN and SSD use a smooth-L1 loss. YOLOv2 instead uses b<sub>x</sub> = σ(t<sub>x</sub>) + c<sub>x</sub>, b<sub>w</sub> = p<sub>w</sub>e<sup>t<sub>w</sub></sup>.</small>";
+      function bx(q) { return [q[0] - q[2] / 2, q[1] - q[3] / 2, q[0] + q[2] / 2, q[1] + q[3] / 2]; }
+      var s = plot([{ f: function (x) { return Math.abs(x) < 1 ? 0.5 * x * x : Math.abs(x) - 0.5; }, name: "smooth L1", color: "var(--acc)" }, { f: function (x) { return 0.5 * x * x; }, name: "L2 (½x²)", color: "var(--bad)", dash: "5 4" }, { f: function (x) { return Math.abs(x); }, name: "L1", color: "var(--ink-3)", dash: "2 3" }], [-3, 3], [0, 4], { w: 300, h: 190 });
+      el(host, "#pl").innerHTML = ""; el(host, "#pl").appendChild(boxSvg([{ b: bx(p), color: "var(--warn)", label: "p" }, { b: bx(g), color: "var(--good)", label: "g" }], 120, 100, 2.4));
+      el(host, "#pl").insertAdjacentHTML("beforeend", legend([{ name: "smooth L1", color: "var(--acc)" }, { name: "L2", color: "var(--bad)" }, { name: "L1", color: "var(--ink-3)" }]));
+      el(host, "#pl").appendChild(s);
+    }
+    on(host, "input", "input", run); run();
+  };
+
+  D.roipool = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Region size h = w<input type="number" id="h" value="15" min="2" max="30"></label><label>Output grid H = W<input type="number" id="H" value="7" min="1" max="14"></label><label>Method<select id="m"><option value="pool">RoI Pooling (quantised)</option><option value="align">RoI Align (bilinear, no rounding)</option></select></label></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var h = Math.max(2, +el(host, "#h").value), Hh = Math.max(1, +el(host, "#H").value), m = el(host, "#m").value, sz = 300 / h;
+      var s = svgEl(h * sz + 20, h * sz + 20), i;
+      for (i = 0; i <= h; i++) { css(S(s, "line", { x1: 10 + i * sz, x2: 10 + i * sz, y1: 10, y2: 10 + h * sz }), { stroke: "var(--line)" }); css(S(s, "line", { y1: 10 + i * sz, y2: 10 + i * sz, x1: 10, x2: 10 + h * sz }), { stroke: "var(--line)" }); }
+      var edges = [], sizes = [];
+      for (i = 0; i <= Hh; i++) edges.push(i * h / Hh);
+      if (m === "pool") {
+        var st = [], en = [];
+        for (i = 0; i < Hh; i++) { st.push(Math.floor(i * h / Hh)); en.push(Math.ceil((i + 1) * h / Hh)); sizes.push(en[i] - st[i]); }
+        for (i = 0; i < Hh; i++) { css(S(s, "rect", { x: 10 + st[i] * sz, y: 10 + st[0] * sz, width: (en[i] - st[i]) * sz, height: 2 }), { fill: K.PALETTE[i % 8] }); }
+        st.concat(en).forEach(function (e) { css(S(s, "line", { x1: 10 + e * sz, x2: 10 + e * sz, y1: 10, y2: 10 + h * sz }), { stroke: "var(--bad)", strokeWidth: 1.5 }); css(S(s, "line", { y1: 10 + e * sz, y2: 10 + e * sz, x1: 10, x2: 10 + h * sz }), { stroke: "var(--bad)", strokeWidth: 1.5 }); });
+      } else {
+        edges.forEach(function (e) { css(S(s, "line", { x1: 10 + e * sz, x2: 10 + e * sz, y1: 10, y2: 10 + h * sz }), { stroke: "var(--good)", strokeWidth: 1.5 }); css(S(s, "line", { y1: 10 + e * sz, y2: 10 + e * sz, x1: 10, x2: 10 + h * sz }), { stroke: "var(--good)", strokeWidth: 1.5 }); });
+        for (var a = 0; a < Hh; a++) for (var b = 0; b < Hh; b++) for (var u = 0; u < 2; u++) for (var v = 0; v < 2; v++) css(S(s, "circle", { cx: 10 + (edges[b] + (v + 0.5) * h / Hh / 2) * sz, cy: 10 + (edges[a] + (u + 0.5) * h / Hh / 2) * sz, r: 1.8 }), { fill: "var(--acc)" });
+      }
+      el(host, "#pl").innerHTML = ""; el(host, "#pl").appendChild(s);
+      el(host, "#o").innerHTML = "Sub-window ≈ h/H = " + h + "/" + Hh + " = <b>" + f(h / Hh, 3) + "</b> cells" + (h % Hh ? " — <b>not an integer</b>." : " (integer — no rounding needed).") + "<br>" +
+        (m === "pool" ? "RoI Pooling <b>rounds</b> the bin boundaries to whole cells (red lines), so bins have unequal sizes " + sizes.join(", ") + " and are shifted from the true region; then max-pool inside each bin. With stride-16 features, one cell of misalignment = 16 image pixels — harmful for precise boxes and masks." :
+          "RoI Align keeps the exact fractional bin edges (green) and samples a few points per bin by <b>bilinear interpolation</b> (dots), then pools them — no quantisation, so features stay aligned with the region (introduced in Mask R-CNN).");
+    }
+    on(host, "input,select", "input", run); run();
+  };
+
+  D.anchors = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Ground-truth box centre x = <span id="xl"></span><input type="range" id="x" min="20" max="80" value="56"></label><label>GT width<input type="number" id="w" value="40"></label><label>GT height<input type="number" id="hh" value="30"></label><label>Feature map (H × W)<input id="fm" value="40, 60"></label></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var gx = +el(host, "#x").value, gw = +el(host, "#w").value, gh = +el(host, "#hh").value, fm = nums(el(host, "#fm").value);
+      el(host, "#xl").textContent = gx;
+      var cx = 50, cy = 50, gt = [gx - gw / 2, cy - gh / 2, gx + gw / 2, cy + gh / 2], scales = [24, 40, 64], ratios = [0.5, 1, 2], A = [], rows = "";
+      scales.forEach(function (sc) { ratios.forEach(function (r) { var w = sc * Math.sqrt(1 / r), h = sc * Math.sqrt(r); var b = [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2], v = iou(b, gt).v; A.push({ b: b, v: v, lab: v > 0.7 ? "positive" : v < 0.3 ? "negative" : "ignored", s: sc, r: r }); }); });
+      var best = A.reduce(function (m, a) { return a.v > m.v ? a : m; }, A[0]); if (best.lab !== "positive") best.lab = "positive (highest IoU)";
+      var vis = A.map(function (a) { return { b: a.b, color: a.lab.indexOf("positive") === 0 ? "var(--good)" : a.lab === "negative" ? "var(--bad)" : "var(--warn)", w: 1.5, dash: a.lab === "negative" ? "3 3" : "" }; });
+      vis.push({ b: gt, color: "var(--ink)", w: 3, label: "GT" });
+      el(host, "#pl").innerHTML = ""; el(host, "#pl").appendChild(boxSvg(vis, 100, 100, 2.8));
+      A.forEach(function (a) { rows += "<tr><td>" + a.s + "</td><td>" + (a.r === 0.5 ? "1:2" : a.r === 1 ? "1:1" : "2:1") + "</td><td>" + f(a.v, 3) + "</td><td>" + a.lab + "</td></tr>"; });
+      el(host, "#o").innerHTML = '<table class="num compact"><tr><th>Scale</th><th>Aspect</th><th>IoU with GT</th><th>RPN label</th></tr>' + rows + "</table>k = 3 scales × 3 aspect ratios = <b>9 anchors</b> per feature-map position" + (fm.length >= 2 ? " → " + fm[0] + " × " + fm[1] + " × 9 = <b>" + (fm[0] * fm[1] * 9).toLocaleString() + "</b> anchors per image" : "") +
+        ".<br>Positive: IoU &gt; 0.7 (or the highest IoU with a GT box); negative: IoU &lt; 0.3; in between: <b>ignored</b> — forcing a label on an ambiguous anchor would inject noisy, contradictory supervision.<br><small>The RPN outputs k objectness scores and 4k box corrections per position, then keeps the top ~300 boxes as proposals.</small>";
+    }
+    on(host, "input", "input", run); run();
+  };
+
+  D.yolo = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Grid S<input type="number" id="S" value="7" min="2" max="13"></label><label>Boxes per cell B<input type="number" id="B" value="2" min="1" max="5"></label><label>Classes C<input type="number" id="C" value="20" min="1" max="100"></label><button class="btn ghost" id="add">Move objects</button></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    var objs = [[0.30, 0.42, 0.22, 0.30, "person"], [0.34, 0.48, 0.30, 0.18, "bicycle"], [0.75, 0.62, 0.35, 0.25, "car"]];
+    function run() {
+      var Sg = +el(host, "#S").value, B = +el(host, "#B").value, C = +el(host, "#C").value, sz = 280;
+      var s = svgEl(sz + 20, sz + 20), i;
+      css(S(s, "rect", { x: 10, y: 10, width: sz, height: sz }), { fill: "var(--card)", stroke: "var(--line)" });
+      for (i = 1; i < Sg; i++) { css(S(s, "line", { x1: 10 + i * sz / Sg, x2: 10 + i * sz / Sg, y1: 10, y2: 10 + sz }), { stroke: "var(--line)" }); css(S(s, "line", { y1: 10 + i * sz / Sg, y2: 10 + i * sz / Sg, x1: 10, x2: 10 + sz }), { stroke: "var(--line)" }); }
+      var cells = {};
+      objs.forEach(function (o, k) {
+        var ci = Math.min(Sg - 1, Math.floor(o[0] * Sg)), cj = Math.min(Sg - 1, Math.floor(o[1] * Sg)), key = ci + "," + cj;
+        (cells[key] = cells[key] || []).push(o[4]);
+        css(S(s, "rect", { x: 10 + ci * sz / Sg, y: 10 + cj * sz / Sg, width: sz / Sg, height: sz / Sg }), { fill: K.PALETTE[k], opacity: 0.25 });
+        css(S(s, "rect", { x: 10 + (o[0] - o[2] / 2) * sz, y: 10 + (o[1] - o[3] / 2) * sz, width: o[2] * sz, height: o[3] * sz }), { fill: "none", stroke: K.PALETTE[k], strokeWidth: 2.5 });
+        css(S(s, "circle", { cx: 10 + o[0] * sz, cy: 10 + o[1] * sz, r: 4 }), { fill: K.PALETTE[k] });
+        css(S(s, "text", { x: 12 + (o[0] - o[2] / 2) * sz, y: 22 + (o[1] - o[3] / 2) * sz }, o[4]), { fill: K.PALETTE[k], fontWeight: 700 });
+      });
+      el(host, "#pl").innerHTML = ""; el(host, "#pl").appendChild(s);
+      var clash = Object.keys(cells).filter(function (k) { return cells[k].length > 1; });
+      el(host, "#o").innerHTML = "Output tensor: S × S × (5B + C) = " + Sg + " × " + Sg + " × (5·" + B + " + " + C + ") = <b>" + Sg + " × " + Sg + " × " + (5 * B + C) + "</b> = " + (Sg * Sg * (5 * B + C)).toLocaleString() + " numbers (YOLOv1: 7 × 7 × 30).<br>Each box: x, y, w, h + confidence = Pr(object) × IoU<sup>truth</sup><sub>pred</sub>. Each <b>cell</b>: one set of C class probabilities Pr(class | object).<br>The cell containing an object's <b>centre</b> is responsible for it." +
+        (clash.length ? '<br><span class="no">Conflict:</span> ' + clash.map(function (k) { return cells[k].join(" and "); }).join("; ") + " have centres in the same cell — YOLOv1 can give that cell only one class, so one object is lost. Anchor boxes (YOLOv2) let each cell predict several boxes, each with its own class." : '<br><span class="ok">No two centres share a cell</span> at this grid size.');
+    }
+    on(host, "input", "input", run);
+    el(host, "#add").addEventListener("click", function () { objs.forEach(function (o) { o[0] = 0.15 + Math.random() * 0.7; o[1] = 0.15 + Math.random() * 0.7; }); run(); });
+    run();
+  };
+
+  /* ===================================================================
+     WEEK 9
+     =================================================================== */
+  D.upsample = function (host) {
+    host.innerHTML = '<div class="demo-row"><span class="seg" id="m"><button data-m="max" class="on">Max unpooling</button><button data-m="nn">Nearest-neighbour unpooling</button><button data-m="tc">Transposed conv (k = 2, s = 2)</button><button data-m="t1">1-D transposed conv</button></span></div><div class="out" id="o"></div><div class="demo-row"><label>Transposed-conv size calculator: input H<input type="number" id="H" value="5"></label><label>kernel K<input type="number" id="K" value="2"></label><label>stride S<input type="number" id="S" value="2"></label><label>padding P<input type="number" id="P" value="0"></label><label>output padding<input type="number" id="op" value="0"></label></div><div class="out" id="o2"></div>';
+    var mode = "max";
+    var src = [[1, 3, 2, 1], [4, 6, 5, 7], [3, 2, 1, 0], [1, 2, 3, 4]];
+    function run() {
+      var h = "";
+      if (mode === "max" || mode === "nn") {
+        var pooled = [[0, 0], [0, 0]], idx = [[0, 0], [0, 0]], i, j, a, b;
+        for (i = 0; i < 2; i++) for (j = 0; j < 2; j++) { var best = -1e9; for (a = 0; a < 2; a++) for (b = 0; b < 2; b++) if (src[2 * i + a][2 * j + b] > best) { best = src[2 * i + a][2 * j + b]; idx[i][j] = [a, b]; } pooled[i][j] = best; }
+        var up = []; for (i = 0; i < 4; i++) { up.push([]); for (j = 0; j < 4; j++) { var pi = Math.floor(i / 2), pj = Math.floor(j / 2); up[i].push(mode === "nn" ? pooled[pi][pj] : (idx[pi][pj][0] === i % 2 && idx[pi][pj][1] === j % 2 ? pooled[pi][pj] : 0)); } }
+        h = '<div class="three-col"><div><b>Encoder map</b>' + gridHTML(src, { heat: 7 }) + "</div><div><b>After 2×2 max-pool</b>" + gridHTML(pooled, { heat: 7 }) + "</div><div><b>Upsampled</b>" + gridHTML(up, { heat: 7 }) + "</div></div>" +
+          (mode === "max" ? "Max unpooling puts each value back at the <b>recorded location of the maximum</b> (the pooling indices / switches) and fills the rest with 0 — the map is sparse and is then densified by trainable convolutions (SegNet). It preserves where the strongest activations were." :
+            "Nearest-neighbour unpooling copies each value into its whole 2 × 2 block — simple, no dependence on the forward pass, but it <b>discards which neuron actually fired</b>.");
+      } else if (mode === "tc") {
+        var x = [[1, 2], [3, 4]], k = [[1, 0.5], [0.5, 0.25]], out = [];
+        for (var r = 0; r < 4; r++) { out.push([]); for (var c = 0; c < 4; c++) out[r].push(x[Math.floor(r / 2)][Math.floor(c / 2)] * k[r % 2][c % 2]); }
+        h = '<div class="three-col"><div><b>Input 2×2</b>' + gridHTML(x, { heat: 4 }) + "</div><div><b>Learned kernel 2×2</b>" + gridHTML(k, { heat: 1 }) + "</div><div><b>Output 4×4</b>" + gridHTML(out, { heat: 4 }) + "</div></div>Each input value <b>stamps</b> a scaled copy of the kernel onto the output; with stride 2 the copies tile without overlap, so the size doubles. The kernel weights are <b>learned</b> (unlike unpooling). With overlap (K &gt; S) contributions add up.";
+      } else {
+        h = "1-D convolution as a matrix (kernel k = [k₁, k₂, k₃], input x₁…x₄):<br>y₁ = k₁x₁ + k₂x₂ + k₃x₃, y₂ = k₁x₂ + k₂x₃ + k₃x₄ → <b>y = Wx</b> with W = [[k₁, k₂, k₃, 0], [0, k₁, k₂, k₃]] (2 × 4).<br>Transposed convolution multiplies by <b>Wᵀ</b> (4 × 2): z₁ = k₁y₁, z₂ = k₂y₁ + k₁y₂, z₃ = k₃y₁ + k₂y₂, z₄ = k₃y₂ — mapping 2 values back to 4 positions (the shape of the input, not its values). That is why it is also called \"deconvolution\" (a misnomer: it is not the inverse).";
+      }
+      el(host, "#o").innerHTML = h;
+      var H = +el(host, "#H").value, Kk = +el(host, "#K").value, Sx = +el(host, "#S").value, Pp = +el(host, "#P").value, op = +el(host, "#op").value;
+      el(host, "#o2").innerHTML = "Transposed-conv output = (H − 1)·S − 2P + K + output_padding = (" + H + " − 1)·" + Sx + " − " + 2 * Pp + " + " + Kk + " + " + op + " = <b>" + ((H - 1) * Sx - 2 * Pp + Kk + op) + "</b><br><small>Assignment: 5 × 5, K = 2, S = 2, P = 0 → 10 × 10. Compare ordinary conv: ⌊(H + 2P − K)/S⌋ + 1.</small>";
+    }
+    on(host, "input", "input", run);
+    on(host, "#m button", "click", function () { host.querySelectorAll("#m button").forEach(function (b) { b.classList.remove("on"); }); this.classList.add("on"); mode = this.getAttribute("data-m"); run(); });
+    run();
+  };
+
+  D.miou = function (host) {
+    var PRE = { asg: "50 10 5 0\n8 40 2 0\n4 6 45 5\n0 2 8 35", two: "8 2\n1 9", imb: "900 20 0\n30 20 0\n5 0 25" };
+    host.innerHTML = '<div class="demo-row"><span class="seg" id="pre"><button data-k="asg" class="on">Week 9 assignment matrix</button><button data-k="two">Small 2-class</button><button data-k="imb">Imbalanced (background-heavy)</button></span></div><div class="demo-row"><label class="grow">Confusion matrix — rows = ground truth, columns = predicted<textarea id="m" rows="4"></textarea></label></div><div class="out" id="o" style="overflow-x:auto"></div>';
+    function run() {
+      var M = el(host, "#m").value.split("\n").map(nums).filter(function (r) { return r.length; }), n = M.length;
+      if (M.some(function (r) { return r.length !== n; })) { el(host, "#o").textContent = "The matrix must be square."; return; }
+      var tot = 0, tp = 0, rows = "", sum = 0, dsum = 0;
+      M.forEach(function (r) { r.forEach(function (v) { tot += v; }); });
+      for (var c = 0; c < n; c++) {
+        var T = M[c][c], R = M[c].reduce(function (a, b) { return a + b; }, 0), Cc = M.reduce(function (a, r) { return a + r[c]; }, 0);
+        var FN = R - T, FP = Cc - T, I = T / (T + FP + FN), Dc = 2 * T / (2 * T + FP + FN);
+        tp += T; sum += I; dsum += Dc;
+        rows += "<tr><td>C" + (c + 1) + "</td><td>" + T + "</td><td>" + FP + "</td><td>" + FN + "</td><td>" + T + "/(" + T + " + " + FP + " + " + FN + ") = <b>" + f(I, 4) + "</b></td><td>" + f(Dc, 4) + "</td></tr>";
+      }
+      var asg = el(host, "#m").value.replace(/\s+/g, " ").trim() === PRE.asg.replace(/\s+/g, " ");
+      el(host, "#o").innerHTML = '<table class="num compact"><tr><th>Class</th><th>TP (diagonal)</th><th>FP (column − TP)</th><th>FN (row − TP)</th><th>IoU = TP/(TP + FP + FN)</th><th>Dice</th></tr>' + rows + "</table>" +
+        "<b>mIoU = " + f(sum / n, 4) + "</b> (mean of per-class IoU) · Pixel accuracy = " + tp + "/" + tot + " = " + f(tp / tot, 4) + " · mean Dice = " + f(dsum / n, 4) +
+        (asg ? '<br><span class="no">Assignment note:</span> the official key says 0.712, but this matrix gives mIoU = 0.634 (not one of the options). Learn the method; if the identical question appears, the key expects 0.712.' : "") +
+        "<br><small>Pixel accuracy is dominated by large classes (try the imbalanced preset); mIoU weighs every class equally.</small>";
+    }
+    on(host, "textarea", "input", function () { host.querySelectorAll("#pre button").forEach(function (b) { b.classList.remove("on"); }); run(); });
+    on(host, "#pre button", "click", function () { host.querySelectorAll("#pre button").forEach(function (b) { b.classList.remove("on"); }); this.classList.add("on"); el(host, "#m").value = PRE[this.getAttribute("data-k")]; run(); });
+    el(host, "#m").value = PRE.asg; run();
+  };
+
+  D.dilation = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Kernel k<select id="k"><option>3</option><option>5</option></select></label><label>Atrous rate r = <span id="rl"></span><input type="range" id="r" min="1" max="6" value="2"></label></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var k = +el(host, "#k").value, r = +el(host, "#r").value, ke = k + (k - 1) * (r - 1), N = 19, c = 9, sz = 14;
+      el(host, "#rl").textContent = r;
+      var s = svgEl(N * sz + 2, N * sz + 2);
+      for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) {
+        var di = i - c, dj = j - c, half = (k - 1) / 2;
+        var tap = di % r === 0 && dj % r === 0 && Math.abs(di / r) <= half && Math.abs(dj / r) <= half;
+        var inRF = Math.abs(di) <= (ke - 1) / 2 && Math.abs(dj) <= (ke - 1) / 2;
+        css(S(s, "rect", { x: 1 + j * sz, y: 1 + i * sz, width: sz - 1, height: sz - 1 }), { fill: tap ? "var(--acc)" : inRF ? "var(--acc-soft)" : "var(--card)", stroke: "var(--line)" });
+      }
+      el(host, "#pl").innerHTML = ""; el(host, "#pl").appendChild(s);
+      el(host, "#o").innerHTML = "Atrous (dilated) convolution: y[i] = Σ<sub>k</sub> x[i + r·k] w[k] — the filter samples the input every r pixels (\"holes\" between weights).<br>Effective kernel size = k + (k − 1)(r − 1) = <b>" + ke + " × " + ke + "</b> using only <b>" + k * k + "</b> weights.<br><br>Larger field of view <b>without extra parameters, computation or downsampling</b> — dense feature maps from ImageNet backbones. DeepLabv3's <b>ASPP</b> runs parallel branches (1×1 conv, 3×3 at rates 6, 12, 18, image-level pooling), concatenates them and mixes with a 1×1 conv: multi-scale context at full feature resolution.";
+    }
+    on(host, "select,input", "input", run); run();
+  };
+
+  D.rfover = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Kernel k<input type="number" id="k" value="3"></label><label>Blocks<input type="number" id="n" value="5" min="2" max="8"></label></div><div class="out" id="o" style="overflow-x:auto"></div>';
+    function run() {
+      var k = +el(host, "#k").value, n = Math.max(2, Math.min(8, +el(host, "#n").value)), rows = "";
+      for (var i = 1; i <= n; i++) { var u = Math.pow(2, 2 * (i - 1)) * k * k, o = Math.pow(0.5, 2 * (i - 1)) * k * k; rows += "<tr><td>" + i + "</td><td>" + Math.pow(2, i - 1) + "k × " + Math.pow(2, i - 1) + "k = " + u + "</td><td>" + (i === 1 ? "k × k" : "(1/" + Math.pow(2, i - 1) + ")k × (1/" + Math.pow(2, i - 1) + ")k") + " = " + f(o, 4) + "</td><td>" + f(u * o, 2) + "</td></tr>"; }
+      el(host, "#o").innerHTML = '<table class="num compact"><tr><th>Conv block i</th><th>Undercomplete (pooling ×2): 2<sup>2(i−1)</sup>·k·k</th><th>Overcomplete (upsampling ×2): (½)<sup>2(i−1)</sup>·k·k</th><th>Product</th></tr>' + rows + "</table>" +
+        "The two are <b>reciprocals</b> (product = k⁴ … i.e. the scale factors cancel): pooling makes deep layers see ever larger regions (global semantics, large objects); upsampling keeps deep layers' receptive fields small (fine edges, small objects). KiU-Net and DeepMAO combine both branches.";
+    }
+    on(host, "input", "input", run); run();
+  };
+
+  D.spp = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Pyramid levels (n × n bins each)<input id="lv" value="1, 2, 4"></label><label>Channels<input type="number" id="c" value="256"></label><label>Input map size<input type="number" id="h" value="13"></label></div><div class="demo-row"><span class="seg" id="pre"><button data-p="1, 2, 4">SPP-net (assignment)</button><button data-p="1, 2, 3, 6">PSPNet</button></span></div><div class="out" id="o"></div>';
+    function run() {
+      var lv = nums(el(host, "#lv").value), C = +el(host, "#c").value, H = +el(host, "#h").value, bins = lv.reduce(function (a, n) { return a + n * n; }, 0);
+      el(host, "#o").innerHTML = "Bins = " + lv.map(function (n) { return n + "²"; }).join(" + ") + " = " + lv.map(function (n) { return n * n; }).join(" + ") + " = <b>" + bins + "</b> per channel → output length " + bins + " × " + C + " = <b>" + (bins * C).toLocaleString() + "</b> values, the same for any input size (" + H + " × " + H + " or otherwise).<br>" +
+        "Trap: (" + lv.join(" + ") + ") × " + C + " = " + (lv.reduce(function (a, b) { return a + b; }, 0) * C).toLocaleString() + " counts sides, not bins.<br><small>SPP-net: fixed-length vector for FC layers from any image size. PSPNet: pooled maps at 4 levels (global 1 × 1 up to 6 × 6) are upsampled bilinearly and concatenated with the original features for scene context.</small>";
+    }
+    on(host, "input", "input", run);
+    on(host, "#pre button", "click", function () { el(host, "#lv").value = this.getAttribute("data-p"); run(); });
+    run();
+  };
+
+  /*__WEEK10__*/
 })();

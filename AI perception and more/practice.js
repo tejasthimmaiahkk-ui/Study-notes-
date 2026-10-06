@@ -351,4 +351,106 @@
     ["Several sets of Q/K/V projections, giving multiple representation subspaces", "More layers of RNN", "Positional information", "A single attention map"], [0], "");
   P(7, "Why does a Transformer need positional encoding?",
     ["Self-attention by itself ignores the order of the inputs", "To normalise activations", "To reduce parameters", "To compute gradients"], [0], "");
+
+  /* ----------------------------- WEEK 8 ----------------------------- */
+  P(8, "Why can't a plain CNN with a fixed output layer do multi-object detection directly?",
+    ["CNNs cannot regress numbers", "Each image needs a different number of outputs (4 numbers per object, and the number of objects varies)", "Softmax cannot handle boxes", "Detection needs RNNs"], [1], "Hence crops/sliding windows, proposals, dense grids or set prediction (DETR).");
+  P(8, "What is the IoU of boxes [0, 0, 2, 2] and [1, 1, 3, 3] (x1, y1, x2, y2)?",
+    ["0.25", "0.143", "0.5", "0.333"], [1], "Intersection 1; union 4 + 4 − 1 = 7 → 1/7.");
+  P(8, "What is the IoU of [0, 0, 4, 4] and [2, 0, 6, 4]?",
+    ["0.5", "0.25", "0.333", "0.667"], [2], "Intersection 2 × 4 = 8; union 16 + 16 − 8 = 24 → 1/3.");
+  P(8, "In NMS, after picking the highest-scoring box, which boxes are removed?",
+    ["All boxes with lower score", "Remaining boxes whose IoU with the selected box exceeds the threshold", "Boxes with IoU below the threshold", "Boxes of other classes"], [1], "Then repeat with the next highest remaining box.");
+  P(8, "OverFeat made sliding-window detection efficient by:",
+    ["Cropping each window and re-running the CNN", "Reinterpreting fully connected layers as 1 × 1 convolutions so the whole image is scanned in one forward pass", "Using Selective Search", "Using anchors"], [1], "");
+  P(8, "Instead of NMS, OverFeat combined its predicted boxes by:",
+    ["Discarding all but one", "A greedy merge of the closest-matching boxes (averaging coordinates)", "Random selection", "Bipartite matching"], [1], "");
+  P(8, "Selective Search generates proposals by:",
+    ["A trained neural network", "Hierarchically merging similar regions of an initial over-segmentation (colour, texture, size, fill)", "Sliding a window at every pixel", "Using anchors"], [1], "It is not learned — one reason R-CNN can't be trained end-to-end.");
+  P(8, "In R-CNN, each region proposal is warped to:",
+    ["224 × 224", "227 × 227", "32 × 32", "Its original size"], [1], "Regardless of its aspect ratio (AlexNet input).");
+  P(8, "Proposal p = (50, 50, 40, 20) and ground truth g = (56, 47, 60, 24) in (cx, cy, w, h). What are t_x and t_w?",
+    ["0.15 and log 1.5 ≈ 0.405", "6 and 20", "0.15 and 1.5", "0.3 and 0.405"], [0], "t_x = (56 − 50)/40 = 0.15; t_w = log(60/40) = 0.405.");
+  P(8, "Smooth-L1 loss at x = 0.5 and at x = 3:",
+    ["0.125 and 2.5", "0.5 and 3", "0.25 and 9", "0.125 and 4.5"], [0], "0.5x² for |x| < 1; |x| − 0.5 otherwise.");
+  P(8, "In Fast R-CNN's loss L = L_cls + λ[u ≥ 1]L_box, what does the indicator [u ≥ 1] do?",
+    ["Doubles the box loss", "Switches the box loss off for background RoIs (u = 0)", "Selects the class with the highest score", "Normalises the loss"], [1], "");
+  P(8, "RoI Align differs from RoI Pooling by:",
+    ["Using average instead of max", "Avoiding quantisation — bins keep fractional boundaries and features are sampled by bilinear interpolation", "Using larger output grids", "Removing the backbone"], [1], "Introduced in Mask R-CNN.");
+  P(8, "A Faster R-CNN feature map is 40 × 60 with k = 9 anchors per position. How many anchors are evaluated?",
+    ["540", "2,400", "21,600", "9"], [2], "40 × 60 × 9.");
+  P(8, "For a 512 × 16 × 16 feature map with k anchors, the RPN outputs objectness and box-correction maps of sizes:",
+    ["k × 16 × 16 and 4k × 16 × 16", "1 × 16 × 16 and 4 × 16 × 16 only", "512 × 16 × 16 each", "k and 4k scalars"], [0], "Then the top ~300 boxes by objectness are kept.");
+  P(8, "Which anchors are ignored when training the RPN?",
+    ["IoU > 0.7", "IoU < 0.3", "IoU between 0.3 and 0.7", "The highest-IoU anchor"], [2], "");
+  P(8, "Why do two-stage detectors suffer less from foreground–background imbalance than single-stage ones?",
+    ["They use bigger backbones", "The proposal stage filters out most background before classification", "They use focal loss", "They ignore background"], [1], "Single-stage detectors classify every anchor — RetinaNet's focal loss addresses this.");
+  P(8, "YOLOv1 with S = 7, B = 2 and C = 20 outputs how many numbers per image?",
+    ["980", "1,470", "1,078", "2,940"], [1], "7 × 7 × (5·2 + 20) = 7 × 7 × 30 = 1,470.");
+  P(8, "In YOLO, a box's confidence score is defined as:",
+    ["Pr(class)", "Pr(object) × IoU(pred, truth)", "IoU only", "The softmax of the class"], [1], "");
+  P(8, "How does YOLOv2 choose its anchor-box priors?",
+    ["Hand-picked like Faster R-CNN", "k-means clustering of training boxes with distance 1 − IoU", "Random", "From ImageNet"], [1], "");
+  P(8, "Which is NOT a YOLOv2 change?",
+    ["BatchNorm on all conv layers", "Multi-scale training", "DarkNet-19 backbone", "Selective Search proposals"], [3], "YOLO is single-stage — no proposal algorithm.");
+  P(8, "SSD handles objects of different sizes by:",
+    ["Image pyramids only", "Predicting from several feature maps of decreasing resolution, each responsible for one scale of anchors", "Using RoI pooling", "Using a single grid"], [1], "");
+  P(8, "An SSD layer of 10 × 10 with k = 6 anchors and c = 21 classes needs how many 3 × 3 prediction filters (kmn(c + 4))?",
+    ["600", "15,000", "2,100", "12,600"], [1], "6 × 10 × 10 × (21 + 4) = 15,000.");
+  P(8, "Why does DETR not need non-maximum suppression?",
+    ["It predicts only one box", "Bipartite (Hungarian) matching assigns each ground-truth object to exactly one query during training, so duplicates are penalised", "It uses anchors", "It runs at low resolution"], [1], "");
+  P(8, "Which challenges are specific to aerial object detection, per the lecture?",
+    ["Oriented bounding boxes", "Very large images with many small instances", "Slant-angle viewpoints", "Objects always centred in the frame"], [0, 1, 2], "Also all-weather perception and few-shot/open-vocabulary classes.");
+
+  /* ----------------------------- WEEK 9 ----------------------------- */
+  P(9, "Why is semantic segmentation called annotation-intensive?",
+    ["Only one label per image is needed", "Every pixel of every training image must be labelled", "It needs bounding boxes", "It needs video"], [1], "");
+  P(9, "A 7 × 7 map passes through a transposed conv with K = 4, S = 2, P = 1. Output size?",
+    ["14 × 14", "13 × 13", "16 × 16", "12 × 12"], [0], "(7 − 1) × 2 − 2 + 4 = 14.");
+  P(9, "Nearest-neighbour unpooling differs from max unpooling because it:",
+    ["Uses learned weights", "Copies each value to the whole block, discarding which location was the maximum", "Stores pooling indices", "Shrinks the map"], [1], "");
+  P(9, "FCN-8s improves on FCN-32s by:",
+    ["Using more FC layers", "Fusing predictions from pool4 and pool3 (skip connections) to recover fine detail", "Using a larger stride", "Removing upsampling"], [1], "");
+  P(9, "Two-class confusion matrix (rows = truth) [[8, 2], [1, 9]]. What is the mIoU?",
+    ["0.739", "0.850", "0.727", "0.800"], [0], "IoU₁ = 8/(8 + 1 + 2) = 0.727; IoU₂ = 9/(9 + 2 + 1) = 0.75; mean 0.739.");
+  P(9, "If a class has IoU = 0.5, its Dice coefficient is:",
+    ["0.25", "0.5", "0.667", "1.0"], [2], "Dice = 2·IoU/(1 + IoU) = 1/1.5.");
+  P(9, "Why can pixel accuracy be misleading?",
+    ["It ignores the background", "Large classes (e.g. background) dominate it, hiding poor performance on small classes", "It is always lower than mIoU", "It cannot be computed from a confusion matrix"], [1], "mIoU weighs every class equally.");
+  P(9, "COCO-style AP averages over how many IoU thresholds?",
+    ["1", "5", "10 (0.50 to 0.95 in steps of 0.05)", "100"], [2], "");
+  P(9, "What does SegNet transfer from encoder to decoder?",
+    ["Full feature maps (concatenated)", "Only the max-pooling indices", "Nothing", "The class scores"], [1], "Memory-efficient; U-Net transfers and concatenates full feature maps.");
+  P(9, "U-Net's weighted cross-entropy puts extra weight on:",
+    ["Background pixels", "Pixels in the thin gaps between touching objects (and on rare classes)", "Image corners", "The first layer"], [1], "w(x) = w_c(x) + w₀·exp(−(d₁ + d₂)²/(2σ²)).");
+  P(9, "PSPNet's pyramid pooling module with levels 1 × 1, 2 × 2, 3 × 3, 6 × 6 produces how many bins per channel?",
+    ["12", "50", "36", "4"], [1], "1 + 4 + 9 + 36.");
+  P(9, "PSPNet's total training loss is:",
+    ["Only the final cross-entropy", "L_main + α·L_aux — an auxiliary loss on an intermediate backbone layer (deep supervision)", "Dice only", "Focal + Dice"], [1], "");
+  P(9, "A 3 × 3 atrous convolution with rate r = 4 has an effective kernel size of:",
+    ["7 × 7", "9 × 9", "12 × 12", "3 × 3"], [1], "k + (k − 1)(r − 1) = 3 + 2 × 3 = 9, still 9 weights.");
+  P(9, "Atrous convolution's main advantage is:",
+    ["Fewer channels", "A larger field of view without more parameters, computation or downsampling", "Faster training only", "Removing the need for labels"], [1], "");
+  P(9, "Atrous separable convolution in DeepLabv3+ combines:",
+    ["Max pooling and unpooling", "A dilated depthwise convolution with a pointwise (1 × 1) convolution", "Two 3 × 3 convs", "A transformer and a CNN"], [1], "");
+  P(9, "What does DeepLabv3+ add to DeepLabv3?",
+    ["An ASPP module", "A decoder that fuses upsampled encoder output with low-level features to refine boundaries", "Fully connected layers", "Anchors"], [1], "Upsample ×4, concatenate with 1 × 1-reduced low-level features, two 3 × 3 convs, upsample ×4.");
+  P(9, "In an undercomplete network with pooling factor 2, what is the receptive field of conv block 3 on the input?",
+    ["k × k", "2k × 2k", "4k × 4k", "(¼)k × (¼)k"], [2], "2^(2(i−1)) k × k area → side 4k at i = 3; an overcomplete network gives ¼k.");
+  P(9, "In MaskFormer, the extra class ∅ is used for:",
+    ["Background pixels only", "Predicted masks that do not correspond to any region (\"no object\")", "Boundary pixels", "Ignored labels"], [1], "");
+  P(9, "How is each binary mask computed in MaskFormer?",
+    ["Argmax of pixel logits", "Sigmoid of the dot product between a segment's mask embedding and the per-pixel embeddings", "Thresholding the input image", "By RoI Align"], [1], "");
+  P(9, "The SA-1B dataset used to train SAM contains about:",
+    ["1.1 million masks from 11 million images", "1.1 billion masks from 11 million images", "11 billion masks from 1 million images", "1,000 classes"], [1], "Class-agnostic masks produced by a 3-stage data engine.");
+  P(9, "How does SAM's prompt encoder handle a free-form text prompt?",
+    ["With a CNN", "With CLIP's text encoder", "It cannot use text", "As a dense mask"], [1], "Points/boxes → positional encodings + learned embeddings; masks → convolutions.");
+  P(9, "What is usually fine-tuned when adapting SAM to a new domain?",
+    ["The whole image encoder", "Only the lightweight mask decoder", "Only the prompt encoder", "Nothing can be fine-tuned"], [1], "Easier, faster, more memory-efficient.");
+  P(9, "Panoptic segmentation:",
+    ["Only labels pixels with classes", "Unifies semantic segmentation (stuff) and instance segmentation (things)", "Only detects boxes", "Only works on video"], [1], "");
+  P(9, "Feature distribution P(x) changes between training and test while P(y | x) stays the same. This is:",
+    ["Label shift", "Covariate shift", "Concept shift", "No shift"], [1], "Label shift: P(y) changes; concept shift: P(y | x) changes.");
+  P(9, "A segmentation model must use only SAR images at inference although EO, IR and SAR were available during training. This is the:",
+    ["Missing-modality problem", "Label-shift problem", "Overfitting problem", "Anchor problem"], [0], "SpaceNet 6 MSAW setting.");
 })();

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 8 · Object Detection — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week08.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 8 · Object Detection lectures (two-stage, single-stage, DETR, aerial challenges)</div>
+  <h1>Object Detection: R-CNN Family, YOLO, SSD, RetinaNet &amp; DETR</h1>
+  <p class="lead">From "what is in the image" to "what and where": sliding windows and OverFeat, IoU and non-maximum suppression, two-stage detectors (R-CNN → Fast → Faster R-CNN with the RPN), single-stage detectors (YOLO, SSD, RetinaNet), query-based DETR, and what makes aerial imagery hard.</p>
+  <div class="meta"><span class="chip acc">IoU &amp; NMS</span><span class="chip acc">RoI Pool vs RoI Align</span><span class="chip acc">RPN anchors</span><span class="chip acc">YOLO S×S×(5B+C)</span><span class="chip acc">DETR queries</span><span class="chip"><span data-qcount="8:A"></span> assignment Qs · <span data-qcount="8:P"></span> practice Qs</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="task">
+<h2><span class="num">8.1</span> From classification to detection</h2>
+<div class="concept">
+<div class="f-exp"><b>Classification</b>: one label per image. <b>Single-object detection</b>: also say where — a CNN with two heads: class scores (softmax loss) and box coordinates (x, y, w, h) (L2 loss against the correct box). The two losses are added: a <b>multi-task loss</b> on a <b>shared feature extractor</b> (the features for "what" overlap with those for "where", and one backbone is cheaper than two).</div>
+<div class="f-imp"><b>Multiple objects</b>: each image needs a <b>different number of outputs</b> (1 object → 4 numbers, 3 → 12, …). Naive fix: apply the CNN to many <b>crops</b> and classify each as an object class or <b>background</b>.</div>
+<div class="f-lim">Problem: the CNN must run at a huge number of locations, scales and aspect ratios — very expensive — and the same object gets many overlapping boxes.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="sliding">
+<h2><span class="num">8.2</span> Sliding windows and OverFeat</h2>
+<div class="two-col">
+<div class="concept"><h3>Sliding window (Vaillant, Monrocq &amp; LeCun, 1994)</h3><ol>
+<li>Build an <b>image pyramid</b> (several scaled copies) for objects of different sizes.</li>
+<li>Slide a fixed-size window over every position at each scale.</li>
+<li>Stage-1 network: rough object/no-object response map.</li>
+<li>Stage-2 network refines the flagged candidates.</li>
+<li>Map detections back to original-image coordinates (known position + scale).</li>
+<li>Merge overlapping detections.</li></ol>
+<p>The CNN + sliding window idea is 30+ years old; by 2013 what changed was data scale, compute and efficient convolutional implementations.</p></div>
+<div class="concept"><h3>OverFeat (ILSVRC 2013)</h3><ul>
+<li>One ConvNet for <b>classification, localisation and detection</b>; state of the art on ILSVRC 2013 localisation and detection.</li>
+<li>Multi-scale sliding window implemented <b>inside the ConvNet</b>: FC layers reinterpreted as <b>1 × 1 convolutions</b>, so all window positions are scanned in a single forward pass — no cropping and re-running.</li>
+<li>The "window" is the receptive field (fixed size); objects of different sizes are handled by running on 6 resized copies (multi-scale), not by multiple box shapes.</li>
+<li><b>Regression head</b>: replaces the classifier layers (FC 4096 → 1024 → 4 box-edge coordinates), trained with an ℓ2 loss on the frozen feature layers 1–5.</li>
+<li>Boxes are <b>merged greedily</b> (closest pairs averaged) instead of suppressed.</li></ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="iou-nms">
+<h2><span class="num">8.3</span> IoU and non-maximum suppression</h2>
+<div class="box formula"><p><b>IoU(A, B) = area(A ∩ B) / area(A ∪ B)</b> — 1 for identical boxes, 0 for disjoint ones. A detection is a true positive when its IoU with a ground-truth box exceeds a threshold (commonly 0.5).</p></div>
+<div class="demo box" data-demo="iou" data-title="Interactive — intersection over union"></div>
+<div class="concept">
+<h3>Non-maximum suppression (NMS)</h3>
+<div class="f-imp"><ol style="margin:0"><li>Sort all boxes by confidence score.</li><li>Discard boxes with low scores.</li><li>While boxes remain: select the highest-scoring one (keep it) and <b>remove the remaining boxes whose IoU with it exceeds the threshold</b> (e.g. 0.5).</li></ol></div>
+<div class="f-lim">NMS only removes <i>duplicates</i>. A wrong box that overlaps little (the "side mirror" box C, IoU 0.2) survives; two genuinely different objects that overlap heavily may wrongly be merged.</div>
+</div>
+<div class="demo box" data-demo="nms" data-title="Interactive — run NMS step by step (assignment example preloaded)"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="two-vs-one">
+<h2><span class="num">8.4</span> Two-stage vs single-stage detectors</h2>
+<table class="compact">
+<tr><th></th><th>Two-stage</th><th>Single-stage</th></tr>
+<tr><td>Form</td><td><b>Detector = f<sub>refine</sub> ∘ f<sub>extract</sub> ∘ f<sub>propose</sub></b></td><td><b>Detector = f<sub>θ</sub>(I)</b> — one function mapping the image to (class, box) pairs</td></tr>
+<tr><td>How</td><td>(1) a region-proposal stage produces a sparse set (hundreds–thousands) of candidates, <b>independent of class</b>; (2) per region, fixed-size features (RoI Pool/Align) → class-specific classification + box regression</td><td>Classes and boxes predicted directly over a <b>dense predefined set of locations</b> (grid cells/anchors) in one forward pass — no proposals, no per-region re-extraction</td></tr>
+<tr><td>Examples</td><td>R-CNN, Fast R-CNN, Faster R-CNN, Mask R-CNN</td><td>YOLO, SSD, RetinaNet</td></tr>
+<tr><td>Trade-off</td><td>More accurate (historically), slower</td><td>Faster and simpler; historically a little less accurate</td></tr>
+<tr><td>Foreground–background imbalance</td><td>Solved implicitly: the RPN discards most background anchors before the expensive stage</td><td>Every anchor is classified → huge imbalance → focal loss (RetinaNet)</td></tr>
+</table>
+<p>Why class-agnostic proposals? They <b>defer the expensive class-specific decisions to a small, pre-filtered set of regions</b>.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="rcnn">
+<h2><span class="num">8.5</span> R-CNN (Girshick et al., 2014)</h2>
+<div class="concept">
+<div class="f-exp">Generate region proposals with an external algorithm, crop and resize each, classify each with a CNN, and refine with class-specific SVMs and box regressors.</div>
+<div class="f-imp"><b>Region proposals:</b> <i>Selective Search</i> — start from an over-segmentation (Felzenszwalb &amp; Huttenlocher) and recursively merge similar regions (colour, texture, brightness/size, fill), giving a hierarchy of ever larger regions; <i>Edge Boxes</i> — proposals from edges (sparse but informative).<br>
+<b>Training pipeline (6 stages):</b> (1) ~2000 proposals per image by Selective Search (no training); (2) supervised pre-training of the CNN (AlexNet) on ImageNet; (3) domain-specific fine-tuning — every proposal warped to <b>227 × 227</b> regardless of aspect ratio, positive if IoU ≥ 0.5, lower learning rate; (4) freeze the CNN, extract and cache features for every warped proposal; (5) train <b>one binary linear SVM per class</b> on those features; (6) train one linear <b>box regressor per class</b> on proposals with IoU ≥ 0.6.</div>
+<div class="f-use"><b>Box regression</b> (p = proposal, g = ground truth, centre–width–height): targets <b>t<sub>x</sub> = (g<sub>x</sub> − p<sub>x</sub>)/p<sub>w</sub>, t<sub>y</sub> = (g<sub>y</sub> − p<sub>y</sub>)/p<sub>h</sub>, t<sub>w</sub> = log(g<sub>w</sub>/p<sub>w</sub>), t<sub>h</sub> = log(g<sub>h</sub>/p<sub>h</sub>)</b> — scale-invariant centre shifts and log-scale size changes; fitted by regularised least squares on the pooled features.</div>
+<div class="f-lim">Multi-stage training and extremely slow inference: the CNN runs <b>independently on each of ~2000 proposals</b>, re-processing the same image content thousands of times.</div>
+</div>
+<div class="demo box" data-demo="bboxreg" data-title="Interactive — box-regression targets and the smooth-L1 loss"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="fast-rcnn">
+<h2><span class="num">8.6</span> Fast R-CNN and RoI pooling</h2>
+<div class="concept">
+<div class="f-exp">Still uses external proposals (Selective Search / Edge Boxes), but runs the CNN <b>once on the whole image</b> and pools the features of each proposal from the shared feature map. <b>No SVMs.</b></div>
+<div class="f-imp"><b>RoI pooling</b>: a type of max pooling that converts the projected region of any size h × w into a fixed H × W grid — divide into sub-windows of about h/H × w/W and max-pool each.<br>
+<b>Multi-task loss</b>: L = L<sub>cls</sub>(p, u) + λ·[u ≥ 1]·L<sub>box</sub>(t<sup>u</sup>, v) — softmax classification plus <b>smooth-L1</b> box loss; the indicator [u ≥ 1] switches the box loss off for background RoIs (u = 0). Smooth L1 = 0.5x² for |x| &lt; 1, |x| − 0.5 otherwise — less sensitive to outliers than L2.</div>
+<div class="f-use">Because RoI pooling keeps <b>CNN, classifier and regressor in one differentiable path</b>, classification gradients update the shared features — so a separately trained SVM adds nothing. In the comparison diagram, the link from features to classifier changes from "Independent" (R-CNN) to "<b>Joint</b>".</div>
+<div class="f-lim">RoI pooling <b>quantises</b>: 15 × 15 → 7 × 7 gives sub-windows of 2.14 cells, which are rounded to whole cells → misalignment between pooled features and the true region. <b>RoI Align</b> (Mask R-CNN) uses bilinear interpolation instead.</div>
+</div>
+<div class="demo box" data-demo="roipool" data-title="Interactive — RoI Pooling's rounding vs RoI Align"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="faster-rcnn">
+<h2><span class="num">8.7</span> Faster R-CNN and the Region Proposal Network</h2>
+<div class="concept">
+<div class="f-exp">R-CNN and Fast R-CNN depended on an external, hand-crafted proposal algorithm — a bottleneck even after Fast R-CNN shared the convolutions. Faster R-CNN (Ren et al., 2015) replaces it with a small <b>Region Proposal Network</b> working on the CNN's own feature map — fully learnable, faster, tuned to the data.</div>
+<div class="f-imp"><b>RPN</b>: e.g. input 3 × 256 × 256 → features 512 × 16 × 16. At each feature-map point imagine <b>k anchor boxes</b> (k = 9: <b>3 scales × 3 aspect ratios</b>). Predict an <b>objectness score</b> (k × 16 × 16) and <b>box corrections</b> (4k × 16 × 16); sort all k × 16 × 16 boxes by objectness and keep the top ~300 as proposals; the rest is Fast R-CNN.<br>
+<b>Anchor labels:</b> positive if IoU &gt; 0.7 with a ground-truth box (or the highest IoU for that box), negative if IoU &lt; 0.3, <b>ignored in between</b> (ambiguous anchors would give contradictory supervision).<br>
+<b>4-step alternating training:</b> (1) train the RPN from ImageNet weights; (2) train a separate Fast R-CNN on step-1 proposals; (3) re-initialise the RPN from the detector, <b>freeze the shared conv layers</b>, fine-tune RPN-only layers; (4) keep them frozen, fine-tune Fast R-CNN-only layers. Freezing stops the two heads pulling the shared features in conflicting directions — both end up on one common backbone.</div>
+</div>
+<table class="compact">
+<tr><th>Model</th><th>Proposals</th><th>Features</th><th>Classifier</th><th>Main fix</th></tr>
+<tr><td>R-CNN</td><td>Selective Search (external)</td><td>CNN per warped region</td><td>SVMs (independent)</td><td>—</td></tr>
+<tr><td>Fast R-CNN</td><td>Selective Search (external)</td><td>CNN once + RoI pooling</td><td>Softmax + smooth L1, <b>joint</b></td><td>Disconnected classifier</td></tr>
+<tr><td>Faster R-CNN</td><td><b>RPN</b> on shared features</td><td>CNN once + RoI pooling</td><td>Joint</td><td>Disconnected proposal generator</td></tr>
+</table>
+<div class="demo box" data-demo="anchors" data-title="Interactive — 9 anchors and their RPN labels"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="yolo">
+<h2><span class="num">8.8</span> YOLO, SSD and RetinaNet</h2>
+<div class="concept">
+<h3>YOLO — You Only Look Once (Redmon et al., 2016)</h3>
+<div class="f-imp">Pre-train a CNN on classification; split the image into an <b>S × S grid</b>; the cell containing an object's <b>centre</b> is responsible for it. Each cell predicts <b>B boxes</b> (x, y, w, h as offsets + a <b>confidence = Pr(object) × IoU(pred, truth)</b>) and <b>one</b> set of C conditional class probabilities Pr(class | object). Output tensor <b>S × S × (5B + C)</b> — 7 × 7 × 30 for S = 7, B = 2, C = 20. Base network like GoogLeNet with 1 × 1 and 3 × 3 convs; two FC layers produce the tensor. Loss: sums of squared errors for localisation and classification, with indicators so class error counts only if an object is in the cell and box error only for the "responsible" predictor.</div>
+<div class="f-lim">One class prediction per cell → two objects whose centres fall in the same cell cannot both be detected.</div>
+<div class="f-use"><b>YOLOv2</b>: BatchNorm on all conv layers; fine-tuning at high resolution; <b>anchor priors from k-means clustering</b> of training boxes (distance = 1 − IoU) instead of hand-picked sizes; multi-scale training (new input size every 10 batches); light <b>DarkNet-19</b> (19 conv + 5 max-pool); direct location prediction b<sub>x</sub> = σ(t<sub>x</sub>) + c<sub>x</sub>, b<sub>y</sub> = σ(t<sub>y</sub>) + c<sub>y</sub>, b<sub>w</sub> = p<sub>w</sub>e<sup>t<sub>w</sub></sup>, b<sub>h</sub> = p<sub>h</sub>e<sup>t<sub>h</sub></sup> ("predict a small correction"). <b>YOLO9000</b>: joint training with ImageNet's top 9000 classes (classification images backpropagate only the classification loss). <b>YOLO-E</b>: text/visual prompts or prompt-free, open-set, detection + segmentation in real time.</div>
+</div>
+<div class="two-col">
+<div class="concept"><h3>SSD — Single Shot MultiBox Detector</h3><p>VGG-16 base + extra conv feature layers of <b>decreasing size</b> (a pyramid). Each level predicts offsets for its own anchor boxes (normalised to (0, 1)); larger anchors on coarser maps, so each level handles one object scale. At each location k anchors × (c + 4) outputs via 3 × 3 conv filters → <b>kmn(c + 4)</b> filters for an m × n map. Loss L = (L<sub>cls</sub> + αL<sub>loc</sub>)/N: softmax classification + smooth-L1 localisation over matched boxes.</p></div>
+<div class="concept"><h3>RetinaNet</h3><p><b>Focal loss</b> puts more weight on hard examples and down-weights the many easy background examples of a dense detector; a <b>featurized image pyramid</b> (FPN) detects objects at different scales.</p></div>
+</div>
+<div class="demo box" data-demo="yolo" data-title="Interactive — YOLO's grid and output tensor"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="detr">
+<h2><span class="num">8.9</span> DETR — detection with Transformers</h2>
+<div class="concept">
+<div class="f-exp">A query-based detector that <b>directly outputs a set of boxes</b> from a Transformer — no anchors, no box-transform regression, no NMS (Carion et al., 2020).</div>
+<div class="f-imp">Four parts: (1) <b>CNN backbone</b> (ResNet-50/101) for features; (2) <b>positional encodings</b> (spatial location) + <b>Transformer encoder</b> (multi-head self-attention + FFN); (3) <b>Transformer decoder</b> taking the encoded features and a fixed set of N <b>learned object queries</b>; (4) <b>prediction heads</b> (FFNs): for each query, object/no-object class and its box. Training matches predictions to ground truth by <b>bipartite (Hungarian) matching</b>; loss = classification + box loss.</div>
+<div class="f-use">Object queries are learned, content-independent "slots" — each query must learn its own specialisation from data, rather than having it hand-designed via anchor scales or grid positions.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="aerial">
+<h2><span class="num">8.10</span> Challenges in aerial imagery</h2>
+<ul>
+<li><b>All-weather perception</b> (automatic target recognition): generalise across weather — e.g. domain generalisation with a metacognitive Mask R-CNN (Chaudhuri, Sikdar &amp; Sundaram, 2025).</li>
+<li><b>Oriented bounding boxes</b>: top-down objects at arbitrary angles are poorly fitted by axis-aligned boxes (DOTA benchmark, Ding et al.).</li>
+<li><b>Large-scale imagery</b>: huge images with very many, very small instances.</li>
+<li><b>Slant-angle views</b>: appearance changes with viewing angle.</li>
+<li><b>Few-shot and open-vocabulary detection</b>: some categories have few or no training images — only their names are known.</li>
+</ul>
+<div class="box def" data-title="Domain generalisation vs domain adaptation"><p><b>Adaptation</b> uses (usually unlabelled) target-domain data during training. <b>Generalisation</b> trains only on the source domain and must handle unseen target conditions (brightened, darkened, blurred, snowy images) with <b>zero access</b> to them during training.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A8</span> Week 8 assignment — every question explained</h2>
+<div class="qb" data-week="8" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P8</span> Practice MCQs — Week 8</h2>
+<div class="qb" data-week="8" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

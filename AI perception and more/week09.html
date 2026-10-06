@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 9 · Segmentation — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week09.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 9 · Lectures 13a, 13b, 13c + advanced topics (domain generalisation)</div>
+  <h1>Segmentation: FCN, SegNet, U-Net, DeepLab, Overcomplete Nets, MaskFormer &amp; SAM</h1>
+  <p class="lead">Labelling every pixel. Upsampling (unpooling, transposed convolution), the classic encoder–decoder networks, multi-scale context (SPP, PSPNet, atrous convolution and ASPP), undercomplete vs overcomplete networks for small structures (KiU-Net, DeepMAO), mask classification (MaskFormer), the Segment Anything foundation model, instance and panoptic segmentation, metrics, and domain shifts in aerial perception.</p>
+  <div class="meta"><span class="chip acc">(H−1)S − 2P + K</span><span class="chip acc">mIoU</span><span class="chip acc">U-Net skips</span><span class="chip acc">ASPP</span><span class="chip acc">SAM</span><span class="chip"><span data-qcount="9:A"></span> assignment Qs · <span data-qcount="9:P"></span> practice Qs</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="task">
+<h2><span class="num">9.1</span> The segmentation task</h2>
+<div class="concept">
+<div class="f-exp"><b>Semantic segmentation</b> = assign a class label to <b>every pixel</b> — classification, but per pixel (a huge increase in decision space). Training needs every pixel annotated — <b>annotation-intensive</b>. Labels: an n-channel one-hot mask or a single-channel <b>index mask</b>.</div>
+<div class="f-use">Precise areas and better localisation ("which car is closer?"), scene understanding. Drone example: SpaceNet 6 building detection — buildings, building boundaries and the tiny gaps between buildings. Benchmark: <b>ADE20K</b> (~25,000 images: 20,210 train / 2,000 val / 3,352 test).</div>
+<div class="f-imp">Design options: (1) <b>sliding window</b> — classify the centre pixel of every patch: impractical; (2) a fully convolutional network <b>without downsampling</b> — output matches input but too expensive; (3) <b>encoder–decoder</b>: the encoder downsamples (cheap, large receptive field), the decoder upsamples back; predict C × H × W scores, then <b>argmax</b> per pixel → H × W label map. Losses: cross-entropy, Dice, focal.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="upsampling">
+<h2><span class="num">9.2</span> Upsampling operations</h2>
+<ul>
+<li><b>Max unpooling</b> (reverse max-pooling): remember where each maximum came from; put the value back there, zeros elsewhere — preserves the structure of the stimulus.</li>
+<li><b>Nearest-neighbour unpooling</b>: copy each value into its whole block — ignores which neuron fired.</li>
+<li><b>Transposed convolution</b>: multiply by the transpose of the convolution matrix — each input value stamps a learned kernel onto a larger output. <b>Output = (H − 1)·S − 2P + K</b> (+ output padding). k = 2, s = 2 doubles the size: 5 × 5 → 10 × 10.</li>
+</ul>
+<div class="demo box" data-demo="upsample" data-title="Interactive — unpooling and transposed convolution"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="fcn">
+<h2><span class="num">9.3</span> Fully Convolutional Network (Long, Shelhamer &amp; Darrell, 2015)</h2>
+<div class="concept">
+<div class="f-exp">Take a classification network (AlexNet, VGG, GoogLeNet) and replace its fully connected layers by convolutions — an FC layer is a convolution whose kernel covers its whole input. The network accepts <b>any input size</b> and outputs a spatial <b>heat map</b> instead of one label — preserving spatial information for a prediction at every pixel.</div>
+<div class="f-imp">A 1 × 1 conv with 21 channels predicts class scores (20 PASCAL classes + background); a deconvolution layer (initialised as bilinear upsampling) produces pixel-dense outputs. <b>FCN-32s</b> upsamples the stride-32 prediction in one step (deep semantics only); <b>FCN-16s</b> also fuses pool4 predictions, <b>FCN-8s</b> adds pool3 — combining coarse semantic information with fine appearance information through <b>skip connections</b>. Loss: pixel-wise multinomial logistic (softmax cross-entropy) summed over all pixels.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="metrics">
+<h2><span class="num">9.4</span> Evaluation: IoU, mIoU and mAP</h2>
+<div class="box formula"><p>Per class c (pixel counts): <b>IoU<sub>c</sub> = TP<sub>c</sub> / (TP<sub>c</sub> + FP<sub>c</sub> + FN<sub>c</sub>)</b>; <b>mIoU = (1/C) Σ<sub>c</sub> IoU<sub>c</sub></b>. From a confusion matrix (rows = truth, columns = prediction): TP = diagonal, FP = column sum − TP, FN = row sum − TP.<br>
+Instance segmentation / detection: a prediction matches if IoU &gt; threshold (commonly 0.5) <b>and</b> the class is right; precision = TP/(TP + FP), recall = TP/(TP + FN); AP = area under the precision–recall curve; <b>mAP</b> = mean over classes; COCO additionally averages over 10 IoU thresholds 0.5 : 0.05 : 0.95.</p></div>
+<div class="demo box" data-demo="miou" data-title="Interactive — per-class IoU, mIoU and Dice from a confusion matrix"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="segnet-unet">
+<h2><span class="num">9.5</span> SegNet and U-Net</h2>
+<div class="two-col">
+<div class="concept"><h3>SegNet</h3>
+<p>Encoder = the 13 conv layers of <b>VGG-16</b> (initialised from classification weights); decoder maps low-resolution encoder features back to full resolution; then a pixel-wise classifier. The decoder <b>upsamples with max-unpooling using the encoder's stored pooling indices</b> (non-linear upsampling that preserves the locations of the strongest activations); the sparse maps are then convolved with trainable filters into dense maps. Only indices are stored → memory-efficient. Loss: pixel-wise softmax cross-entropy.</p></div>
+<div class="concept"><h3>U-Net (Ronneberger et al., 2015)</h3>
+<p>Proposed for medical images; U-shaped. Encoder (contracting) increases the field of view; decoder (expanding) upsamples to high resolution; <b>skip connections concatenate encoder features with the decoder features at the same resolution</b> → better-localised segmentation (fine spatial detail + deep semantics). Loss: pixel-wise softmax + <b>weighted cross-entropy</b>, w(x) = w<sub>c</sub>(x) + w<sub>0</sub>·exp(−(d<sub>1</sub>(x) + d<sub>2</sub>(x))²/(2σ²)) — class-balancing plus extra weight on pixels between touching objects (d<sub>1</sub>, d<sub>2</sub> = distances to the nearest and second-nearest cell border).</p></div>
+</div>
+<div class="box warn" data-title="Without skip connections"><p>Rough object presence survives in the bottleneck, but precise boundaries don't: downsampling irreversibly throws away spatial detail, hurting small objects (a few pixels) most. Skip connections restore it.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="multiscale">
+<h2><span class="num">9.6</span> Multi-scale context: image pyramids, SPP and PSPNet</h2>
+<ul>
+<li><b>Image pyramids</b>: run the model on several scaled copies — small-scale inputs encode long-range context; large-scale inputs keep small-object detail.</li>
+<li><b>Encoder–decoder</b>: the encoder captures long-range information by reducing resolution; the decoder recovers object details (boundaries).</li>
+<li><b>Spatial Pyramid Pooling</b>: probe the feature map with pooling at several bin sizes / fields of view. Bins = Σ n² over levels: levels 1 × 1, 2 × 2, 4 × 4 give 21 bins → 21 × 256 = 5,376 values, <b>fixed regardless of input size</b>.</li>
+<li><b>PSPNet</b> (Pyramid Scene Parsing): pre-trained ResNet encoder; <b>pyramid pooling module</b> with 4 levels — from global pooling (1 bin, whole image) to half and smaller portions; the pooled maps are upsampled bilinearly and <b>concatenated</b> with the original features, then a conv gives the prediction. <b>Deep supervision</b>: L = L<sub>main</sub> + α·L<sub>aux</sub> (an auxiliary cross-entropy loss branched from an intermediate ResNet layer).</li>
+</ul>
+<div class="demo box" data-demo="spp" data-title="Interactive — counting SPP bins"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="deeplab">
+<h2><span class="num">9.7</span> DeepLabv3 and DeepLabv3+</h2>
+<div class="concept">
+<div class="f-exp"><b>Problem with classification backbones for segmentation:</b> deeper layers lose "where in the image?" (resolution drops) while their receptive field grows — good for large objects, bad for small ones.</div>
+<div class="f-imp"><b>Atrous (dilated) convolution</b>: y[i] = Σ<sub>k</sub> x[i + r·k]·w[k] — insert holes between filter weights (rate r). Controls resolution and enlarges the field of view <b>without extra parameters or computation</b>, giving dense features from ImageNet backbones (strides/pooling in later blocks are replaced by dilation).<br>
+<b>ASPP</b> (Atrous Spatial Pyramid Pooling): parallel atrous convolutions with <b>different rates</b> — probing the image with complementary fields of view to capture objects and context at multiple scales <b>without reducing resolution</b>. DeepLabv3's ASPP has five branches (1 × 1 conv, three 3 × 3 atrous convs, image-level pooling), concatenated → 1 × 1 conv to mix → final 1 × 1 conv → bilinear upsampling. Loss: cross-entropy.<br>
+<b>DeepLabv3+</b> = DeepLabv3 as the <b>encoder</b> + a simple <b>decoder</b> to refine boundaries: take low-level features from a shallow backbone layer, reduce their channels with a 1 × 1 conv; upsample the encoder output ×4; concatenate; two 3 × 3 convs; upsample ×4. Backbone Xception (or ResNet). Uses <b>atrous separable convolution</b> = depthwise convolution (per channel, dilated) + pointwise (1 × 1) convolution to combine channels.</div>
+<div class="f-use">DeepLabv3 (SPP/ASPP: multi-scale context) + U-Net-style decoder (recover spatial detail) = the best of both worlds.</div>
+</div>
+<div class="demo box" data-demo="dilation" data-title="Interactive — atrous convolution and its field of view"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="overcomplete">
+<h2><span class="num">9.8</span> Undercomplete vs overcomplete networks (KiU-Net, DeepMAO)</h2>
+<div class="concept">
+<div class="f-exp"><b>Undercomplete</b> autoencoder: latent dimension smaller than the input (dim z &lt; dim x) — forced to compress, it learns the most salient structure. U-Net is undercomplete: going deeper, spatial resolution falls and the receptive field grows. Even with skip connections, U-Net fails on <b>small structures and blurred/noisy boundaries</b>, because deep layers focus on high-level features.</div>
+<div class="f-imp">With pooling and stride 2 (undercomplete), block 2 sees 2k × 2k of the input and block 3 sees 4k × 4k: <b>RF = 2<sup>2(i−1)</sup> × k × k</b>. <b>Overcomplete</b> networks project the input into a <b>higher spatial dimension</b> (bilinear <b>upsampling</b> in the encoder) so the receptive field shrinks: ½k × ½k, then ¼k × ¼k: <b>RF = (½)<sup>2(i−1)</sup> × k × k</b> — the two are reciprocals.<br>
+<b>KiU-Net</b> (Valanarasu et al., 2021): an overcomplete branch (<b>Kite-Net</b>, fine details and boundaries even in deep layers) + an undercomplete branch (U-Net), fused at several scales by <b>cross residual feature blocks (CRFB)</b>; binary cross-entropy loss.<br>
+<b>DeepMAO</b> (Deep Multi-scale Aware Overcomplete network): U-Net branch + overcomplete branch for <b>building segmentation</b> (SpaceNet 6) and land-cover (OpenEarthMap). Grad-CAM shows the overcomplete branch focuses on <b>smaller features — edges and fine-grained structure</b>, the undercomplete branch on larger features and intricate building shapes. Loss: <b>Dice + focal</b>.</div>
+</div>
+<div class="demo box" data-demo="rfover" data-title="Interactive — receptive field growth: pooling vs upsampling"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="maskformer">
+<h2><span class="num">9.9</span> Per-pixel vs mask classification: MaskFormer</h2>
+<div class="concept">
+<div class="f-exp"><b>Per-pixel classification</b> (FCN and successors) predicts a distribution over K classes for every pixel and applies the same loss everywhere — it couples "partitioning" and "classification" into one dense decision. <b>Mask classification</b> disentangles them: predict a set of N <b>binary masks</b> (partitioning; N need not equal K), each with <b>one class distribution</b> over K classes plus a "<b>no object</b>" label ∅. Predictions are matched to ground-truth segments (a matching σ).</div>
+<div class="f-imp"><b>MaskFormer</b> (Cheng, Schwing &amp; Kirillov, 2021) computes N probability–mask pairs with three modules: (1) <b>pixel-level module</b> — backbone → low-resolution features F → pixel decoder → per-pixel embeddings; (2) <b>transformer module</b> — a Transformer decoder turns F and N learnable queries into per-segment embeddings Q (all predictions in parallel); (3) <b>segmentation module</b> — a linear classifier + softmax on Q gives class probabilities (with ∅); an MLP turns Q into mask embeddings; each mask = sigmoid(dot product of its mask embedding with the per-pixel embeddings). Loss: cross-entropy classification + binary mask loss (focal + Dice).</div>
+<div class="f-use">Because semantic and instance segmentation both reduce to predicting class-labelled masks — <b>one mask per class</b> for semantic, <b>one per object</b> for instance — the same N-pair format covers both.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="foundation">
+<h2><span class="num">9.10</span> Foundation models and Segment Anything (SAM)</h2>
+<table class="compact">
+<tr><th></th><th>ImageNet-era backbones (VGG16 2014, Inception 2014, ResNet 2015, ViT 2020)</th><th>Foundation models (DINOv2, CLIP, V-JEPA, …)</th></tr>
+<tr><td>Objective</td><td>One fixed, closed-world task: classify into a predetermined label set</td><td>Task-agnostic pretext objective</td></tr>
+<tr><td>Labels</td><td>Labelled data (ImageNet-1k; ViT needs JFT-300M)</td><td>Self- or weakly-supervised, web scale</td></tr>
+<tr><td>Data</td><td>~1.2 M images</td><td>100 M – billions of images</td></tr>
+<tr><td>Generalisation</td><td>Side effect of classification</td><td>Goal: zero-/few-shot transfer — "learn a representation rich enough that many tasks become easy"</td></tr>
+</table>
+<div class="concept">
+<div class="f-exp"><b>SAM (Segment Anything v1)</b> learns a general notion of <b>objectness / segmentability</b>. Task: <b>promptable segmentation</b> — given a prompt (foreground/background points, a box, a mask, or free-form text) output a valid mask, even when the prompt is ambiguous. It can also segment everything automatically.</div>
+<div class="f-imp"><b>SA-1B</b>: 1.1 billion class-agnostic masks from 11 million diverse images (natural, urban, medical, satellite…). <b>Data engine</b> in three stages: (1) model-assisted manual annotation (annotators click points in a SAM-powered tool; the model is retrained as it improves); (2) semi-automatic (SAM proposes masks for likely objects, annotators add the rest → more diversity); (3) fully automatic (a regular grid of point prompts, ~100 high-quality masks per image).<br>
+<b>Architecture</b>: <b>image encoder</b> — a ViT pre-trained with MAE, run once per image; <b>prompt encoder</b> — sparse prompts (points, boxes → positional encodings + learned type embeddings; text → CLIP text encoder) and dense prompts (masks → convolutions, summed with the image embedding); <b>lightweight mask decoder</b> — Transformer-style blocks with prompt self-attention and cross-attention, then a dynamic mask head. For ambiguous prompts it outputs <b>several masks (typically 3: whole, part, subpart) with confidence scores</b> — averaging them would blend different valid objects into one incoherent region.</div>
+<div class="f-use">Fine-tuning usually touches only the <b>mask decoder</b> — light, fast and memory-efficient.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="instance">
+<h2><span class="num">9.11</span> Instance and panoptic segmentation, Mask R-CNN</h2>
+<div class="concept">
+<div class="f-exp">Detection gives boxes but no pixel-level understanding; semantic segmentation labels pixels but does not separate objects of the same class. <b>Instance segmentation</b> recognises and classifies each object and gives a <b>precise pixel mask per object</b>. <b>Panoptic segmentation</b> unifies semantic segmentation (every pixel, including "stuff" like road and sky) and instance segmentation ("things" like individual cars).</div>
+<div class="f-imp"><b>Mask R-CNN</b> = Faster R-CNN + a mask branch: backbone → feature map → RPN → RoI features via <b>RoI Align</b> → R-CNN head (class + box) and a small FCN head (mask). Multi-task loss = classification + localisation + mask.<br>
+<b>RoI Pooling vs RoI Align</b>: with a feature map downsampled k times, RoI Pooling takes ⌊x/k⌋ (integer part) and quantises the bins; <b>RoI Align divides by k without rounding</b>, samples 4 points per bin by <b>bilinear interpolation</b> of the 4 neighbouring cells (e.g. S<sub>1</sub>·P(3,3) + S<sub>2</sub>·P(3,2) + S<sub>3</sub>·P(2,3) + S<sub>4</sub>·P(2,2)), then max/average-pools them — every value comes from sub-pixel-accurate coordinates, so masks stay aligned with the object.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="domain">
+<h2><span class="num">9.12</span> Domain generalisation and aerial perception</h2>
+<div class="concept">
+<div class="f-exp">Standard evaluation assumes training and test data are <b>i.i.d.</b> — from the same distribution. <b>Domain generalisation</b>: learn h : X → Y from M source domains (each with a different joint distribution) so that the error is minimal on an <b>unseen</b> target domain.</div>
+<div class="f-imp"><b>Types of distribution shift:</b> <b>covariate shift</b> — the feature distribution P(x) changes, the label distribution does not; <b>label shift</b> — the label distribution P(y) changes between train and test; <b>concept shift</b> — the mechanism linking features to labels P(y | x) changes.<br>
+Evidence: DeepLabv3+ (ResNet-50) trained on sunny Cityscapes drops sharply on BDD100K, Mapillary, GTAV, Synthia and on night images; static training data cannot cover changing test conditions (geography, weather, illumination, sensor).</div>
+<div class="f-use"><b>Aerial specifics:</b> sim-to-real gaps; sensor gaps (RGB ↔ IR); <b>SAR</b> works in all weather and light but is complex-valued with speckle noise, while optical (EO)/hyperspectral cannot work in all light; the <b>missing-modality problem</b> (EO, IR, SAR available in training but only SAR at inference — SpaceNet 6 MSAW); the <b>IndraEye</b> drone dataset (EO + IR, not co-registered, high altitude, varying slant angles). Off-nadir views shrink distant objects and performance drops for moderate-to-extreme off-nadir angles; domain shift comes from <b>view angle, sensor and illumination</b>.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A9</span> Week 9 assignment — every question explained</h2>
+<div class="qb" data-week="9" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P9</span> Practice MCQs — Week 9</h2>
+<div class="qb" data-week="9" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>
