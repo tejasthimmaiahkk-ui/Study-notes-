@@ -297,7 +297,8 @@
         "Best 8 assignments average = <b>" + avg.toFixed(1) + "</b>/100 → assignment component <b>" + A.toFixed(2) + " / 25</b> " + (okA ? '<span class="ok">✓ ≥ 10</span>' : '<span class="no">✗ needs ≥ 10</span>') + "<br>" +
         "Exam " + ex + "/100 → exam component <b>" + E.toFixed(2) + " / 75</b> " + (okE ? '<span class="ok">✓ ≥ 30</span>' : '<span class="no">✗ needs ≥ 30</span>') + "<br>" +
         "Final score <b>" + F.toFixed(2) + " / 100</b> → <b>" + (okA && okE ? tier : "No certificate (a minimum is not met)") + "</b><br>" +
-        "Minimum exam mark you need for a certificate with these assignments: <b>" + Math.ceil(needE) + " / 100</b>. " +
+        (okA ? "Minimum exam mark you need for a certificate with these assignments: <b>" + Math.ceil(needE) + " / 100</b>. " :
+          "<b>The assignment component is below 10/25, and no exam mark can make up for it.</b> Raise your remaining assignment scores (blank weeks count as 0 here). Once it reaches 10, these are the exam marks you would need: ") +
         "For Elite (60): <b>" + Math.max(Math.ceil(needE), Math.ceil((60 - A) / 0.75)) + "</b> · Silver (75): <b>" + Math.ceil((75 - A) / 0.75) + "</b> · Gold (90): <b>" + Math.ceil((90 - A) / 0.75) + "</b>" + ((90 - A) / 0.75 > 100 ? " (not reachable)" : "");
     }
     host.querySelectorAll("input").forEach(function (i) { i.addEventListener("input", calc); });

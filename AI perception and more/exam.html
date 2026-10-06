@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock Exams — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="exam.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Question bank · <span data-qcount="*:A"></span> assignment + <span data-qcount="*:P"></span> practice MCQs</div>
+  <h1>Mock Exams &amp; Question Bank</h1>
+  <p class="lead">Build a paper from any weeks, take it against the clock, and get it graded with every explanation and a per-week breakdown. Options are shuffled each time, so you learn the content rather than the letter. Your answers are saved in this browser, so you can drill only the ones you got wrong.</p>
+</div>
+
+<section class="topic" id="format">
+<h2><span class="num">E.1</span> What to expect, and how to play it</h2>
+<div class="two-col">
+<div class="box formula" data-title="The real exam">
+  <ul>
+    <li>A <b>proctored, computer-based</b> NPTEL exam at a test centre, normally <b>3 hours</b> in a morning or afternoon session. The exact date, session and centre are on your hall ticket.</li>
+    <li>Questions are objective: <b>single-answer MCQs</b> and <b>multiple-select</b> questions, often worded like the weekly assignments. Your estimate of about 120 questions means roughly <b>1.5 minutes per question</b>.</li>
+    <li>The exam is worth <b>75 of your 100 final marks</b>, and you need at least <b>30/75 (40/100 in the exam)</b> to qualify for a certificate. See the <a href="index.html#certificate">certificate calculator</a>.</li>
+    <li>Read the on-screen instructions for negative marking and partial credit on the day. Don't assume either.</li>
+  </ul>
+</div>
+<div class="box tip" data-title="Strategy that gains marks">
+  <ul>
+    <li><b>First pass</b>: answer everything you know in under a minute and mark the rest for review. <b>Second pass</b>: the calculations (conv output size, IoU, Q-update, momentum, softmax, mIoU).</li>
+    <li><b>Multiple-select</b>: judge each option on its own as true or false. Don't stop at the first true one.</li>
+    <li><b>Eliminate absolutes</b> such as "always", "guarantees", "never" and "regardless of". Most traps in this course's assignments are absolute statements (e.g. "pruning more channels never hurts accuracy").</li>
+    <li>For "why" questions, pick the option that names the <b>mechanism</b> (e.g. "softened outputs reveal relative class similarities"), not a side effect ("it trains faster").</li>
+  </ul>
+</div>
+</div>
+</section>
+
+<section class="topic" id="mock">
+<h2><span class="num">E.2</span> Build and take a mock exam</h2>
+<div class="box tip" data-title="Suggested drills"><p>
+<b>Assignment repeat-check</b>: Questions from → <i>Assignments only</i>, Number → <i>All matching</i>, No timer. Every question the exam may re-use, in one paper.<br>
+<b>Full dress rehearsal</b>: all weeks, assignments + practice, 120 questions, 1 min/question.<br>
+<b>Fix-up loop</b>: Focus → <i>Only ones I got wrong before</i>; repeat until the list is empty.</p></div>
+<div class="demo box" data-demo="mockExam" data-title="Mock exam builder"></div>
+<div id="examArea"></div>
+</section>
+
+<section class="topic" id="weights">
+<h2><span class="num">E.3</span> Where the questions are</h2>
+<table class="compact">
+<tr><th>Week</th><th>Topic</th><th>Assignment Qs</th><th>Practice Qs</th><th>High-yield for the exam</th></tr>
+<tr><td><a href="week01.html">1</a></td><td>Foundations</td><td><span data-qcount="1:A"></span></td><td><span data-qcount="1:P"></span></td><td>Precision vs recall, learning paradigms, aerial-data domain gap, linear independence</td></tr>
+<tr><td><a href="week02.html">2</a></td><td>Neurons &amp; learning rules</td><td><span data-qcount="2:A"></span></td><td><span data-qcount="2:P"></span></td><td>Hebbian/perceptron/GD updates (numeric), XOR, why activations are nonlinear</td></tr>
+<tr><td><a href="week03.html">3</a></td><td>Training &amp; losses</td><td><span data-qcount="3:A"></span></td><td><span data-qcount="3:P"></span></td><td>Momentum recurrence, η too high or low, M = 9 overfit, focal loss vs CE</td></tr>
+<tr><td><a href="week04.html">4</a></td><td>Tensors &amp; RBF</td><td><span data-qcount="4:A"></span></td><td><span data-qcount="4:P"></span></td><td>Tensor rank vs shape, squared vs raw error, Gaussian RBF properties</td></tr>
+<tr><td><a href="week05.html">5</a></td><td>CNN foundations</td><td><span data-qcount="5:A"></span></td><td><span data-qcount="5:P"></span></td><td>Output size ⌊(n + 2p − f)/s⌋ + 1, parameters, pooling, transfer learning</td></tr>
+<tr><td><a href="week06.html">6</a></td><td>Norms &amp; architectures</td><td><span data-qcount="6:A"></span></td><td><span data-qcount="6:P"></span></td><td>BN/LN/IN/GN axes, Grad-CAM steps, VGG 3 × 3 stacks, ResNet degradation</td></tr>
+<tr><td><a href="week07.html">7</a></td><td>Sequence models</td><td><span data-qcount="7:A"></span></td><td><span data-qcount="7:P"></span></td><td>Memory neuron α, BPTT vanishing gradient, LSTM gates, √d<sub>k</sub></td></tr>
+<tr><td><a href="week08.html">8</a></td><td>Detection</td><td><span data-qcount="8:A"></span></td><td><span data-qcount="8:P"></span></td><td>IoU/NMS by hand, RPN anchors, RoI Align, YOLO tensor, DETR without NMS</td></tr>
+<tr><td><a href="week09.html">9</a></td><td>Segmentation</td><td><span data-qcount="9:A"></span></td><td><span data-qcount="9:P"></span></td><td>Transposed-conv size, mIoU, U-Net skips, ASPP, SAM's 3 masks</td></tr>
+<tr><td><a href="week10.html">10</a></td><td>Distillation &amp; contrastive</td><td><span data-qcount="10:A"></span></td><td><span data-qcount="10:P"></span></td><td>Temperature, KL direction, InfoNCE, projection head, CEN, stability–plasticity</td></tr>
+<tr><td><a href="week11.html">11</a></td><td>RL &amp; GANs</td><td><span data-qcount="11:A"></span></td><td><span data-qcount="11:P"></span></td><td>Q-update, ε-greedy probability, Q-learning vs SARSA, D*, mode collapse, WGAN</td></tr>
+<tr><td><a href="week12.html">12</a></td><td>Drones in action</td><td><span data-qcount="12:A"></span></td><td><span data-qcount="12:P"></span></td><td>Arrival point and time, infeasible = ∞, SNN input, SLAM failure modes, IMU drift</td></tr>
+</table>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+</body>
+</html>

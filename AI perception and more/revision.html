@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revision Sheet — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="revision.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Read this the day before the exam</div>
+  <h1>One-Page Revision &amp; Exam Traps</h1>
+  <p class="lead">Every formula from the 12 weeks, the option traps the assignments keep setting, the numbers worth memorising, and the answer-key issues to know about. Each line links back to its week for the full explanation and demo.</p>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="formulas-1">
+<h2><span class="num">R.1</span> Formulas: Weeks 1–4 (foundations, learning rules, training)</h2>
+<table class="compact">
+<tr><th>Idea</th><th>Formula / fact</th><th>Week</th></tr>
+<tr><td>Classification metrics</td><td>Precision = TP/(TP+FP) · Recall = TP/(TP+FN) · F1 = 2PR/(P+R) · Accuracy = (TP+TN)/N</td><td><a href="week01.html">1</a></td></tr>
+<tr><td>Regression metrics</td><td>MSE = (1/n)Σ(y−ŷ)² · RMSE = √MSE · R² = 1 − SS<sub>res</sub>/SS<sub>tot</sub></td><td><a href="week01.html">1</a></td></tr>
+<tr><td>Linear independence</td><td>Xw = 0 only for w = 0; more than n vectors in ℝ<sup>n</sup> are always dependent; rank = number of independent columns</td><td><a href="week01.html">1</a></td></tr>
+<tr><td>Neuron (course notation)</td><td>v = wᵀx with x<sub>0</sub> = −1 (w<sub>0</sub> = threshold); y = g(v)</td><td><a href="week02.html">2</a></td></tr>
+<tr><td>Hebbian</td><td>Δw = η y x (unsupervised; grows without bound)</td><td><a href="week02.html">2</a></td></tr>
+<tr><td>Perceptron / delta</td><td>Δw = η(d − y)x; converges in finite steps <b>iff linearly separable</b></td><td><a href="week02.html">2</a></td></tr>
+<tr><td>Gradient descent</td><td>Δw = −η∂E/∂w = η(d − y)g′(v)x (the slides write −η(d − y)g′(v)x)</td><td><a href="week02.html">2</a></td></tr>
+<tr><td>Logic gates (step on v &gt; 0)</td><td>AND: x<sub>1</sub> + x<sub>2</sub> − 1.5 · OR: x<sub>1</sub> + x<sub>2</sub> − 0.5 · NAND: −x<sub>1</sub> − x<sub>2</sub> + 1.5 · NOT: 0.5 − x · XOR: not linearly separable</td><td><a href="week02.html">2</a></td></tr>
+<tr><td>Activation slopes</td><td>σ′ = σ(1−σ) ≤ 0.25 · tanh′ = 1 − tanh² ≤ 1 · ReLU′ ∈ {0, 1}</td><td><a href="week03.html">3</a></td></tr>
+<tr><td>Momentum</td><td>Δw(n) = αΔw(n−1) − η∂E/∂w(n) = Σ α<sup>n−j</sup>g(j); v<sub>t</sub> = βv<sub>t−1</sub> + ∇J, θ ← θ − ηv<sub>t</sub> (e.g. 0.9·2 + 3 = 4.8 → 5 − 0.48 = 4.52)</td><td><a href="week03.html">3</a></td></tr>
+<tr><td>Regularised error</td><td>Ẽ = ½Σ(y − t)² + (λ/2)‖w‖²; M = 9 with 10 points → E = 0 but overfits</td><td><a href="week03.html">3</a></td></tr>
+<tr><td>Loss family</td><td>LS Σ(y−d)² · MLS Σmax(0, 1−yd)² · FPE Σ(y−d)⁴ · CE (consistent with Bayes) · focal = CE × ((1−y)/2)<sup>γ</sup> (γ = 0 → CE)</td><td><a href="week03.html">3</a></td></tr>
+<tr><td>Tensors</td><td>Rank = number of axes; size = product of shape; reshape keeps size</td><td><a href="week04.html">4</a></td></tr>
+<tr><td>Least squares</td><td>ΦᵀΦw = Φᵀt → w = Φ⁺t; with L2: (ΦᵀΦ + λI)w = Φᵀt</td><td><a href="week04.html">4</a></td></tr>
+<tr><td>RBF network</td><td>φ(r) = exp(−r²/2σ²); hidden layer nonlinear, output linear; Cover's theorem; exact interpolation solves Φw = d (Micchelli)</td><td><a href="week04.html">4</a></td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="formulas-2">
+<h2><span class="num">R.2</span> Formulas: Weeks 5–9 (CNNs, sequences, detection, segmentation)</h2>
+<table class="compact">
+<tr><th>Idea</th><th>Formula / fact</th><th>Week</th></tr>
+<tr><td>Conv output size</td><td><b>⌊(n + 2p − f)/s⌋ + 1</b>; "same" padding p = (f − 1)/2</td><td><a href="week05.html">5</a></td></tr>
+<tr><td>Conv parameters</td><td>(f·f·C<sub>in</sub> + 1)·F (filter spans all input channels); pooling has <b>0</b> parameters</td><td><a href="week05.html">5</a></td></tr>
+<tr><td>Normalisation</td><td>y = γ(x − μ)/√(σ² + ε) + β. BN: over (N, H, W) per channel · LN: over (C, H, W) per sample · IN: (H, W) per sample and channel · GN: (C/G, H, W)</td><td><a href="week06.html">6</a></td></tr>
+<tr><td>AdaIN</td><td>σ(y)·(x − μ(x))/σ(x) + μ(y): style = per-channel mean and std</td><td><a href="week06.html">6</a></td></tr>
+<tr><td>Receptive field</td><td>Each stride-1 k × k layer adds k − 1; three 3 × 3 = one 7 × 7 (27C² vs 49C² parameters)</td><td><a href="week06.html">6</a></td></tr>
+<tr><td>Grad-CAM</td><td>α<sub>k</sub><sup>c</sup> = (1/Z)ΣΣ ∂y<sup>c</sup>/∂A<sup>k</sup><sub>ij</sub> (global-average-pooled gradients); map = ReLU(Σ α<sub>k</sub><sup>c</sup>A<sup>k</sup>)</td><td><a href="week06.html">6</a></td></tr>
+<tr><td>ResNet</td><td>H(x) = F(x) + x; the shortcut adds no parameters; solves degradation (an optimisation problem, not overfitting)</td><td><a href="week06.html">6</a></td></tr>
+<tr><td>Memory neuron</td><td>v(k) = α·s(k − 1) + (1 − α)·v(k − 1): an exponential moving average</td><td><a href="week07.html">7</a></td></tr>
+<tr><td>RNN</td><td>s<sub>t</sub> = tanh(Ux<sub>t</sub> + Ws<sub>t−1</sub>), ŷ<sub>t</sub> = softmax(Vs<sub>t</sub>); BPTT sums over steps; products of W·tanh′ vanish or explode</td><td><a href="week07.html">7</a></td></tr>
+<tr><td>LSTM</td><td>f, i, o = σ(W·[h<sub>t−1</sub>, x<sub>t</sub>] + b); C<sub>t</sub> = f⊙C<sub>t−1</sub> + i⊙C̃<sub>t</sub>; h<sub>t</sub> = o⊙tanh(C<sub>t</sub>)</td><td><a href="week07.html">7</a></td></tr>
+<tr><td>Attention</td><td>softmax(QKᵀ/√d<sub>k</sub>)V: the scaling stops large dot products from saturating the softmax</td><td><a href="week07.html">7</a></td></tr>
+<tr><td>IoU</td><td>area(A ∩ B)/area(A ∪ B); TP if IoU &gt; 0.5 (commonly)</td><td><a href="week08.html">8</a></td></tr>
+<tr><td>Box regression</td><td>t<sub>x</sub> = (g<sub>x</sub> − p<sub>x</sub>)/p<sub>w</sub>, t<sub>w</sub> = log(g<sub>w</sub>/p<sub>w</sub>); smooth-L1 = 0.5x² if |x| &lt; 1, else |x| − 0.5</td><td><a href="week08.html">8</a></td></tr>
+<tr><td>Fast R-CNN loss</td><td>L = L<sub>cls</sub> + λ[u ≥ 1]L<sub>box</sub>: no box loss for background</td><td><a href="week08.html">8</a></td></tr>
+<tr><td>YOLO output</td><td>S × S × (5B + C) = 7 × 7 × 30 for S = 7, B = 2, C = 20</td><td><a href="week08.html">8</a></td></tr>
+<tr><td>Transposed conv size</td><td><b>(H − 1)·S − 2P + K</b> (k = 2, s = 2 doubles the size)</td><td><a href="week09.html">9</a></td></tr>
+<tr><td>mIoU</td><td>IoU<sub>c</sub> = TP/(TP + FP + FN) per class (FP = column − TP, FN = row − TP); mIoU = mean over classes</td><td><a href="week09.html">9</a></td></tr>
+<tr><td>Atrous conv</td><td>y[i] = Σ x[i + r·k]w[k]; effective kernel k + (k − 1)(r − 1) with the same parameters</td><td><a href="week09.html">9</a></td></tr>
+<tr><td>SPP bins</td><td>Σn²: levels 1, 2, 4 → 1 + 4 + 16 = 21 bins × channels, independent of input size</td><td><a href="week09.html">9</a></td></tr>
+<tr><td>Under- vs overcomplete RF</td><td>2<sup>2(i−1)</sup>·k·k vs (½)<sup>2(i−1)</sup>·k·k</td><td><a href="week09.html">9</a></td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="formulas-3">
+<h2><span class="num">R.3</span> Formulas: Weeks 10–12 (distillation, RL, GANs, drones)</h2>
+<table class="compact">
+<tr><th>Idea</th><th>Formula / fact</th><th>Week</th></tr>
+<tr><td>KL divergence</td><td>D<sub>KL</sub>(P‖Q) = ΣP log(P/Q), asymmetric; CE = KL + H(P<sub>data</sub>). Example: [0.5, 0.5] vs [0.9, 0.1] → 0.511 (reverse 0.368)</td><td><a href="week10.html">10</a></td></tr>
+<tr><td>MMD</td><td>‖E[φ(x)] − E[φ(y)]‖²<sub>ℋ</sub>: symmetric, samples only, works without overlap</td><td><a href="week10.html">10</a></td></tr>
+<tr><td>Softmax with temperature</td><td>p<sub>i</sub> = e<sup>z<sub>i</sub>/T</sup>/Σe<sup>z<sub>j</sub>/T</sup>; [2, 1, 0.1] → T = 1: [0.659, 0.242, 0.099], T = 2: [0.502, 0.304, 0.194]</td><td><a href="week10.html">10</a></td></tr>
+<tr><td>KD loss</td><td>α·CE(y, p<sub>S</sub>) + (1 − α)·T²·KL(p<sub>T</sub>‖p<sub>S</sub>)</td><td><a href="week10.html">10</a></td></tr>
+<tr><td>InfoNCE</td><td>−log[e<sup>s<sup>+</sup>/τ</sup>/Σe<sup>s<sub>i</sub>/τ</sup>]; chance level ln K</td><td><a href="week10.html">10</a></td></tr>
+<tr><td>Continual learning</td><td>p(D<sub>1:k</sub>|θ) = Π p(D<sub>t</sub>|θ) with old D inaccessible; IIL, DIL (same labels, new inputs), TIL (task ID at test), CIL (task ID only in training), TFCL (never), OCL (one pass)</td><td><a href="week10.html">10</a></td></tr>
+<tr><td>Return</td><td>G<sub>t</sub> = Σγ<sup>k</sup>R<sub>t+k+1</sub>; constant c forever → c/(1 − γ)</td><td><a href="week11.html">11</a></td></tr>
+<tr><td>Q-learning / SARSA</td><td>Q ← Q + α[r + γ max Q(s′, ·) − Q] / Q ← Q + α[r + γQ(s′, a′) − Q]. Assignment: 2 + 0.5(1 + 4.5 − 2) = <b>3.75</b></td><td><a href="week11.html">11</a></td></tr>
+<tr><td>ε-greedy</td><td>P(greedy) = 1 − ε + ε/|A| (ε = 0.2, 4 actions → <b>0.85</b>)</td><td><a href="week11.html">11</a></td></tr>
+<tr><td>GAN</td><td>min<sub>G</sub>max<sub>D</sub> E log D(x) + E log(1 − D(G(z))); D* = p<sub>d</sub>/(p<sub>d</sub> + p<sub>g</sub>); V = 2JSD − log 4; optimum D = ½</td><td><a href="week11.html">11</a></td></tr>
+<tr><td>GAN gradients</td><td>log(1 − D): ∂/∂a = −D (vanishes) · −log D: −(1 − D)</td><td><a href="week11.html">11</a></td></tr>
+<tr><td>WGAN</td><td>W = max over ‖f‖<sub>L</sub> ≤ 1 of E<sub>data</sub>f − E<sub>G</sub>f; critic outputs a score; weight clipping or gradient penalty</td><td><a href="week11.html">11</a></td></tr>
+<tr><td>Perimeter task</td><td>Arrival point p<sub>T</sub>, time t = distance/V<sub>I</sub>; feasible if ‖p<sub>T</sub> − p<sub>D</sub>‖/V<sub>D</sub> ≤ t; infeasible → κ (∞ if t<sub>j</sub> ≤ t<sub>k</sub>); q infeasible → q reserves</td><td><a href="week12.html">12</a></td></tr>
+<tr><td>LIF neuron</td><td>τdv/dt = −v + RI; first spike τ ln(RI/(RI − θ)); never if RI ≤ θ</td><td><a href="week12.html">12</a></td></tr>
+<tr><td>IMU drift</td><td>Accelerometer bias: velocity bt, position <b>½bt²</b>; gyro bias: (1/6)gω<sub>b</sub>t³</td><td><a href="week12.html">12</a></td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="traps">
+<h2><span class="num">R.4</span> Exam traps: the wrong options the assignments keep using</h2>
+<ol>
+<li><b>Precision vs recall swapped.</b> Precision divides by <i>predicted</i> positives, recall by <i>actual</i> positives. High accuracy on imbalanced data can hide zero recall.</li>
+<li><b>"Epochs exceed the number of input features"</b> is not a stopping criterion. Use a validation-error minimum, an error threshold, or no more weight change.</li>
+<li><b>A single-layer perceptron cannot learn XOR</b>, at any learning rate or for any number of epochs.</li>
+<li><b>Activations exist to add nonlinearity.</b> A stack of linear layers is still one linear map.</li>
+<li><b>Tensor rank</b> is the number of axes, not the number of elements, rows or the matrix rank.</li>
+<li><b>Raw error sums cancel</b> (+8 and −8 give 0); squared errors don't.</li>
+<li><b>η too high</b> oscillates or diverges; <b>η too low</b> is slow but stable. A high error after 50 iterations at η = 0.0001 means "not there yet", not "diverged".</li>
+<li><b>Momentum</b> does not guarantee the global minimum; α near 1 can overshoot.</li>
+<li><b>Pooling has no learnable parameters.</b> Max-pooling is nonlinear; average pooling is linear.</li>
+<li><b>Transfer learning is not guaranteed to help</b>: large domain gaps (RGB → SAR/IR, ground → aerial) cause negative transfer.</li>
+<li><b>ResNet's problem was degradation</b> (optimisation), not overfitting; the shortcut adds no parameters.</li>
+<li><b>BN depends on the batch</b>; LN/IN/GN don't, so they suit batch size 1 and RNNs.</li>
+<li><b>LSTM</b>: the cell state is updated by addition, so gradients survive; the LSTM is still sequential. Attention removes the sequential bottleneck.</li>
+<li><b>RoI Pooling rounds; RoI Align interpolates</b> (no quantisation). <b>DETR</b> needs no anchors and no NMS (Hungarian matching).</li>
+<li><b>YOLO v1</b> has one class set per cell, so two objects whose centres fall in the same cell clash.</li>
+<li><b>mIoU</b> is the mean of per-class IoUs, not pixel accuracy. <b>Dice</b> = 2TP/(2TP + FP + FN) ≥ IoU.</li>
+<li><b>Atrous convolution</b> enlarges the field of view with <b>no extra parameters</b> and without losing resolution.</li>
+<li><b>SAM</b> outputs <b>three masks</b> (whole, part, subpart) for ambiguous prompts; fine-tune only the light mask decoder.</li>
+<li><b>Distillation temperature</b>: a higher T softens outputs and exposes the similarity between classes; that is the reason, not "faster training". KL with the <b>teacher first</b> is mass-covering.</li>
+<li><b>SimCLR's projection head</b> is discarded after pretraining; it absorbs the invariances the loss forces. <b>MoCo</b> = queue + momentum encoder, so negatives don't depend on batch size.</li>
+<li><b>"Prune the smallest γ, accuracy never changes"</b> is false: it is a heuristic, and pruning too much hurts.</li>
+<li><b>"Freeze all weights to stop forgetting"</b> is false: zero plasticity.</li>
+<li><b>Q-learning is off-policy (max); SARSA is on-policy (the actual a′)</b>; SARSA learns the safer cliff path.</li>
+<li><b>ε-greedy</b>: P(greedy) is 1 − ε + ε/|A|, not 1 − ε.</li>
+<li><b>DQN's stabilisers</b> are experience replay + a target network (not dropout or batch norm).</li>
+<li><b>GAN early training</b>: D(G(z)) ≈ 0, so log(1 − D) saturates; use −log D. <b>Mode collapse</b> = sharp but low-diversity samples.</li>
+<li><b>WGAN's motivation</b>: JSD is flat (log 2) when the distributions don't overlap, while the Wasserstein distance still gives gradients.</li>
+<li><b>Infeasible task cost = ∞</b> (κ), never zero or negative.</li>
+<li><b>Visual SLAM</b> fails over sea or desert (no texture); <b>LiDAR SLAM</b> fails in featureless geometry (tunnels, open fields); <b>scale ambiguity</b> is a monocular-camera problem; <b>radar</b> is the all-weather option.</li>
+<li><b>Domain shift</b>: covariate = P(x) changes; label = P(y) changes; concept = P(y | x) changes.</li>
+</ol>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="numbers">
+<h2><span class="num">R.5</span> Numbers worth memorising</h2>
+<table class="compact">
+<tr><td>σ′ max 0.25 · tanh′ max 1</td><td>AlexNet CONV1: 227 → 55 × 55 × 96 (11 × 11, s = 4), ≈35 K parameters</td></tr>
+<tr><td>VGG-16 ≈ 138 M parameters (mostly FC) · GoogLeNet 22 layers, ≈5 M</td><td>ZFNet top-5 error 16.4% → 11.7%</td></tr>
+<tr><td>R-CNN ≈ 2000 Selective Search proposals, warped to 227 × 227</td><td>RPN k = 9 anchors (3 scales × 3 ratios), keep top ≈300</td></tr>
+<tr><td>YOLO v1 7 × 7 × 30</td><td>COCO mAP averages IoU 0.5 : 0.05 : 0.95</td></tr>
+<tr><td>ADE20K ≈ 25 K images · SA-1B 1.1 B masks on 11 M images</td><td>SPP 1 + 4 + 16 = 21 bins (× 256 = 5,376)</td></tr>
+<tr><td>Attention transfer: NIN 62%, ResNet-34 73%, ResNet-101 77.3%</td><td>OGP-Net: +4.81% (IR only), +5.64% (RGB-IR)</td></tr>
+<tr><td>Pixel contrast semi-hard: 10% nearest negatives, 10% farthest positives</td><td>GAN optimum V = −log 4 ≈ −1.386; JSD max log 2 ≈ 0.693</td></tr>
+<tr><td>SNN: 2m input neurons, 2m SEFRON neurons; 1000 runs; 41.67% observed area</td><td>IMUNet ≈ 23.7% drift reduction over ≈1.5 h; Z velocity RMSE 0.2120 → 0.0026 m/s</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="keys">
+<h2><span class="num">R.6</span> Answer-key issues and slide errors</h2>
+<table class="compact">
+<tr><th>Where</th><th>Issue</th><th>What to do in the exam</th></tr>
+<tr><td><a href="week09.html#assignment">W9 Q3</a> (mIoU)</td><td>Official key <b>0.712</b>, but the matrix gives IoUs 0.649, 0.588, 0.600, 0.700 → <b>0.634</b> (not an option)</td><td>If the identical question repeats, pick 0.712; for any new matrix, compute it properly</td></tr>
+<tr><td><a href="week05.html#assignment">W5 Q1</a></td><td>The key also accepts "V1 cells are spatially invariant" (you missed it)</td><td>Tick it if the question repeats</td></tr>
+<tr><td><a href="week05.html#assignment">W5 Q3</a></td><td>The key includes "better understanding of local features reduces need for larger data"</td><td>Tick it if the question repeats</td></tr>
+<tr><td><a href="week09.html#assignment">W9 Q4</a> (SegNet indices)</td><td>Only "preserve locations of the strongest activations" was accepted</td><td>Pick the option naming <i>locations of maximum activations</i></td></tr>
+<tr><td><a href="week06.html#assignment">W6 Q3</a>, <a href="week10.html#assignment">W10 Q3, Q6, Q9</a></td><td>The key was not visible in the screenshot, so these answers were worked out</td><td>The reasoning is shown with each question</td></tr>
+<tr><td><a href="week11.html#assignment">W11</a> (all 20)</td><td>Your submitted answers, not yet graded; all were checked against the lectures</td><td>—</td></tr>
+<tr><td><a href="week12.html#assignment">W12</a> (all 10)</td><td>Not answered in the screenshots; worked out from the lectures</td><td>—</td></tr>
+<tr><td>Lecture 4b (<a href="week02.html">Week 2</a>)</td><td>The gradient-descent example uses Δw = −η(d − y)g′(v)x, which <i>increases</i> the error (sample 2: −1.24 → −3.09; the correct sign gives +0.58)</td><td>Recognise the slide's formula as "the GD rule" in MCQs; use +η(d − y)g′(v)x when computing</td></tr>
+<tr><td>Lecture 10 (<a href="week05.html">Week 5</a>)</td><td>Convolution example: the bottom-middle output should be <b>3</b> (correct output [[3, 3, 2], [2, 2, 2], [2, 3, 2]])</td><td>Compute it yourself in the convolution demo</td></tr>
+<tr><td>Pooling slide (<a href="week05.html">Week 5</a>)</td><td>The average-pool value 1.75 is shown rounded to 2</td><td>Keep exact values</td></tr>
+</table>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+</body>
+</html>
