@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 11 · Reinforcement Learning &amp; GANs — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week11.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 11 · GAN lecture + tutorial, Reinforcement Learning parts 1–3 (lecture file 43 was not in the shared folder)</div>
+  <h1>Reinforcement Learning for Drones &amp; Generative Adversarial Networks</h1>
+  <p class="lead">Two ways of learning without labelled answers. A reinforcement-learning agent learns from rewards by acting: MDPs, returns, Bellman equations, ε-greedy exploration, Q-learning vs SARSA, then deep RL (DQN, policy gradients, actor–critic, PPO/SAC) and sim-to-real transfer. A GAN learns to generate data through a two-player game: the minimax objective, the optimal discriminator, vanishing gradients, mode collapse, WGAN, DCGAN and conditional GANs.</p>
+  <div class="meta"><span class="chip acc">G<sub>t</sub> = Σ γ<sup>k</sup>R</span><span class="chip acc">Q ← Q + α[r + γ max Q′ − Q]</span><span class="chip acc">P(greedy) = 1 − ε + ε/|A|</span><span class="chip acc">D* = p<sub>d</sub>/(p<sub>d</sub>+p<sub>g</sub>)</span><span class="chip"><span data-qcount="11:A"></span> assignment Qs · <span data-qcount="11:P"></span> practice Qs</span></div>
+</div>
+
+<div class="box warn" data-title="About this week's answers"><p>The Week 11 assignment answers were <b>submitted but not yet graded</b> when the screenshots were taken, so no official key is shown. Every answer below has been checked against the lectures and the arithmetic worked out (Q9 = 3.75, Q10 = 0.85).</p></div>
+
+<!-- ============================================================ -->
+<section class="topic" id="rl">
+<h2><span class="num">11.1</span> What reinforcement learning is</h2>
+<div class="concept">
+<div class="f-exp">An <b>agent</b> learns to make good decisions by <b>interacting with an environment and receiving rewards</b>. It learns from consequences, not from labelled answers.<br>
+<b>Supervised</b> learning learns from labelled examples ("here is the correct output"). <b>Unsupervised</b> learning finds structure in unlabelled data. <b>Reinforcement</b> learning learns from a reward signal earned by acting ("act, then find out how good it was").</div>
+<div class="f-imp"><b>Three distinctive features of RL:</b> (1) <b>no supervisor</b>, only a reward; (2) <b>delayed feedback</b>; (3) <b>your actions decide what data you see next</b>, so the data is not i.i.d.</div>
+<div class="f-use">In the drone autonomy pipeline (perception → decision → control), RL learns the decision block.
+<ul>
+<li><b>Agent</b> = the flight-control policy.</li>
+<li><b>Environment</b> = airspace, wind, obstacles.</li>
+<li><b>State s</b> = pose, velocity, IMU readings, camera image.</li>
+<li><b>Action a</b> = thrust and attitude commands.</li>
+<li><b>Reward r</b> = +progress, −crash or drift.</li>
+<li><b>Policy π</b> = what to do in each situation.</li>
+</ul></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="return">
+<h2><span class="num">11.2</span> Reward, return and discounting</h2>
+<div class="box formula"><p><b>Reward hypothesis</b>: every goal can be expressed as maximising the expected cumulative reward. Define the reward well, and the behaviour emerges.<br>
+The agent maximises the <b>return</b>, not the next reward: <b>G<sub>t</sub> = R<sub>t+1</sub> + γR<sub>t+2</sub> + γ²R<sub>t+3</sub> + … = Σ<sub>k≥0</sub> γ<sup>k</sup> R<sub>t+k+1</sub></b>, with discount factor <b>γ ∈ [0, 1]</b>.<br>
+<b>γ → 0</b>: <b>myopic</b> (cares only about the immediate reward). <b>γ → 1</b>: <b>far-sighted</b> (weighs the long term). Why discount? The future is uncertain, and discounting keeps the sum finite.</p></div>
+<div class="demo box" data-demo="discount" data-title="Interactive — the discounted return"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="mdp">
+<h2><span class="num">11.3</span> Markov Decision Processes, policies and value functions</h2>
+<div class="concept">
+<div class="f-exp">A <b>Markov Decision Process</b> models sequential decision-making where outcomes are partly random and partly controlled by the agent. It is the tuple <b>(S, A, P, R, γ)</b>: states, actions, transition dynamics P(s′ | s, a), reward R(s, a) and discount γ.<br>
+<b>Markov property</b>: the next state depends only on the <b>current state and action</b>, not on the earlier history.</div>
+<div class="f-imp"><b>Policy π</b> is the agent's behaviour, a mapping from states to actions, and it is what RL ultimately learns. A <b>deterministic</b> policy gives a = π(s) ("in this state, always pitch forward 5°"). A <b>stochastic</b> policy gives π(a | s) ("pitch 70%, hover 20%, yaw 10%"). Stochastic policies aid exploration and are central to policy-gradient methods.<br>
+<b>Value functions</b> predict expected return:
+<ul>
+<li>State value V<sup>π</sup>(s) = E<sub>π</sub>[G<sub>t</sub> | s] answers "how good is state s under π?"</li>
+<li>Action value Q<sup>π</sup>(s, a) = E<sub>π</sub>[G<sub>t</sub> | s, a] answers "how good is action a in s?"</li>
+</ul>
+If Q(s, a) is known for all actions, the best action is just argmax<sub>a</sub> Q(s, a), so a value function quietly defines a policy. This works only for finite state and action spaces.</div>
+<div class="f-use"><b>Goal</b>: an optimal policy π* that maximises the expected return from every state (V<sup>π*</sup>(s) ≥ V<sup>π</sup>(s) for all s and π). Almost every algorithm cycles through three steps until the policy stops changing, giving π*, V* and Q*:
+<ul>
+<li><b>Evaluate</b>: estimate values under the current policy (prediction).</li>
+<li><b>Improve</b>: act greedily with respect to those values (control).</li>
+<li><b>Repeat</b>.</li>
+</ul></div>
+</div>
+<div class="box formula"><p><b>Bellman equation</b>: value of a state = immediate reward + discounted value of what follows. V<sup>π</sup>(s) = E<sub>π</sub>[R<sub>t+1</sub> + γV<sup>π</sup>(S<sub>t+1</sub>) | S<sub>t</sub> = s].<br>
+<b>Optimal form</b>: Q*(s, a) = E[R<sub>t+1</sub> + γ·max<sub>a′</sub> Q*(S<sub>t+1</sub>, a′) | s, a]. This recursive self-consistency lets us solve for the values.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="explore">
+<h2><span class="num">11.4</span> Exploration vs exploitation</h2>
+<div class="two-col">
+<div class="concept"><h3>Exploration</h3><p>Try new, untested actions to discover potentially higher rewards. This is essential for mapping unknown environments and avoiding local optima, e.g. flying an unknown corridor that might be a shortcut.</p></div>
+<div class="concept"><h3>Exploitation</h3><p>Use the current best-known knowledge to maximise immediate reward, e.g. the safest known path to the destination.</p></div>
+</div>
+<div class="box tip" data-title="ε-greedy (with annealing)"><p>With probability 1 − ε pick argmax<sub>a</sub> Q(s, a); otherwise act <b>uniformly at random</b>. Anneal ε down over training. A purely exploring drone crashes often, and a purely exploiting drone never finds the optimal route.<br>
+Because the random choice can also land on the greedy action: <b>P(greedy) = 1 − ε + ε/|A|</b> and P(each other action) = ε/|A|. For ε = 0.2 and 4 actions, P(greedy) = 0.8 + 0.05 = <b>0.85</b> (assignment Q10).</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="td">
+<h2><span class="num">11.5</span> Tabular TD learning: Q-learning and SARSA</h2>
+<div class="concept">
+<div class="f-exp">Store a value for every (state, action) pair in a lookup <b>Q-table</b> and nudge entries after each step. <b>Temporal-difference (TD) learning</b> learns from every single step by <b>bootstrapping</b>: it updates a guess from a slightly better guess. It is <b>model-free</b>: the agent never needs the dynamics P and learns purely from samples.</div>
+<div class="f-imp"><b>Q-learning update</b>: Q(s, a) ← Q(s, a) + α·[ r + γ·max<sub>a′</sub> Q(s′, a′) − Q(s, a) ]. Here α is the learning rate (step size), r + γ·max Q(s′, ·) is the <b>TD target</b>, and target − Q(s, a) is the <b>TD error</b>.<br>
+<b>SARSA</b> (State, Action, Reward, State′, Action′): Q(s, a) ← Q(s, a) + α·[ r + γ·Q(s′, a′) − Q(s, a) ], where a′ is the action <b>actually taken next</b>.</div>
+</div>
+<table class="compact">
+<tr><th></th><th>Q-learning</th><th>SARSA</th></tr>
+<tr><td>Type</td><td><b>Off-policy</b></td><td><b>On-policy</b></td></tr>
+<tr><td>Target uses</td><td>max<sub>a′</sub> Q(s′, a′), the greedy action (assumes the best-case next move)</td><td>Q(s′, a′) for the action the ε-greedy policy actually takes</td></tr>
+<tr><td>Learns</td><td>The optimal policy regardless of how it explores</td><td>The value of its real, exploring behaviour (cautious: accounts for its own risk-taking)</td></tr>
+<tr><td>Near a cliff</td><td>The shorter, riskier path along the edge</td><td>A safer path that allows for exploration slips</td></tr>
+</table>
+<div class="box example" data-title="Assignment Q9 worked"><p>α = 0.5, γ = 0.9, Q(s, a) = 2.0, r = 1.0, Q(s′, ·) = {5, 3, 4}.<br>
+Target = 1 + 0.9 × 5 = 5.5. TD error = 5.5 − 2 = 3.5. New Q = 2 + 0.5 × 3.5 = <b>3.75</b>.<br>
+(If SARSA's next action had Q = 3: target = 3.7, new Q = 2.85.)</p></div>
+<div class="demo box" data-demo="qupdate" data-title="Interactive — Q-learning vs SARSA update and ε-greedy probabilities"></div>
+<p><b>Tabular Q-learning, step by step.</b> Initialise Q(s, a) ← 0. For each episode, reset the environment, then until the state is terminal:</p>
+<ul>
+<li>Pick a with ε-greedy from Q(s, ·).</li>
+<li>Step the environment to get s′ and r.</li>
+<li>Apply the update.</li>
+<li>Set s ← s′.</li>
+</ul>
+<p>Interact → update → anneal ε → converge. Given enough visits, <b>Q → Q*</b> and greedy(Q) → π*.</p>
+<div class="demo box" data-demo="gridq" data-title="Interactive — drone on a 5 × 4 grid: train Q-learning or SARSA"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="deeprl">
+<h2><span class="num">11.6</span> From tables to deep RL</h2>
+<div class="concept">
+<div class="f-lim"><b>The curse of dimensionality.</b> A real drone does not live on a grid. Position, velocity and thrust are <b>continuous</b>, which means infinitely many states that no table can index. A raw camera feed is <b>high-dimensional</b>, with millions of pixel combinations. We cannot enumerate states; we must <b>generalise</b> across them.</div>
+<div class="f-imp"><b>Function approximation</b>: learn Q̂(s, a; θ) or π<sub>θ</sub>(a | s), with parameters θ replacing the table. Similar states give similar outputs, so generalisation comes for free, and the state can be raw and high-dimensional. <b>Neural networks</b> are the natural choice:
+<ul>
+<li>They are universal approximators.</li>
+<li>They learn features from raw input (pixels, point clouds, IMU streams).</li>
+<li>They scale with data and are differentiable.</li>
+</ul>
+RL supplies the objective and the learning signal (reward, TD error); deep nets supply the representation. This enables <b>end-to-end learning from observation to action</b>.</div>
+</div>
+<div class="concept">
+<div class="f-exp"><b>DQN (Deep Q-Network)</b>: Q̂(s, a; θ) takes the state (e.g. stacked frames) as input and outputs one Q-value per discrete action. It is trained to match the Bellman target, the same idea as tabular Q-learning but with gradients. Milestone: DeepMind's DQN learned Atari games from pixels at human level (2015).</div>
+<div class="f-imp">Naively bootstrapping a network off itself is unstable. <b>Two tricks</b> fix it:
+<ul>
+<li><b>Experience replay</b>: store transitions in a buffer and train on random mini-batches. This breaks the correlation between consecutive samples and reuses data, which is possible because the method is off-policy.</li>
+<li><b>Target network</b>: a slowly updated copy θ⁻ provides stable targets, which stops the network "chasing its own tail".</li>
+</ul></div>
+</div>
+<table class="compact">
+<tr><th>Family</th><th>Idea</th><th>Examples</th></tr>
+<tr><td><b>Value-based</b></td><td>Learn the optimal value function; the policy is implicit (argmax). Best for <b>discrete</b> actions; argmax is awkward when actions are continuous.</td><td>Q-learning (tabular), DQN, <b>Dueling DQN</b> (separate streams for the state value and each action's advantage)</td></tr>
+<tr><td><b>Policy-based</b></td><td>Skip the value table and optimise π<sub>θ</sub>(a | s) directly by <b>gradient ascent</b> on J(θ) = E[G]. Handles <b>continuous actions</b> naturally: output the parameters of a distribution over thrust and attitude, then sample. Suffers from high variance.</td><td>REINFORCE and other policy gradients</td></tr>
+<tr><td><b>Actor–critic</b></td><td>The <b>actor</b> (policy) chooses actions; the <b>critic</b> (value) evaluates them. Uses the <b>advantage</b> ("how much better than average was this action?"). Lower variance than pure policy gradients and more stable than pure value methods: the workhorse of modern deep RL.</td><td>A2C, A3C, DDPG, TD3, <b>PPO</b>, <b>SAC</b></td></tr>
+</table>
+<ul>
+<li><b>PPO</b> (Proximal Policy Optimization) is the industry standard. It <b>limits how much the policy can change in one update</b>, giving stable, monotonic improvement that is easy to tune.</li>
+<li><b>SAC</b> (Soft Actor-Critic) is off-policy and adds <b>entropy</b> to the reward. It maximises expected reward <i>and</i> the randomness of its actions, giving excellent exploration, high sample efficiency and robust policies.</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="practice-rl">
+<h2><span class="num">11.7</span> RL in practice: tools, reward design and sim-to-real</h2>
+<div class="concept">
+<div class="f-exp"><b>The engineering loop.</b>
+<ul>
+<li><b>Environment</b>: defines states, actions, reward, reset and step.</li>
+<li><b>Agent</b>: the algorithm (PPO, SAC…) plus its network.</li>
+<li><b>Train</b>: collect experience, update parameters, repeat.</li>
+<li><b>Evaluate</b>: run the frozen policy and inspect the reward curve and behaviour.</li>
+</ul>
+<b>Most applied RL is reward design, environment setup and debugging, not the algorithm.</b></div>
+<div class="f-imp"><b>Gymnasium</b> (the successor to OpenAI Gym) is the standard environment API: <code>obs, info = env.reset()</code>; <code>obs, reward, terminated, truncated, info = env.step(action)</code>. The observation and action spaces may be discrete or continuous. Other simulators include MuJoCo, Isaac Sim, PufferLib and Brax.<br>
+<b>Stable-Baselines3</b> provides reliable PyTorch PPO, SAC, TD3, DQN and A2C: <code>model = PPO("MlpPolicy", env); model.learn(total_timesteps=100000)</code>. To change algorithm, swap PPO → SAC; the env and API stay the same. The demo trains CartPole (discrete, quick to train); try Pendulum for a continuous action space.</div>
+<div class="f-use"><b>Drone specifics:</b>
+<ul>
+<li><b>Reward shaping</b>: dense rewards (distance to goal, smoothness, energy) learn faster than sparse ones (+1 at the goal).</li>
+<li><b>The reality gap</b>: a policy trained in simulation often fails on hardware because of unmodelled dynamics, latency and noise.</li>
+<li><b>Domain randomisation</b>: randomise mass, wind, sensor noise and delays in simulation, forcing a robust policy that transfers zero-shot to real drones.</li>
+<li><b>Safety</b>: constrain exploration on real hardware with safe action limits and fallback controllers.</li>
+</ul>
+Applications include intelligent path planning in dynamic environments, end-to-end navigation (raw sensors → low-level control), autonomous driving, recommendation systems (long-term engagement) and <b>RLHF</b> for aligning LLMs with human preferences.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="gan">
+<h2><span class="num">11.8</span> Generative Adversarial Networks</h2>
+<div class="concept">
+<div class="f-exp"><b>Generative modelling</b>: given data x drawn from P<sub>data</sub>(x), learn to generate new samples x<sub>i</sub> ∼ P<sub>data</sub>. <b>GAN idea</b>: introduce a latent variable <b>z</b> with a simple prior p(z) (e.g. N(0, I)), sample it and pass it through a <b>generator</b> x = G(z). The result is a sample from the generator distribution P<sub>G</sub>, and the goal is <b>P<sub>G</sub> = P<sub>data</sub></b>. Different z give different outputs, so z is the source of variety.</div>
+<div class="f-imp">A <b>discriminator</b> D outputs D(x) = P(x is real). D is trained to tell real images from generated ones; G is trained so that D wrongly classifies its images as real. They are trained jointly as a <b>two-player minimax game</b>, not a single loss being minimised:<br>
+<b>min<sub>G</sub> max<sub>D</sub> V(D, G) = E<sub>x∼P<sub>data</sub></sub>[log D(x)] + E<sub>z∼p(z)</sub>[log(1 − D(G(z)))]</b><br>
+D wants D(x) = 1 for real data and D(G(z)) = 0 for fakes; G wants D(G(z)) = 1 (the first term does not depend on G). Training uses <b>alternating gradient updates</b> of D and G.</div>
+</div>
+<div class="box formula"><p><b>Optimal discriminator</b> (G fixed): maximise ∫ [P<sub>data</sub>(x) log D(x) + P<sub>G</sub>(x) log(1 − D(x))] dx pointwise. The result is <b>D*(x) = P<sub>data</sub>(x) / (P<sub>data</sub>(x) + P<sub>G</sub>(x))</b>.<br>
+Substituting it in: min<sub>G</sub> [ D<sub>KL</sub>(P<sub>data</sub> ‖ (P<sub>data</sub>+P<sub>G</sub>)/2) + D<sub>KL</sub>(P<sub>G</sub> ‖ (P<sub>data</sub>+P<sub>G</sub>)/2) − log 4 ] = min<sub>G</sub> <b>2·D<sub>JS</sub>(P<sub>data</sub>, P<sub>G</sub>) − log 4</b>.<br>
+<b>Global optimum</b>: P<sub>G</sub> = P<sub>data</sub>, so JSD = 0, V = −log 4, and <b>D*(x) = ½ everywhere</b>: the discriminator can only guess.</p></div>
+<div class="demo box" data-demo="gand" data-title="Interactive — the optimal discriminator, JSD and mode collapse"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ganproblems">
+<h2><span class="num">11.9</span> GAN problems: vanishing gradients, mode collapse, instability</h2>
+<div class="concept">
+<div class="f-lim"><b>Vanishing gradients.</b> Early in training the generator's samples are poor, so D easily separates them and <b>D(G(z)) ≈ 0</b>. Write D = σ(a). With L<sub>G</sub> = log(1 − D): ∂L<sub>G</sub>/∂D = −1/(1 − D) and ∂D/∂a = D(1 − D), so ∂L<sub>G</sub>/∂a = <b>−D → 0</b>. The generator learns nothing exactly when it is worst.<br>
+<b>Fix</b>: train G to minimise <b>−E[log D(G(z))]</b> instead (the non-saturating loss). Its gradient ∂L<sub>G</sub>/∂a = <b>−(1 − D)</b> ≈ −1 when D ≈ 0.</div>
+</div>
+<div class="demo box" data-demo="gansat" data-title="Interactive — saturating vs non-saturating generator loss"></div>
+<div class="concept">
+<div class="f-lim"><b>Mode collapse.</b> For different z the generator produces similar outputs. It fools the discriminator by capturing only a <b>subset (a few modes) of the data</b>. The samples are sharp and realistic but have <b>little diversity</b>, which is why quality alone is not enough to evaluate a GAN.<br>
+<b>Minibatch discrimination</b> (Salimans et al., 2016) lets the discriminator examine how similar a sample is to the other samples in its minibatch:
+<ul>
+<li>Take an intermediate feature f(x<sub>i</sub>) ∈ ℝ<sup>A</sup> and multiply it by a learned tensor T ∈ ℝ<sup>A×B×C</sup> to get M<sub>i</sub> ∈ ℝ<sup>B×C</sup>.</li>
+<li>For each row b, compute c<sub>b</sub>(x<sub>i</sub>, x<sub>j</sub>) = exp(−‖M<sub>i,b</sub> − M<sub>j,b</sub>‖<sub>L1</sub>).</li>
+<li>Sum over the batch: o(x<sub>i</sub>)<sub>b</sub> = Σ<sub>j</sub> c<sub>b</sub>(x<sub>i</sub>, x<sub>j</sub>).</li>
+<li>Concatenate o(x<sub>i</sub>) ∈ ℝ<sup>B</sup> with f(x<sub>i</sub>).</li>
+</ul>
+A collapsed batch then looks suspiciously uniform.</div>
+<div class="f-lim"><b>Instability.</b> Alternating updates mean each player optimises against a <b>moving target</b>. The game may oscillate instead of converging, and an <b>almost perfect discriminator early on</b> gives the generator vanishing gradients.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="wgan">
+<h2><span class="num">11.10</span> Wasserstein GAN</h2>
+<div class="concept">
+<div class="f-exp">When the real and generated distributions <b>don't overlap</b>, JSD saturates at log 2, so all such generators are "as good" and there is no useful gradient. The <b>Wasserstein ("earth mover's") distance</b> is the <b>minimum mass displacement</b> needed to transform one distribution into the other. It keeps growing with the distance, e.g. W = |x| for a shift of x.</div>
+<div class="f-imp"><b>Kantorovich–Rubinstein duality</b>: W(μ, μ′) = max<sub>‖f‖<sub>L</sub> ≤ 1</sub> E<sub>X∼μ</sub>[f(X)] − E<sub>X∼μ′</sub>[f(X)], where ‖f‖<sub>L</sub> = max |f(x) − f(x′)|/|x − x′| is the Lipschitz seminorm.<br>
+<b>WGAN loss</b>: min<sub>G</sub> max<sub>‖D‖<sub>L</sub> ≤ 1</sub> E<sub>x∼P<sub>data</sub></sub>[D(x)] − E<sub>z</sub>[D(G(z))]. The discriminator (now a "critic") outputs a <b>scalar score instead of a probability</b>. The 1-Lipschitz constraint is handled by (1) <b>weight clipping</b> or (2) a <b>gradient penalty</b> (WGAN-GP).</div>
+</div>
+<div class="demo box" data-demo="wgan" data-title="Interactive — JSD saturates, Wasserstein keeps its gradient"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ganarch">
+<h2><span class="num">11.11</span> GAN architectures: DCGAN, Progressive GAN, cGAN, pix2pix, CycleGAN</h2>
+<div class="concept">
+<div class="f-exp"><b>DCGAN</b> (Radford et al., 2015): scaling GANs with standard CNNs was hard, so these rules gave stable training:
+<ul>
+<li>Replace pooling with <b>strided convolutions in D</b> and <b>strided transposed convolutions in G</b>.</li>
+<li>Use <b>BatchNorm in both</b> D and G.</li>
+<li>Remove fully connected hidden layers.</li>
+<li>Use <b>ReLU in G except Tanh at the output</b>.</li>
+<li>Use <b>LeakyReLU in D</b>.</li>
+</ul>
+Generated bedrooms after five epochs show some under-fitting (repeated noise textures). <b>Latent-space interpolation</b> αz<sub>1</sub> + (1 − α)z<sub>2</sub> gives smooth changes, e.g. a room without a window gradually gaining a large window, which shows G learned meaningful structure rather than memorising.</div>
+<div class="f-imp"><b>Progressive GAN</b> (Karras et al., 2017) grows G and D progressively from low to high resolution, improving quality, stability and variation.<br>
+<b>Conditional GAN</b> (Mirza &amp; Osindero, 2014): both G and D also receive a <b>condition y</b> (a class label, an image…), so generation is <b>controlled</b>. For example, each MNIST row is generated for one chosen digit.<br>
+<b>pix2pix</b> (Isola et al., 2017), image-to-image translation such as edges → photo: D classifies real vs generated <b>{edge, photo} tuples</b>, and unlike an unconditional GAN <b>both G and D observe the input edge map</b>. It needs paired data.<br>
+<b>CycleGAN</b> (Zhu et al., 2017) handles <b>unpaired</b> image-to-image translation using a cycle-consistency loss (A → B → A should return the input).</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A11</span> Week 11 assignment — every question explained</h2>
+<div class="qb" data-week="11" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P11</span> Practice MCQs — Week 11</h2>
+<div class="qb" data-week="11" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

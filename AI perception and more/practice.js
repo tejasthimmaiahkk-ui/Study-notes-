@@ -514,4 +514,71 @@
     ["Candidate classes are described in natural language", "The number of candidate classes N can change at inference", "The model may face classes it never saw during training", "The class set must be fixed at training time"], [0, 1, 2], "A fixed class set is the closed-set setting. OVSS typically uses CLIP backbones and is evaluated out of domain on MESS.");
   P(10, "Visual Prompt Tuning (VPT) adapts a frozen vision–language model by:",
     ["Fine-tuning all backbone weights", "Injecting trainable prompt tokens into the visual encoder's input sequence across Transformer layers", "Changing the text vocabulary", "Pruning attention heads"], [1], "Parameter-efficient fine-tuning: only the small set of task-specific tokens is learned. Text prompt learning instead learns context vectors for the word embeddings.");
+  /* ---------- Week 11 ---------- */
+  P(11, "A drone receives rewards R<sub>1</sub> = 1, R<sub>2</sub> = 2, R<sub>3</sub> = 3 and then the episode ends. With γ = 0.5, the return G<sub>0</sub> is:",
+    ["6", "2.75", "3.5", "1.75"], [1], "G = 1 + 0.5·2 + 0.25·3 = 1 + 1 + 0.75 = 2.75.");
+  P(11, "A task gives a constant reward of 2 at every step forever, with γ = 0.8. The return is:",
+    ["∞", "10", "2.5", "1.6"], [1], "Geometric series: 2/(1 − 0.8) = 10. Discounting (γ &lt; 1) keeps infinite sums finite.");
+  P(11, "With γ = 0 the agent:",
+    ["Values all future rewards equally", "Considers only the immediate reward", "Cannot learn", "Ignores the immediate reward"], [1], "G<sub>t</sub> = R<sub>t+1</sub>: completely myopic. γ → 1 is far-sighted.");
+  P(11, "Which tuple defines a Markov Decision Process?",
+    ["(S, A, P, R, γ)", "(X, Y, θ, L)", "(G, D, z)", "(Q, K, V)"], [0], "States, actions, transition probabilities P(s′ | s, a), reward R(s, a) and discount γ.");
+  P(11, "A drone's next position depends on its current pose, velocity and commanded thrust, but not on how it got there. This is:",
+    ["The reward hypothesis", "The Markov property", "The Bellman optimality principle", "Experience replay"], [1], "The future depends only on the current state and action. That is why the state should include velocity, not just position.");
+  P(11, "Which statements about policies are correct? (Select all that apply)",
+    ["A deterministic policy maps each state to one action, a = π(s)", "A stochastic policy gives a distribution π(a | s)", "Stochastic policies help exploration and are central to policy-gradient methods", "A policy maps actions to rewards"], [0, 1, 2], "A policy maps states to actions (or action probabilities); rewards come from the environment.");
+  P(11, "If Q(s, a) is known exactly for every action in state s, the optimal action is:",
+    ["argmin<sub>a</sub> Q(s, a)", "argmax<sub>a</sub> Q(s, a)", "a random action", "the action with the largest immediate reward"], [1], "A value function quietly defines a policy. The largest immediate reward ignores the future.");
+  P(11, "The Bellman equation expresses the value of a state as:",
+    ["The sum of all past rewards", "Immediate reward + discounted value of the next state", "The maximum reward ever seen", "The average reward of a random policy"], [1], "V(s) = E[R + γV(s′)]; the optimal form uses max<sub>a′</sub> Q*(s′, a′).");
+  P(11, "ε-greedy with ε = 0.1 over 5 actions. The probability of choosing the greedy action is:",
+    ["0.90", "0.92", "0.10", "0.02"], [1], "(1 − 0.1) + 0.1/5 = 0.92. Each non-greedy action gets 0.02.");
+  P(11, "Q-learning: Q(s, a) = 4, r = 2, α = 0.2, γ = 0.5, max<sub>a′</sub> Q(s′, a′) = 6. The new Q(s, a) is:",
+    ["4.2", "5.0", "3.7", "4.0"], [0], "Target = 2 + 0.5·6 = 5; TD error = 1; Q = 4 + 0.2·1 = 4.2.");
+  P(11, "Same numbers as before, but the agent uses SARSA and the next action actually taken has Q(s′, a′) = 1. The new Q(s, a) is:",
+    ["4.2", "3.7", "4.5", "3.0"], [1], "Target = 2 + 0.5·1 = 2.5; TD error = −1.5; Q = 4 − 0.3 = 3.7. SARSA's target uses the action it really takes.");
+  P(11, "In Q(s, a) ← Q(s, a) + α[r + γ max Q(s′, ·) − Q(s, a)], the bracketed quantity is called the:",
+    ["TD target", "TD error", "Return", "Advantage"], [1], "r + γ max Q(s′, ·) alone is the TD target; subtracting the current estimate gives the TD error.");
+  P(11, "Temporal-difference learning is described as \"bootstrapping\" and \"model-free\" because it: (Select all that apply)",
+    ["Updates a guess from a slightly better guess after each step", "Needs the transition probabilities P(s′ | s, a)", "Learns purely from sampled experience", "Waits for the end of the episode to compute the full return"], [0, 2], "TD does not need the dynamics and updates after every step, unlike Monte-Carlo methods that wait for the full return.");
+  P(11, "Near a cliff with ε-greedy exploration, which algorithm learns the safer path one row away from the edge?",
+    ["Q-learning", "SARSA", "Both learn the edge path", "Neither can learn a path"], [1], "SARSA (on-policy) includes its own exploratory slips in its values. Q-learning (off-policy) learns the optimal edge path but falls more during training.");
+  P(11, "Why is a Q-table impractical for a real drone? (Select all that apply)",
+    ["Position, velocity and thrust are continuous, giving infinitely many states", "Camera images are extremely high-dimensional", "A table cannot generalise to unseen but similar states", "Tables cannot store negative values"], [0, 1, 2], "This is the curse of dimensionality; function approximation with neural networks fixes it.");
+  P(11, "In DQN, experience replay helps because it:",
+    ["Uses only the most recent transition", "Breaks the correlation between consecutive samples and reuses past data", "Removes the need for rewards", "Makes the policy on-policy"], [1], "Random mini-batches from a buffer; possible because Q-learning is off-policy. The target network θ⁻ is the second stabiliser.");
+  P(11, "The DQN target network:",
+    ["Is updated every step identically to the online network", "Is a slowly updated copy that provides stable Bellman targets", "Chooses the exploration actions", "Is the discriminator"], [1], "It stops the network chasing its own constantly moving targets.");
+  P(11, "Dueling DQN splits the network into two streams estimating:",
+    ["Actor and critic", "The state value V(s) and each action's advantage", "Generator and discriminator", "Reward and discount"], [1], "Q(s, a) = V(s) + A(s, a) (with a normalisation).");
+  P(11, "Why are policy-gradient methods attractive for drone control?",
+    ["They require discrete actions", "They output a distribution over continuous thrust/attitude commands and sample from it", "They need no reward", "They have no variance"], [1], "Value-based argmax is awkward for continuous actions. Policy gradients suffer from high variance, which actor–critic reduces.");
+  P(11, "In an actor–critic method:",
+    ["The critic chooses actions and the actor evaluates them", "The actor (policy) chooses actions and the critic (value function) evaluates them, often via the advantage", "Both networks generate images", "There is no value function"], [1], "Advantage = how much better than average the action was. This gives lower variance than pure policy gradients.");
+  P(11, "Match the algorithm to its key idea: PPO",
+    ["Adds an entropy bonus to maximise both reward and action randomness", "Limits how much the policy can change per update for stable, monotonic improvement", "Uses a Q-table", "Uses a queue of negatives"], [1], "SAC is the entropy-regularised off-policy method.");
+  P(11, "In Gymnasium, env.step(action) returns:",
+    ["obs, info", "obs, reward, terminated, truncated, info", "reward only", "policy, value"], [1], "env.reset() returns (obs, info).");
+  P(11, "Randomising mass, wind, sensor noise and delays in the simulator while training a drone policy is called:",
+    ["Reward shaping", "Domain randomisation", "Experience replay", "Mode collapse"], [1], "It forces a robust policy that transfers zero-shot from simulation to real hardware.");
+  P(11, "Dense rewards (distance-to-goal, smoothness, energy) compared with a sparse +1 at the goal typically:",
+    ["Learn slower", "Learn faster", "Make no difference", "Prevent any exploration"], [1], "This is reward shaping: more frequent feedback gives a stronger learning signal.");
+  P(11, "At some x, p<sub>data</sub>(x) = 0.3 and p<sub>G</sub>(x) = 0.1. The optimal discriminator output D*(x) is:",
+    ["0.25", "0.75", "0.5", "0.3"], [1], "D* = 0.3/(0.3 + 0.1) = 0.75: the point is three times more likely to be real.");
+  P(11, "With the optimal discriminator, the GAN value function becomes:",
+    ["KL(p<sub>data</sub> ‖ p<sub>G</sub>)", "2·JSD(p<sub>data</sub>, p<sub>G</sub>) − log 4", "W(p<sub>data</sub>, p<sub>G</sub>)", "−log D"], [1], "Its minimum −log 4 ≈ −1.386 is reached when p<sub>G</sub> = p<sub>data</sub>.");
+  P(11, "At the GAN's global optimum, D(x) equals:",
+    ["1 for all x", "0 for all x", "½ for all x", "p<sub>data</sub>(x)"], [2], "p<sub>G</sub> = p<sub>data</sub>, so D* = p/(p + p) = ½. Real and fake are indistinguishable.");
+  P(11, "With D = σ(a) and generator loss log(1 − D), ∂L/∂a = −D. When D(G(z)) = 0.01, the generator's gradient magnitude is about:",
+    ["0.99", "0.01", "1", "100"], [1], "It vanishes. The non-saturating loss −log D gives −(1 − D) = −0.99 instead.");
+  P(11, "Which are remedies or responses to mode collapse? (Select all that apply)",
+    ["Minibatch discrimination", "Switching to a Wasserstein objective", "Training the discriminator with only one real image", "Unrolled GANs"], [0, 1, 3], "Minibatch discrimination lets D see the similarity of samples within a batch; WGAN and unrolled GANs improve training dynamics.");
+  P(11, "In a WGAN, the discriminator (critic):",
+    ["Outputs a probability through a sigmoid", "Outputs an unconstrained scalar score and must be 1-Lipschitz", "Is removed", "Is trained with cross-entropy"], [1], "The Lipschitz constraint is enforced by weight clipping or a gradient penalty.");
+  P(11, "Two distributions are shifted so far that they no longer overlap. Which statement is correct?",
+    ["JSD keeps growing with the shift", "JSD is stuck at log 2 while the Wasserstein distance keeps growing with the shift", "Both are zero", "Wasserstein is undefined"], [1], "This is the core WGAN motivation: a useful gradient even without overlap.");
+  P(11, "Which are DCGAN design rules? (Select all that apply)",
+    ["Strided convolutions instead of pooling in D; strided transposed convolutions in G", "BatchNorm in both G and D", "ReLU in G with Tanh output; LeakyReLU in D", "Large fully connected hidden layers"], [0, 1, 2], "DCGAN removes fully connected hidden layers.");
+  P(11, "In pix2pix (a conditional GAN mapping edges → photos), the discriminator judges:",
+    ["Only the generated photo", "{edge map, photo} pairs, so both G and D see the input edge map", "Only the edge map", "Latent vectors"], [1], "Conditioning both networks ties the output to the given input; CycleGAN handles unpaired data.");
 })();

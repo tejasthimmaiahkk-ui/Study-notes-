@@ -1253,5 +1253,172 @@
     on(host, "input,select", "input", run); run();
   };
 
-  /*__WEEK11__*/
+  /* ===================================================================
+     WEEK 11 — Reinforcement learning and GANs
+     =================================================================== */
+  D.discount = function (host) {
+    host.innerHTML = '<div class="demo-row"><label class="grow">Rewards R<sub>t+1</sub>, R<sub>t+2</sub>, …<input class="wide" id="r" value="-1, -1, -1, -1, -1, -1, 10"></label><label>Discount γ = <span id="gl"></span><input type="range" id="g" min="0" max="1" step="0.01" value="0.9"></label></div>' +
+      '<div class="demo-row"><span class="seg" id="pre"><button data-p="-1, -1, -1, -1, -1, -1, 10|0.9">Drone: 6 steps then goal</button><button data-p="1, 0, 0, 0, 100|0.1">Myopic γ = 0.1</button><button data-p="1, 0, 0, 0, 100|0.99">Far-sighted γ = 0.99</button><button data-p="5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5|0.5">Constant reward 5</button></span></div><div class="two-col"><div class="out" id="o"></div><div id="pl"></div></div>';
+    function run() {
+      var r = nums(el(host, "#r").value), g = +el(host, "#g").value; el(host, "#gl").textContent = f(g, 2);
+      var G = 0, rows = "", w = [];
+      r.forEach(function (x, k) { var gk = Math.pow(g, k); w.push(gk); G += gk * x; rows += "<tr><td>" + k + "</td><td>" + x + "</td><td>" + f(gk, 4) + "</td><td>" + f(gk * x, 4) + "</td></tr>"; });
+      el(host, "#o").innerHTML = '<table class="num compact"><tr><th>k</th><th>R<sub>t+k+1</sub></th><th>γ<sup>k</sup></th><th>γ<sup>k</sup>·R</th></tr>' + rows + '<tr class="total"><td colspan="3">G<sub>t</sub> = Σ γ<sup>k</sup> R<sub>t+k+1</sub></td><td>' + f(G, 4) + "</td></tr></table>" +
+        (g < 1 ? "Effective horizon ≈ 1/(1 − γ) = <b>" + f(1 / (1 - g), 1) + "</b> steps. For a constant reward c forever, G = c/(1 − γ)." : "γ = 1: no discounting; the return can diverge on non-terminating tasks.") +
+        "<br><small>γ → 0 is <b>myopic</b> (only the immediate reward counts); γ → 1 is <b>far-sighted</b>. Discounting reflects an uncertain future and keeps infinite sums finite.</small>";
+      var pl = el(host, "#pl"); pl.innerHTML = legend([{ name: "weight γ^k on the reward k steps ahead", color: K.PALETTE[0] }]);
+      pl.appendChild(bars(w.map(function (_, k) { return String(k); }), [{ v: w }], { w: 320, h: 150 }));
+    }
+    on(host, "input", "input", run);
+    on(host, "#pre button", "click", function () { var p = this.getAttribute("data-p").split("|"); el(host, "#r").value = p[0]; el(host, "#g").value = p[1]; run(); });
+    run();
+  };
+
+  D.qupdate = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Q(s, a)<input type="number" id="q" value="2" step="0.1"></label><label>Reward r<input type="number" id="r" value="1" step="0.1"></label><label>α<input type="number" id="a" value="0.5" step="0.05" min="0" max="1"></label><label>γ<input type="number" id="g" value="0.9" step="0.05" min="0" max="1"></label><label class="grow">Q(s′, ·) for each action<input class="wide" id="n" value="5, 3, 4"></label><label>Next action a′ actually taken (SARSA)<input type="number" id="ap" value="2" min="1"></label></div>' +
+      '<div class="demo-row"><label>ε (ε-greedy)<input type="number" id="e" value="0.2" step="0.05" min="0" max="1"></label><label>Number of actions |A|<input type="number" id="na" value="4" min="1"></label><span class="seg" id="pre"><button data-p="2,1,0.5,0.9,5, 3, 4,2,0.2,4">Assignment Q9 and Q10</button><button data-p="0,-1,0.1,0.9,0, 0, 0, 0,1,0.1,4">First step on the grid</button><button data-p="6,10,0.5,0.9,0, 0, 0, 0,1,0.1,4">Reaching the goal (terminal: use Q(s′,·) = 0)</button></span></div><div class="out" id="o"></div>';
+    function run() {
+      var q = +el(host, "#q").value, r = +el(host, "#r").value, a = +el(host, "#a").value, g = +el(host, "#g").value, n = nums(el(host, "#n").value);
+      var ap = Math.max(1, Math.min(n.length, Math.round(+el(host, "#ap").value || 1))), e = +el(host, "#e").value, na = Math.max(1, Math.round(+el(host, "#na").value || 1));
+      if (!n.length) { el(host, "#o").textContent = "Enter the next-state Q-values."; return; }
+      var mx = Math.max.apply(null, n), tq = r + g * mx, ts = r + g * n[ap - 1];
+      el(host, "#o").innerHTML = "<b>Q-learning (off-policy)</b>: TD target = r + γ·max<sub>a′</sub> Q(s′, a′) = " + f(r, 2) + " + " + f(g, 2) + " × " + f(mx, 2) + " = <b>" + f(tq, 3) + "</b><br>" +
+        "TD error = target − Q(s, a) = " + f(tq, 3) + " − " + f(q, 2) + " = " + f(tq - q, 3) + "<br>" +
+        "Q(s, a) ← " + f(q, 2) + " + " + f(a, 2) + " × " + f(tq - q, 3) + " = <b>" + f(q + a * (tq - q), 3) + "</b><br><br>" +
+        "<b>SARSA (on-policy)</b>, using the action actually taken next (a′ = action " + ap + ", Q = " + f(n[ap - 1], 2) + "): target = " + f(ts, 3) + " → Q(s, a) ← <b>" + f(q + a * (ts - q), 3) + "</b>" +
+        (Math.abs(ts - tq) < 1e-12 ? " (same as Q-learning, because a′ is the greedy action)" : " (lower than Q-learning when a′ is not the greedy action: SARSA values its real, exploring behaviour)") + "<br><br>" +
+        "<b>ε-greedy</b> with ε = " + f(e, 2) + " and " + na + " actions: P(greedy action) = (1 − ε) + ε/|A| = " + f(1 - e, 2) + " + " + f(e / na, 3) + " = <b>" + f(1 - e + e / na, 3) + "</b>; P(each other action) = ε/|A| = " + f(e / na, 3) + ".<br><small>A common trap is answering 1 − ε: random exploration can also pick the greedy action.</small>";
+    }
+    on(host, "input", "input", run);
+    on(host, "#pre button", "click", function () {
+      var p = this.getAttribute("data-p").split(","), cnt = p.length - 7;
+      el(host, "#q").value = p[0]; el(host, "#r").value = p[1]; el(host, "#a").value = p[2]; el(host, "#g").value = p[3];
+      el(host, "#n").value = p.slice(4, 4 + cnt).map(function (s) { return s.trim(); }).join(", ");
+      el(host, "#ap").value = p[4 + cnt]; el(host, "#e").value = p[5 + cnt]; el(host, "#na").value = p[6 + cnt]; run();
+    });
+    run();
+  };
+
+  D.gridq = function (host) {
+    var Wd = 5, Ht = 4, MV = [[0, -1], [1, 0], [0, 1], [-1, 0]], AR = ["↑", "→", "↓", "←"], CS = 64;
+    var LAY = { obst: { start: [0, 3], goal: [4, 0], bad: [[1, 1], [2, 1], [3, 2]] }, cliff: { start: [0, 3], goal: [4, 3], bad: [[1, 3], [2, 3], [3, 3]] } };
+    host.innerHTML = '<div class="demo-row"><label>World<select id="lay"><option value="obst">Grid with obstacles</option><option value="cliff">Cliff edge</option></select></label><label>Algorithm<select id="alg"><option value="q">Q-learning (off-policy)</option><option value="s">SARSA (on-policy)</option></select></label><label>α<input type="number" id="al" value="0.5" step="0.05" min="0.01" max="1"></label><label>γ<input type="number" id="ga" value="0.9" step="0.05" min="0" max="1"></label><label>ε<input type="number" id="ep" value="0.1" step="0.05" min="0" max="1"></label></div>' +
+      '<div class="demo-row"><button class="btn" id="b1">Fly 1 episode</button><button class="btn" id="b50">Train 50 episodes</button><button class="btn" id="b300">Train 300 episodes</button><button class="btn" id="rs">Reset Q-table</button></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    var Q, R, ep, falls, last, L;
+    function reset() { L = LAY[el(host, "#lay").value]; Q = []; for (var i = 0; i < Wd * Ht; i++) Q.push([0, 0, 0, 0]); R = rng(7); ep = 0; falls = 0; last = null; draw(); }
+    function isBad(x, y) { return L.bad.some(function (b) { return b[0] === x && b[1] === y; }); }
+    function argmax(q, rand) { var m = Math.max.apply(null, q), c = []; q.forEach(function (v, i) { if (v === m) c.push(i); }); return rand ? c[Math.floor(R() * c.length)] : c[0]; }
+    function step(x, y, a) {
+      var nx = x + MV[a][0], ny = y + MV[a][1]; if (nx < 0 || ny < 0 || nx >= Wd || ny >= Ht) { nx = x; ny = y; }
+      if (nx === L.goal[0] && ny === L.goal[1]) return { x: nx, y: ny, r: 10, done: true };
+      if (isBad(nx, ny)) return { x: nx, y: ny, r: -10, done: true };
+      return { x: nx, y: ny, r: -1, done: false };
+    }
+    function episode() {
+      var al = +el(host, "#al").value, ga = +el(host, "#ga").value, eps = +el(host, "#ep").value, alg = el(host, "#alg").value;
+      function choose(s) { return R() < eps ? Math.floor(R() * 4) : argmax(Q[s], true); }
+      var x = L.start[0], y = L.start[1], s = y * Wd + x, a = choose(s), path = [[x, y]], ret = 0, end = "timeout";
+      for (var t = 0; t < 60; t++) {
+        var o = step(x, y, a), s2 = o.y * Wd + o.x; ret += o.r; path.push([o.x, o.y]);
+        if (o.done) { Q[s][a] += al * (o.r - Q[s][a]); end = o.r > 0 ? "goal" : "crash"; if (o.r < 0) falls++; break; }
+        var a2 = choose(s2), tgt = alg === "q" ? o.r + ga * Math.max.apply(null, Q[s2]) : o.r + ga * Q[s2][a2];
+        Q[s][a] += al * (tgt - Q[s][a]); x = o.x; y = o.y; s = s2; a = a2;
+      }
+      ep++; last = { path: path, ret: ret, end: end };
+    }
+    function cx(c) { return 4 + c[0] * CS + CS / 2; } function cy(c) { return 4 + c[1] * CS + CS / 2; }
+    function poly(s, pts, color, dash, wd) { var p = S(s, "polyline", { points: pts.map(function (c) { return cx(c) + "," + cy(c); }).join(" ") }); css(p, { fill: "none", stroke: color, strokeWidth: wd, strokeOpacity: 0.7, strokeDasharray: dash || "", strokeLinejoin: "round" }); }
+    function draw() {
+      var s = svgEl(Wd * CS + 8, Ht * CS + 8), vals = [];
+      for (var i = 0; i < Wd * Ht; i++) vals.push(Math.max.apply(null, Q[i]));
+      var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+      for (var y = 0; y < Ht; y++) for (var x = 0; x < Wd; x++) {
+        var k = y * Wd + x, g = x === L.goal[0] && y === L.goal[1], b = isBad(x, y), st = x === L.start[0] && y === L.start[1];
+        css(S(s, "rect", { x: 4 + x * CS, y: 4 + y * CS, width: CS - 2, height: CS - 2, rx: 6 }), { fill: g ? "var(--good-soft)" : b ? "var(--bad-soft)" : "var(--card)", stroke: "var(--line)" });
+        if (!g && !b && hi > lo) css(S(s, "rect", { x: 4 + x * CS, y: 4 + y * CS, width: CS - 2, height: CS - 2, rx: 6 }), { fill: "var(--acc)", fillOpacity: (0.35 * (vals[k] - lo) / (hi - lo)).toFixed(3) });
+        if (g) S(s, "text", { x: 4 + x * CS + CS / 2, y: 4 + y * CS + CS / 2 + 4, "text-anchor": "middle" }, "GOAL +10");
+        else if (b) S(s, "text", { x: 4 + x * CS + CS / 2, y: 4 + y * CS + CS / 2 + 4, "text-anchor": "middle" }, L === LAY.cliff ? "cliff −10" : "✕ −10");
+        else {
+          var nz = Q[k].some(function (v) { return v !== 0; });
+          var t = S(s, "text", { x: 4 + x * CS + CS / 2, y: 4 + y * CS + 26, "text-anchor": "middle" }, nz ? AR[argmax(Q[k], false)] : "·"); css(t, { fontSize: "20px" });
+          S(s, "text", { x: 4 + x * CS + CS / 2, y: 4 + y * CS + 50, "text-anchor": "middle" }, (st ? "S " : "") + f(vals[k], 1));
+        }
+      }
+      if (last) poly(s, last.path, "var(--warn)", "5 4", 2.5);
+      var gx = L.start[0], gy = L.start[1], gp = [[gx, gy]], reach = false;
+      for (var n = 0; n < 20; n++) { var o = step(gx, gy, argmax(Q[gy * Wd + gx], false)); gp.push([o.x, o.y]); if (o.x === gx && o.y === gy) break; gx = o.x; gy = o.y; if (o.done) { reach = o.r > 0; break; } }
+      if (ep) poly(s, gp, "var(--good)", "", 3.5);
+      var pl = el(host, "#pl"); pl.innerHTML = legend([{ name: "greedy policy path", color: "var(--good)" }, { name: "last training episode (ε-greedy)", color: "var(--warn)" }]); pl.appendChild(s);
+      var alg = el(host, "#alg").value;
+      el(host, "#o").innerHTML = "Episodes trained: <b>" + ep + "</b> · crashes during training: <b>" + falls + "</b><br>" +
+        (last ? "Last episode: " + (last.path.length - 1) + " moves, sum of rewards " + last.ret + " (" + (last.end === "goal" ? "reached the goal" : last.end === "crash" ? "crashed" : "ran out of time") + ")<br>" : "") +
+        (ep ? "Greedy policy " + (reach ? "<b>reaches the goal in " + (gp.length - 1) + " moves</b>" : "does not reach the goal yet: keep training") + ".<br>" : "") +
+        "<br>Each cell shows max<sub>a</sub> Q(s, a) and the greedy arrow. Rewards: +10 goal, −1 per move, −10 obstacle (episode ends). Each move updates one Q-entry: Q(s,a) ← Q(s,a) + α[target − Q(s,a)], with target r + γ·" + (alg === "q" ? "max<sub>a′</sub> Q(s′,a′) (Q-learning)" : "Q(s′,a′) for the action actually taken (SARSA)") + ". Value propagates back from the goal over many episodes." +
+        (L === LAY.cliff ? "<br><br><b>Cliff experiment</b>: train 300 episodes with each algorithm (Reset between). Q-learning learns the <b>shortest path along the cliff edge</b> and crashes more often while exploring; SARSA accounts for its own ε-random slips and learns the <b>safer path one row away</b>." : "");
+    }
+    on(host, "#b1", "click", function () { episode(); draw(); });
+    on(host, "#b50", "click", function () { for (var i = 0; i < 50; i++) episode(); draw(); });
+    on(host, "#b300", "click", function () { for (var i = 0; i < 300; i++) episode(); draw(); });
+    on(host, "#rs", "click", reset);
+    on(host, "#lay,#alg", "change", reset);
+    reset();
+  };
+
+  function npdf(x, m, s) { return Math.exp(-0.5 * (x - m) * (x - m) / (s * s)) / (s * Math.sqrt(2 * Math.PI)); }
+  D.gand = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Real data p<sub>data</sub><select id="pd"><option value="uni">N(0, 1)</option><option value="bi">Two modes: ½N(−2, 0.6²) + ½N(2, 0.6²)</option></select></label><label>Generator mean μ = <span id="ml"></span><input type="range" id="m" min="-4" max="4" step="0.1" value="2"></label><label>Generator spread σ = <span id="sl"></span><input type="range" id="s" min="0.3" max="3" step="0.05" value="1"></label><span class="seg" id="pre"><button data-p="uni|0|1">Equilibrium p<sub>G</sub> = p<sub>data</sub></button><button data-p="bi|2|0.6">Mode collapse (one mode)</button><button data-p="uni|3.5|0.5">Early training (far apart)</button></span></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var bi = el(host, "#pd").value === "bi", m = +el(host, "#m").value, sg = +el(host, "#s").value;
+      el(host, "#ml").textContent = f(m, 1); el(host, "#sl").textContent = f(sg, 2);
+      var pd = bi ? function (x) { return 0.5 * npdf(x, -2, 0.6) + 0.5 * npdf(x, 2, 0.6); } : function (x) { return npdf(x, 0, 1); };
+      var pg = function (x) { return npdf(x, m, sg); };
+      var Ds = function (x) { var a = pd(x), b = pg(x); return a + b < 1e-12 ? NaN : a / (a + b); };
+      var js = 0, dx = 0.005;
+      for (var x = -12; x <= 12; x += dx) { var a = pd(x), b = pg(x), mm = (a + b) / 2; if (a > 1e-300) js += 0.5 * a * Math.log(a / mm) * dx; if (b > 1e-300) js += 0.5 * b * Math.log(b / mm) * dx; }
+      var sv = plot([{ f: pd, name: "p_data" }, { f: pg, name: "p_G" }, { f: Ds, dash: "6 4", color: K.PALETTE[2] }], [-6, 6], [0, 1.05], { w: 400, h: 240 });
+      var pl = el(host, "#pl"); pl.innerHTML = legend([{ name: "p<sub>data</sub>", color: K.PALETTE[0] }, { name: "p<sub>G</sub>", color: K.PALETTE[1] }, { name: "D*(x) = p<sub>data</sub>/(p<sub>data</sub> + p<sub>G</sub>)", color: K.PALETTE[2] }]); pl.appendChild(sv);
+      el(host, "#o").innerHTML = "For a fixed G, the optimal discriminator is <b>D*(x) = p<sub>data</sub>(x) / (p<sub>data</sub>(x) + p<sub>G</sub>(x))</b>.<br>Substituting it: V(D*, G) = 2·JSD(p<sub>data</sub> ‖ p<sub>G</sub>) − log 4.<br><br>" +
+        "JSD here = <b>" + f(js, 4) + "</b> nats (maximum log 2 = 0.6931) → V(D*, G) = <b>" + f(2 * js - Math.log(4), 4) + "</b> (global minimum −log 4 = −1.3863 when p<sub>G</sub> = p<sub>data</sub>, where D* = ½ everywhere).<br><br>" +
+        (js < 0.005 ? "✓ <b>Equilibrium</b>: the generator matches the data, so the discriminator can only guess (D = ½)." :
+          bi && Math.abs(Math.abs(m) - 2) < 0.4 && sg < 0.9 ? "⚠ <b>Mode collapse</b>: the generator produces convincing samples from only one mode. D* still flags the missed mode. Remedies: minibatch discrimination (let D compare samples within a batch), WGAN, unrolled GANs." :
+          js > 0.6 ? "⚠ The distributions barely overlap: JSD is close to its ceiling log 2, so it hardly changes as G moves. This is where the original GAN's gradients vanish (see the WGAN demo)." : "Move μ and σ so p<sub>G</sub> covers p<sub>data</sub>: JSD falls and D* flattens towards ½.");
+    }
+    on(host, "input,select", "input", run);
+    on(host, "#pre button", "click", function () { var p = this.getAttribute("data-p").split("|"); el(host, "#pd").value = p[0]; el(host, "#m").value = p[1]; el(host, "#s").value = p[2]; run(); });
+    run();
+  };
+
+  D.gansat = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>D(G(z)) = <span id="dl"></span><input type="range" id="d" min="0.001" max="0.999" step="0.001" value="0.02"></label></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var d = +el(host, "#d").value; el(host, "#dl").textContent = f(d, 3);
+      var sv = plot([{ f: function (x) { return x; } }, { f: function (x) { return 1 - x; } }], [0, 1], [0, 1.05], { w: 380, h: 220 });
+      [[d, K.PALETTE[0]], [1 - d, K.PALETTE[1]]].forEach(function (p) { css(S(sv, "circle", { cx: sv._X(d), cy: sv._Y(p[0]), r: 5 }), { fill: p[1] }); });
+      var pl = el(host, "#pl"); pl.innerHTML = legend([{ name: "|∂L/∂a| for L = log(1 − D) (saturating): D", color: K.PALETTE[0] }, { name: "|∂L/∂a| for L = −log D (non-saturating): 1 − D", color: K.PALETTE[1] }]); pl.appendChild(sv);
+      el(host, "#o").innerHTML = "With D = σ(a) (a = discriminator logit) and ∂D/∂a = D(1 − D):<br>" +
+        "• Minimax generator loss L<sub>G</sub> = log(1 − D): ∂L<sub>G</sub>/∂a = −D(1 − D)/(1 − D) = <b>−D = " + f(-d, 3) + "</b><br>" +
+        "• Non-saturating loss L<sub>G</sub> = −log D: ∂L<sub>G</sub>/∂a = <b>−(1 − D) = " + f(-(1 - d), 3) + "</b><br><br>" +
+        (d < 0.1 ? "Early in training the discriminator easily spots fakes, so D(G(z)) ≈ 0. The minimax gradient <b>vanishes</b> while the non-saturating one is about 1: that is why practice trains G to <b>maximise log D(G(z))</b>." : "As D(G(z)) grows, the two gradients approach each other; at D = ½ both are 0.5 in magnitude.");
+    }
+    on(host, "input", "input", run); run();
+  };
+
+  D.wgan = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Shift x of p<sub>G</sub> = <span id="xl"></span><input type="range" id="x" min="-3" max="3" step="0.05" value="2"></label><label>Width w of each uniform distribution = <span id="wl"></span><input type="range" id="w" min="0.2" max="2" step="0.1" value="1"></label></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var x = +el(host, "#x").value, w = +el(host, "#w").value; el(host, "#xl").textContent = f(x, 2); el(host, "#wl").textContent = f(w, 1);
+      var JS = function (t) { return Math.log(2) * Math.min(1, Math.abs(t) / w); }, WD = function (t) { return Math.abs(t); };
+      var sv = plot([{ f: JS }, { f: WD }], [-3, 3], [0, 3.1], { w: 380, h: 220 });
+      css(S(sv, "circle", { cx: sv._X(x), cy: sv._Y(JS(x)), r: 5 }), { fill: K.PALETTE[0] }); css(S(sv, "circle", { cx: sv._X(x), cy: sv._Y(WD(x)), r: 5 }), { fill: K.PALETTE[1] });
+      var pl = el(host, "#pl"); pl.innerHTML = legend([{ name: "Jensen–Shannon divergence", color: K.PALETTE[0] }, { name: "Wasserstein (earth-mover) distance", color: K.PALETTE[1] }]); pl.appendChild(sv);
+      var over = Math.abs(x) < w;
+      el(host, "#o").innerHTML = "p<sub>data</sub> = Uniform[0, w], p<sub>G</sub> = Uniform[x, x + w]. As functions of the shift x:<br>" +
+        "JSD = log 2 · min(1, |x|/w) = <b>" + f(JS(x), 4) + "</b> · W = |x| = <b>" + f(WD(x), 3) + "</b><br><br>" +
+        (over ? "The distributions still overlap, so both measures respond to x." : "<b>No overlap</b>: JSD is stuck at log 2 = 0.693 whatever x is, so every such x is \"as good\" and the generator gets <b>no gradient</b>. W still equals the distance mass must move, so it gives a useful gradient.") +
+        "<br><br><small>WGAN uses the Kantorovich–Rubinstein dual: W = max over 1-Lipschitz f of E<sub>data</sub>[f(x)] − E<sub>G</sub>[f(x)]. The critic outputs an unbounded <b>score</b> (not a probability). The Lipschitz constraint is enforced by <b>weight clipping</b> or a <b>gradient penalty</b>.</small>";
+    }
+    on(host, "input", "input", run); run();
+  };
+
+  /*__WEEK12__*/
 })();
