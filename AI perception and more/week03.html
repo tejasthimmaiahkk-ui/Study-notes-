@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 3 · Training Neural Networks — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week03.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 3 · Lectures 6a, 6b, 7 + Math tutorial 2</div>
+  <h1>Activations, Learning Rate, Momentum, Generalisation &amp; Loss Functions</h1>
+  <p class="lead">What makes training converge: zero-centred activations and saturation, the learning rate, momentum, online vs batch updates; why models overfit (polynomial curve fitting), how regularisation, dropout, cross-validation and early stopping fix it; and the course's family of loss functions — LS, MLS, FPE, cross-entropy, focal and risk-sensitive hinge.</p>
+  <div class="meta"><span class="chip acc">Sigmoid vs tanh</span><span class="chip acc">η and momentum</span><span class="chip acc">Overfitting &amp; λ</span><span class="chip acc">Loss functions</span><span class="chip"><span data-qcount="3:A"></span> assignment Qs · <span data-qcount="3:P"></span> practice Qs</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="activations">
+<h2><span class="num">3.1</span> Effect of the activation function</h2>
+<div class="two-col">
+<div class="concept"><h3>Sigmoid σ(v) = 1/(1 + e<sup>−v</sup>)</h3>
+<p><b>Disadvantages:</b></p><ul>
+<li><b>Not zero-centred</b> — output range (0, 1), always positive.</li>
+<li>Weak gradient: σ′ = σ(1 − σ) ≤ 0.25.</li>
+<li><b>Vanishing gradients</b> — in the flat tails Δw is very small (saturation).</li></ul></div>
+<div class="concept"><h3>tanh(v)</h3>
+<p><b>Advantages:</b> zero-centred output (−1, 1) → weights can move in both directions → faster convergence; stronger gradient (slope 1 at 0).</p>
+<p><b>Disadvantages:</b> still <b>saturates</b> — vanishing gradients for large |v|, though less severe than sigmoid.</p>
+<p>Derivative: <b>tanh′(v) = 1 − tanh²(v)</b>.</p></div>
+</div>
+<div class="box example" data-title="Why non-zero-centred inputs cause zig-zag updates (lecture example)"><p>Linear neuron, x<sub>1</sub> = 1, x<sub>2</sub> = 2, w<sub>1</sub> = w<sub>2</sub> = 0.5, b = 0, target d = 0, η = 0.1.<br>
+Forward: z = 0.5·1 + 0.5·2 = 1.5 = y; E = ½(0 − 1.5)² = 1.125. Shared term ∂L/∂y·∂y/∂z = −(d − y)·1 = 1.5.<br>
+∂L/∂w<sub>1</sub> = 1.5 × 1 = +1.5, ∂L/∂w<sub>2</sub> = 1.5 × 2 = +3.0 → w<sub>1</sub> = 0.5 − 0.15 = <b>0.35</b>, w<sub>2</sub> = 0.5 − 0.3 = <b>0.20</b>.<br>
+Because both inputs are positive, both gradients always have the <b>same sign</b>: the weights can only move together (+/+ or −/−). If the optimum is (0.8, 0.1) — w<sub>1</sub> up, w<sub>2</sub> down — the optimiser must zig-zag. Sigmoid outputs feeding the next layer are always positive, so the next layer has exactly this problem.</p></div>
+<div class="demo box" data-demo="actplot" data-title="Interactive — activations, derivatives and saturation"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="backprop-props">
+<h2><span class="num">3.2</span> Properties of backpropagation</h2>
+<ul>
+<li>Backpropagation provides an <b>approximation</b> to the trajectory in weight space computed by the method of steepest descent.</li>
+<li>Gradient descent over all network weights; easily generalised to arbitrary architectures.</li>
+<li>Finds a <b>local</b> minimum — not always global — but in practice often works well.</li>
+<li>Minimises error over the training examples; training can take thousands of iterations (<b>slow</b>), but <b>inference is fast</b>.</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="learning-rate">
+<h2><span class="num">3.3</span> The learning rate</h2>
+<table class="compact">
+<tr><th>Learning rate</th><th>Behaviour</th></tr>
+<tr><td><b>High</b></td><td>Large weight changes, faster initial progress, but can <b>overshoot</b> the minimum, <b>oscillate</b> (unstable) or <b>diverge</b>. A loss curve that jumps around or rises → η too high.</td></tr>
+<tr><td><b>Low</b></td><td>Smooth, stable trajectory but <b>very slow</b>; can stall on plateaus or in local minima. High error after 50 iterations at η = 0.0001 → it simply hasn't arrived yet.</td></tr>
+<tr><td><b>Moderate</b></td><td>Good balance of speed and stability.</td></tr>
+</table>
+<p>The step taken is <b>Δw = −η ∇E</b>: its length is the product of the learning rate and the gradient (the arrows in the "ball rolling down a curve" picture). The <b>gradient alone fixes the direction</b>; η only scales it.</p>
+<div class="box tip" data-title="Heuristics for accelerating convergence (Haykin)"><ul style="margin:0"><li>Give every adjustable weight its own learning rate.</li><li>Let each learning rate change from one iteration to the next.</li><li>If the derivative of the cost w.r.t. a weight keeps the <b>same sign</b> for several iterations → <b>increase</b> that learning rate.</li><li>If it <b>alternates</b> in sign → <b>decrease</b> it.</li></ul></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="momentum">
+<h2><span class="num">3.4</span> Momentum</h2>
+<div class="concept">
+<div class="f-exp">A simple way to increase the rate of learning while avoiding instability: add a fraction α of the previous update (Haykin's generalised delta rule):<br>
+<b>Δw(n) = α Δw(n − 1) − η ∂E/∂w(n)</b>, 0 ≤ α &lt; 1 (the momentum constant).<br>
+Assignment forms: ΔW(n) = g(n) + αΔW(n − 1), or v<sub>t</sub> = βv<sub>t−1</sub> + ∇J(θ<sub>t</sub>), θ<sub>t+1</sub> = θ<sub>t</sub> − ηv<sub>t</sub>.</div>
+<div class="f-imp">Unrolling the recurrence: <b>Δw(n) = Σ<sub>j=0</sub><sup>n</sup> α<sup>n−j</sup> g(j)</b> — the current gradient has weight α<sup>0</sup> = 1 (100 %), the previous one α (90 % if α = 0.9), two steps ago α² (81 %)… older gradients <b>decay exponentially</b>. E.g. ΔW(3) = g(3) + αg(2) + α²g(1).</div>
+<div class="f-use"><b>Dampens oscillations:</b> if gradients keep flipping sign (zig-zag), the terms cancel and smooth the path. <b>Accelerates on plateaus:</b> if gradients point the same way, the sum grows (a ball picking up speed) — effective step up to η/(1 − α) for a constant gradient. Uses information from previous gradients.</div>
+<div class="f-lim">α close to 1 (e.g. 0.99) keeps past gradients alive for a long time → the updates can <b>overshoot</b> the minimum. Momentum does <b>not</b> guarantee the global minimum on non-convex surfaces.</div>
+</div>
+<div class="box example" data-title="Assignment Q20 worked"><p>v<sub>t−1</sub> = 2, β = 0.9, ∇J = 3, η = 0.1, θ<sub>t</sub> = 5: v<sub>t</sub> = 0.9 × 2 + 3 = 4.8 → θ<sub>t+1</sub> = 5 − 0.1 × 4.8 = <b>4.52</b>.</p></div>
+<div class="demo box" data-demo="gdball" data-title="Interactive — gradient descent with learning rate and momentum"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="online-batch">
+<h2><span class="num">3.5</span> Online (stochastic) vs batch learning</h2>
+<table class="compact">
+<tr><th></th><th>On-line / sequential (stochastic)</th><th>Batch</th></tr>
+<tr><td>When weights change</td><td>After <b>every example</b></td><td>After all n examples — <b>once per epoch</b> (examples shuffled each epoch)</td></tr>
+<tr><td>Cost minimised</td><td>Instantaneous error energy e(n)</td><td>Average error over the epoch</td></tr>
+<tr><td>Search</td><td>Stochastic (random presentation order)</td><td>Deterministic, accurate gradient estimate</td></tr>
+<tr><td>Pros</td><td>Simple; effective for large, complex pattern-classification problems</td><td>Accurate gradient; fast to compute per update on parallel hardware</td></tr>
+<tr><td>Cons</td><td>Computationally heavy (many updates), noisy</td><td>Demanding <b>storage</b> requirements</td></tr>
+</table>
+<p>Modern practice uses <b>mini-batches</b> (a few to a few hundred samples per update) — a compromise between the two.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="curve-fitting">
+<h2><span class="num">3.6</span> Curve fitting, overfitting and regularisation</h2>
+<div class="concept">
+<div class="f-exp"><b>Bishop's example:</b> predict t from x; the unknown truth is sin(2πx) plus random noise; N = 10 points evenly spaced in [0, 1]. Model: <b>y(x, w) = Σ<sub>j=0</sub><sup>M</sup> w<sub>j</sub>x<sup>j</sup></b> — nonlinear in x but <b>linear in w</b>. Error: E(w) = ½Σ{y(x<sub>n</sub>, w) − t<sub>n</sub>}² (half the sum of squared vertical distances).</div>
+<div class="f-imp"><ul style="margin:0">
+<li><b>M = 0, 1</b>: poor fit — <b>underfitting</b>; fails to capture sin(2πx).</li>
+<li><b>M = 3</b>: good fit of the underlying trend.</li>
+<li><b>M = 9</b>: 10 coefficients for 10 points → passes exactly through every point, <b>E(w*) = 0</b>, but oscillates wildly between points, especially near the ends; <b>test error rises</b> → <b>overfitting</b> (fitting the noise). The coefficients become huge, with large positive and negative values.</li>
+<li><b>More data</b> (N = 15 → 100) reduces overfitting for a fixed M. Heuristic: number of data points ≈ <b>5–10 × number of parameters</b>.</li>
+</ul></div>
+<div class="f-use"><b>Regularisation</b>: Ẽ(w) = ½Σ{y(x<sub>n</sub>, w) − t<sub>n</sub>}² + (λ/2)‖w‖². With M = 9: λ = 0 → oscillating overfit; moderate <b>ln λ = −18</b> → smooth curve close to sin(2πx), smaller coefficients; large <b>ln λ = 0</b> → over-regularised, flattened, <b>underfit</b>. Choose M or λ on a <b>validation (hold-out) set</b>, not on the training set.</div>
+<div class="f-lim">Training error alone always prefers the most complex model — the goal is generalisation.</div>
+</div>
+<div class="demo box" data-demo="polyfit" data-title="Interactive — Bishop's polynomial curve fitting (degree, data size, λ)"></div>
+<h3>Ways to control capacity (cs231n)</h3>
+<ul>
+<li><b>Loss-based regularisation</b> — add a penalty to the error: <b>L2</b> λΣw² (weight decay, small spread-out weights), <b>L1</b> λΣ|w| (sparse weights), L1 + L2 (elastic net), L0 (count of non-zero weights).</li>
+<li><b>Max-norm constraints</b> — clamp every neuron's weight vector so ‖w‖<sub>2</sub> &lt; c (c typically 3 or 4). The network cannot "explode" even with a too-high learning rate, because updates stay bounded.</li>
+<li><b>Dropout</b> (Srivastava et al., 2014) — during training keep each neuron active with probability p, otherwise set it to zero; <b>no dropout at test time</b>.</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="generalisation">
+<h2><span class="num">3.7</span> Generalisation, cross-validation and early stopping</h2>
+<div class="concept">
+<div class="f-exp">Learning is a "curve-fitting" problem; <b>generalisation</b> is the interpolation the network performs between training points. Learning too many input–output examples can make the network <b>memorise</b> — a look-up table with a non-smooth mapping: <b>overfitting / overtraining</b>.</div>
+<div class="f-imp">Generalisation depends on three factors: (1) the <b>size</b> of the training sample and how <b>representative</b> it is of the environment, (2) the network <b>architecture</b>, (3) the <b>physical complexity</b> of the problem. Too few hidden units → underfitting; too many → overfitting (like fitting a quadratic with a degree ≫ 2 polynomial).</div>
+<div class="f-use">Remedies: <b>avoidance</b> — hold-out cross-validation (decides when to stop), weight decay (shrink each weight a little every epoch); <b>detection/recovery</b> — random restarts, adding/deleting weights or units.</div>
+</div>
+<table class="compact">
+<tr><th>Method</th><th>How</th><th>Trade-off</th></tr>
+<tr><td>Hold-out</td><td>Split into training (estimation) and validation sets</td><td>Simple; estimate depends on the split</td></tr>
+<tr><td><b>K-fold</b> (multifold) CV</td><td>K equal folds; train on K − 1, validate on the remaining one; repeat K times so each fold validates once; report the average validation error</td><td>More reliable estimate; K times the training cost</td></tr>
+<tr><td><b>Early stopping</b></td><td>Train for a period, pause, check validation error, resume. Training error falls monotonically; validation error falls, reaches a minimum, then <b>rises</b> (overfitting) → stop at the minimum</td><td>Needs a validation set; cheap and effective</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="loss-functions">
+<h2><span class="num">3.8</span> Loss functions for neural classifiers</h2>
+<div class="concept">
+<div class="f-exp"><b>Formulation:</b> samples (x<sub>i</sub>, y<sub>i</sub>), x m-dimensional, y an n-dimensional <b>coded class label</b> (target +1 for the true class, −1 for the others). Predicted class = <b>argmax<sub>j</sub> y<sub>ij</sub></b>. The network approximates the decision surface: y = f(W, x) + ε<sub>a</sub> + ε<sub>e</sub>.</div>
+<div class="f-imp"><b>Approximation error ε<sub>a</sub> — model bias:</b> the chosen architecture cannot represent the true decision boundary even with unlimited data (limited capacity → increase capacity).<br><b>Estimation error ε<sub>e</sub> — variance:</b> the architecture is powerful enough but the best parameters can't be learned (finite, noisy or imbalanced samples, overfitting, optimisation → early stopping, regularisation, more data).<br>Risk bound: <b>R<sub>N</sub> ≥ l<sub>B</sub> + ε<sub>a</sub> + ε<sub>e</sub></b> (l<sub>B</sub> = optimal Bayes error).</div>
+</div>
+<table class="compact">
+<tr><th>Loss (d ∈ {−1, +1})</th><th>Formula</th><th>Properties from the lecture</th></tr>
+<tr><td><b>Least squares (LS)</b></td><td>Σ(y − d)²</td><td>Sigmoid outputs saturate; sensitive to labels, finite data and imbalance; may overfit; <b>not guaranteed to reach the optimal Bayes classifier</b>. Penalises "too correct" outputs (y = 2.5 for d = 1 gives loss 2.25).</td></tr>
+<tr><td><b>Modified LS (MLS)</b></td><td>Σ max(0, 1 − yd)²</td><td>Zero once yd ≥ 1 → <b>no penalty for being "too correct"</b> (zero-loss plateau beyond the margin). Uses sub-gradients (more computation); <b>linear output layer</b> with truncated output; better posterior estimates; not sensitive to labels but sensitive to class overlap, finite data, imbalance.</td></tr>
+<tr><td><b>Fourth power (FPE)</b></td><td>Σ(y − d)⁴</td><td>Penalises misclassification strongly, but for <b>small errors the gradient (∝ e³) is tiny → vanishing gradient</b> near convergence; poor posterior estimates; gradient stability issues.</td></tr>
+<tr><td><b>Binary / categorical cross-entropy</b></td><td>Σ [(1 + d)/2]·log[(1 + d)/(1 + y)] + [(1 − d)/2]·log[(1 − d)/(1 − y)]</td><td><b>Consistent towards the optimal Bayes classifier</b>; slow convergence; better posteriors than MLS; handles some class overlap. With a sigmoid output its gradient is (y − d) — σ′ cancels, so it does not stall when confidently wrong.</td></tr>
+<tr><td><b>Focal loss</b></td><td>−(1/N) Σ ((1 − y)/2)<sup>γ</sup> log((1 + y)/2)</td><td>The modulating factor ((1 − y)/2)<sup>γ</sup> down-weights <b>easy</b> examples (e.g. 99.9 % background); handles class overlap and <b>imbalance</b> effectively; consistent towards Bayes; more sensitive to noisy labels than CCE. γ = 0 → cross-entropy.</td></tr>
+<tr><td><b>Risk-sensitive hinge</b></td><td>hinge-type loss with an adaptive risk term (Suresh et al., 2008)</td><td>Consistent towards Bayes; zero loss beyond the margin; not sensitive to labels; handles overlap better than focal; <b>not sensitive to finite data or imbalance</b>; adaptive risk helps convergence; slow and computation-heavy.</td></tr>
+</table>
+<div class="box example" data-title="Satellite image classification (Suresh et al., Information Sciences 2008)"><p>On a well-balanced satellite dataset all losses do reasonably; when imbalance is artificially introduced in class 2, the <b>risk-sensitive</b> loss holds up best — risk estimation handles sample imbalance and acts differently in different regions of the error surface.</p></div>
+<div class="demo box" data-demo="lossplot" data-title="Interactive — compare the losses (drag y past 1, or close to 1)"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A3</span> Week 3 assignment — every question explained</h2>
+<div class="qb" data-week="3" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P3</span> Practice MCQs — Week 3</h2>
+<div class="qb" data-week="3" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

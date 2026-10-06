@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 1 · Foundations — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week01.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 1 · Lectures 1–5 · Prof. Suresh Sundaram, IISc</div>
+  <h1>Foundations: AI for Drones, Neural-Network Basics &amp; Evaluation</h1>
+  <p class="lead">Why drones need AI, how AI, ML and DL relate, what a neural network is, the three learning paradigms, how data is prepared, and how models are scored (MSE, RMSE, R², accuracy, precision, recall, F1). Plus the linear-algebra ideas (independence, span) that the Week 1 assignment tests.</p>
+  <div class="meta"><span class="chip acc">AI ⊃ ML ⊃ DL</span><span class="chip acc">Learning paradigms</span><span class="chip acc">Confusion matrix</span><span class="chip acc">Linear independence</span><span class="chip"><span data-qcount="1:A"></span> assignment Qs · <span data-qcount="1:P"></span> practice Qs</span></div>
+</div>
+
+<div class="box tip" data-title="How to study this course for the NPTEL exam">
+  <ol>
+    <li>Read each week's notes once, playing with every demo — the exam asks <i>why</i> questions, and the demos show the why.</li>
+    <li>Do that week's <b>assignment questions</b> at the bottom of the page. NPTEL exams often reuse assignment questions with small changes, so understand every option, not just the right one.</li>
+    <li>Then do the <b>practice MCQs</b>, and finally the timed <a href="exam.html">mock exams</a> across all weeks.</li>
+  </ol>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="why-ai">
+<h2><span class="num">1.1</span> Why drones need AI</h2>
+<p>The course (Lectures 1–3) covers three jobs an autonomous drone must do: <b>perception</b> (detect, track and understand the scene), <b>mapping</b> (build 3-D models and localise itself) and <b>control/decision-making</b> (plan and act, alone or in a swarm).</p>
+<div class="two-col">
+<div class="concept"><h3>Applications listed in the lectures</h3>
+<ul>
+<li><b>Precision agriculture</b> — soil mapping, crop life-cycle, spraying pesticide/fertiliser/seeds.</li>
+<li><b>Large-area mapping</b> — Digital Surface Model (DSM) generation, HD maps, VR, change detection with 3-D reconstruction.</li>
+<li><b>Surveillance</b> — traffic management, target detection and multi-object tracking (RGB and thermal/IR, day and night).</li>
+<li><b>Aerial survey</b> — topography maps.</li>
+<li><b>Power-line and infrastructure inspection.</b></li>
+<li><b>Disaster management</b> — forest-fire fighting with swarms, flood change detection.</li>
+<li><b>Swarms</b> — perimeter defence, convoy protection, confinement escape, border surveillance, search and rescue, target tracking.</li>
+</ul></div>
+<div class="concept"><h3>Why plain programming is not enough</h3>
+<ul>
+<li><b>Operational challenges:</b> cluttered environments, <b>domain change</b> (day → night, RGB → IR), absence of data in the sensing domain.</li>
+<li><b>Perception challenges:</b> multiple sensors (RGB, IR, SAR, multispectral, LiDAR, event), <b>few samples</b> or none, domain/sensor shift, image enhancement, long-range perception.</li>
+<li><b>Long-range / slant-angle perception:</b> occlusion and scale change, domain shift, missing data (a future class may exist only as text), need for explainable AI.</li>
+<li><b>Decision challenges:</b> choice of sensor, cooperation and coordination in swarms; sensor, computation and communication uncertainty.</li>
+</ul></div>
+</div>
+<div class="box def" data-title="Digital Surface Model (DSM)"><p>An elevation map of the top surface (buildings, trees, terrain) built from drone images. Colour-coded: red = high buildings, green-to-blue = vegetation and ground. Used for urban planning, drainage/flood modelling, line-of-sight (telecom), forestry canopy mapping.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="history">
+<h2><span class="num">1.2</span> History, the 2012 breakthrough and what comes next</h2>
+<table class="compact">
+<tr><th>Year</th><th>Milestone</th><th>Remember</th></tr>
+<tr><td>1943</td><td>McCulloch &amp; Pitts neuron</td><td>First mathematical neuron (weighted sum + threshold). Could compute AND, OR, NOT — but had <b>no learning rule</b>.</td></tr>
+<tr><td>1957</td><td>Rosenblatt's Perceptron</td><td>Neuron <b>with a learning algorithm</b> (Week 2).</td></tr>
+<tr><td>2012</td><td>ImageNet challenge won by a deep CNN (AlexNet)</td><td>1000 categories, human-labelled. Paradigm change: from ~50 years of <b>hand-crafted</b> features to <b>learned</b> features — features and classifier learned together, <b>end-to-end</b>.</td></tr>
+</table>
+<div class="box formula" data-title="Why deep learning succeeded"><p style="font-size:1.05rem;text-align:center"><b>Deep-learning success = big data + GPUs + neural-network algorithms</b></p></div>
+<h3>Where the field is heading (Lecture 1a)</h3>
+<ul>
+<li><b>Multi-modal perception:</b> RGB, depth, event cameras and LiDAR carry complementary information; problems include sim-to-real, domain generalisation, missing modalities and sensor failure.</li>
+<li><b>Generative AI</b> fixes data scarcity — e.g. generating IR images from RGB with diffusion models, because ordinary augmentation may break the physics of the imaging sensor.</li>
+<li><b>Vision–language models</b> (e.g. CLIP, pre-trained on 400 M image–text pairs): <b>better out-of-distribution</b> performance but lower in-domain performance. Vision-only ImageNet models: <b>better in-domain</b>, worse out-of-domain.</li>
+<li><b>Foundation models</b> for LiDAR and driving, <b>Vision-Language-Action (VLA)</b> models (generalist robot policies), <b>end-to-end navigation</b> (sensors → control commands), and the open goal of general intelligence.</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ai-ml-dl">
+<h2><span class="num">1.3</span> AI, ML and DL — and hand-crafted vs learned features</h2>
+<div class="two-col">
+<div>
+<svg viewBox="0 0 300 220" class="chart-svg" style="max-width:320px;margin:auto" role="img" aria-label="Nested sets: deep learning inside machine learning inside artificial intelligence">
+  <ellipse cx="150" cy="110" rx="140" ry="100" style="fill:var(--acc-soft);stroke:var(--acc)"/>
+  <ellipse cx="160" cy="125" rx="95" ry="68" style="fill:var(--card);stroke:var(--acc)"/>
+  <ellipse cx="170" cy="138" rx="50" ry="36" style="fill:var(--acc);stroke:var(--acc)"/>
+  <text x="58" y="48" style="font-weight:700;fill:var(--acc)">AI</text>
+  <text x="96" y="92" style="font-weight:700;fill:var(--acc)">Machine Learning</text>
+  <text x="170" y="142" text-anchor="middle" style="font-weight:700;fill:#fff">Deep Learning</text>
+</svg>
+</div>
+<div>
+<p><b>Artificial Intelligence</b> — the simulation of human intelligence processes by a computer: learning, reasoning, perception (scene understanding from multi-modal sensors), problem solving, language understanding.</p>
+<p><b>Machine Learning</b> — the system learns from data, improving without being programmed for every rule; finds patterns and predicts outcomes on new data.</p>
+<p><b>Deep Learning</b> — artificial neural networks with many layers that learn complex patterns.</p>
+</div>
+</div>
+<div class="concept">
+<h3>Building blocks and architectures</h3>
+<div class="f-exp"><b>Neurons</b> receive, process and pass on signals. <b>Weights</b> are the strengths of connections, learned from data. <b>Activation functions</b> are nonlinear functions that define the nature of a neuron. The <b>learning paradigm</b> is the process of updating the weights.</div>
+<div class="f-use"><b>Shallow networks</b>: general prediction/classification. <b>CNNs</b>: images and video. <b>Recurrent</b>: Memory Neuron Network (MNN), LSTM, Transformer. <b>Generative</b>: GAN, diffusion models.</div>
+<div class="f-imp"><b>Traditional pipeline:</b> raw data → <i>expert-designed</i> features → prediction. Feature extraction transforms raw data into a reduced set of features that describe it — <b>time-consuming and not scalable</b>.<br><b>Deep learning:</b> raw data → prediction; the network <b>progressively extracts higher-level features</b> (low-level → mid-level → high-level) and turns them into a concise representation automatically.</div>
+<div class="f-lim">Deep learning needs lots of labelled data and compute, and its features are harder to interpret.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="ann">
+<h2><span class="num">1.4</span> What is a neural network?</h2>
+<div class="box def" data-title="Definition (Haykin)"><p>A neural network is a <b>massively parallel distributed processor</b> made up of simple processing units that has a natural ability to <b>store knowledge</b>. Knowledge is acquired from data through a <b>learning process</b>, and stored in the inter-neuron connection strengths — the <b>synaptic weights</b>.</p></div>
+<div class="two-col">
+<div class="concept"><h3>Inspiration: the human brain</h3>
+<ul><li>~10<sup>11</sup> interconnected neurons, ~10<sup>4</sup> connections per neuron.</li><li>Each neuron is slow (milliseconds) but computation is massively parallel, with distributed representation.</li><li>Key properties: adaptability, self-organisation, generalisation, fault tolerance.</li></ul></div>
+<div class="concept"><h3>Properties of artificial networks</h3>
+<ul><li><b>Nonlinearity</b> — made of nonlinear neurons.</li><li><b>Input–output mapping</b> — learns complex relations between input and output vectors.</li><li><b>Adaptivity</b> — weights adapt when the relationship changes.</li><li><b>Fault tolerance</b> — damage to one neuron/weight degrades performance <b>gradually</b>, not abruptly (distributed storage).</li></ul></div>
+</div>
+<table class="compact">
+<tr><th></th><th>Feedforward network</th><th>Feedback (recurrent) network</th></tr>
+<tr><td>Information flow</td><td>One direction: input → layer 1 → … → output</td><td>Has cycles: a layer feeds back to itself or an earlier layer</td></tr>
+<tr><td>Memory</td><td>None — does not remember earlier inputs</td><td>Remembers previously processed data</td></tr>
+<tr><td>Training</td><td>Simple, fast, easy</td><td>More complex; stability is a concern</td></tr>
+<tr><td>Applications</td><td>Classification, image recognition, prediction</td><td>Sequence prediction, language, control</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="learning">
+<h2><span class="num">1.5</span> What is learning, and when should we use it?</h2>
+<div class="box def" data-title="Tom Mitchell's definition"><p>"A computer program is said to <b>learn</b> from experience <b>E</b> with respect to some class of tasks <b>T</b> and performance measure <b>P</b>, if its performance at tasks in T, as measured by P, improves with experience E."<br><small>Example: T = detect vehicles in drone video, P = recall/precision, E = labelled video frames.</small></p></div>
+<div class="two-col">
+<div class="concept"><h3>Use learning when…</h3><ul>
+<li>No explicit rule can be written (language, image recognition).</li>
+<li>The environment changes continuously (autonomous driving, markets).</li>
+<li>Large data with hidden patterns (medical images, transactions).</li>
+<li>Personalisation is needed (recommendation systems).</li>
+<li>Human experts are unavailable or don't scale (protein folding).</li></ul></div>
+<div class="concept"><h3>Don't use learning when…</h3><p>The rules are clearly defined (just code them), or the data is biased (the model will learn the bias).</p></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="paradigms">
+<h2><span class="num">1.6</span> Learning paradigms</h2>
+<table class="compact">
+<tr><th>Paradigm</th><th>Data</th><th>Feedback</th><th>Key points from the lecture</th></tr>
+<tr><td><b>Supervised</b> ("learning with a teacher", <b>inductive learning</b>)</td><td>Labelled pairs (x<sub>1</sub>, y<sub>1</sub>) … (x<sub>n</sub>, y<sub>n</sub>)</td><td>Direct — the error</td><td>The teacher knows the ground truth; the network <b>emulates the teacher</b> by learning f(x, w) to predict y; the error updates w. Regression (function approximation) or classification.</td></tr>
+<tr><td><b>Unsupervised</b> (learning without a teacher)</td><td>Inputs only (x<sub>1</sub> … x<sub>n</sub>)</td><td>None</td><td>Finds patterns using a task-independent measure of representation quality; <b>winner-takes-all competitive learning</b>; clustering similar samples.</td></tr>
+<tr><td><b>Reinforcement</b> (learning without a teacher)</td><td>Interaction with an environment</td><td>Reward</td><td>Learns a series of actions; <b>actor–critic</b>; optimises the <b>cumulative</b> cost of actions. Used for decision control, obstacle avoidance, predictive motion planning.</td></tr>
+<tr><td><b>Semi-supervised</b></td><td>Few labelled + many unlabelled</td><td>Partial</td><td>Uses unlabelled data to help the labelled task.</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="data">
+<h2><span class="num">1.7</span> Data for learning and normalisation</h2>
+<div class="concept">
+<div class="f-exp">The <b>true distribution</b> of the data, and the true input–output relationship (e.g. Y = β<sub>0</sub> + β<sub>1</sub>X), are unknown. We draw a <b>random sample</b> and fit an estimate ŷ = β̂<sub>0</sub> + β̂<sub>1</sub>X + ε. Training and test data are assumed drawn <b>independently from the same distribution</b> (i.i.d.).</div>
+<div class="f-use">This assumption is exactly what breaks in drone imagery: a model trained on ground-level, daytime RGB images is tested on top-down, night-time or IR images — a <b>distribution (domain) shift</b>.</div>
+<div class="f-imp"><b>Normalise inputs</b> (e.g. z = (x − μ)/σ): activations become symmetric, gradients smoother, and neurons avoid <b>saturation</b> (the flat tails of sigmoid/tanh, Week 3).</div>
+<div class="f-lim">Normalisation is a linear rescaling — it does not change the shape of the distribution (Week 6 assignment).</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="metrics">
+<h2><span class="num">1.8</span> Evaluation metrics</h2>
+<h3>Regression</h3>
+<div class="box formula"><p>MSE = (1/n) Σ (y<sub>i</sub> − ŷ<sub>i</sub>)² &nbsp;·&nbsp; RMSE = √MSE &nbsp;·&nbsp; R² = 1 − SS<sub>res</sub>/SS<sub>tot</sub>, where SS<sub>res</sub> = Σ(y<sub>i</sub> − ŷ<sub>i</sub>)², SS<sub>tot</sub> = Σ(y<sub>i</sub> − ȳ)²</p></div>
+<p>R² is the fraction of the variance of y explained by the model — closer to 1 is better.</p>
+<div class="demo box" data-demo="regmetrics" data-title="Interactive — MSE, RMSE and R² step by step"></div>
+<h3>Classification</h3>
+<table class="compact">
+<tr><th>Outcome</th><th>Meaning</th><th>Lecture example</th></tr>
+<tr><td><b>TP</b></td><td>Predicted positive, actually positive</td><td>Wildfire sensor alarms during a real fire</td></tr>
+<tr><td><b>TN</b></td><td>Predicted negative, actually negative</td><td>Test says "negative" for a healthy patient</td></tr>
+<tr><td><b>FP</b> — Type I error</td><td>Predicted positive, actually negative (false alarm)</td><td>Motion sensor triggered by a stray cat signals "intruder"</td></tr>
+<tr><td><b>FN</b> — Type II error</td><td>Predicted negative, actually positive (miss)</td><td>Metal detector stays silent for a concealed weapon</td></tr>
+</table>
+<div class="box formula"><p>Accuracy = (TP + TN)/N &nbsp;·&nbsp; Precision = TP/(TP + FP) &nbsp;·&nbsp; Recall = TP/(TP + FN) &nbsp;·&nbsp; F1 = 2·P·R/(P + R) (harmonic mean)</p></div>
+<div class="box warn" data-title="Exam trap"><p>Precision divides by the <b>predicted</b> positives (column), recall by the <b>actual</b> positives (row). The Week 1 assignment's wrong option swapped them. Also: on imbalanced data a "predict everything negative" model has high accuracy but zero recall.</p></div>
+<div class="demo box" data-demo="confmat" data-title="Interactive — confusion matrix to metrics"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="linalg">
+<h2><span class="num">1.9</span> Linear-algebra foundations: combinations, span and independence</h2>
+<p>The lectures list "vectors, matrices, optimisation" (Gilbert Strang, <i>Linear Algebra and its Applications</i>) as the prerequisite, and the Week 1 assignment tests it.</p>
+<div class="concept">
+<div class="f-exp">A <b>linear combination</b> of v<sub>1</sub>…v<sub>k</sub> is w<sub>1</sub>v<sub>1</sub> + … + w<sub>k</sub>v<sub>k</sub> = Xw (the v's are the columns of X). The <b>span</b> is the set of all such combinations. The vectors are <b>linearly independent</b> if Xw = 0 has <b>only the trivial solution</b> w = 0; otherwise they are <b>dependent</b>.</div>
+<div class="f-use">A neuron's net input Σw<sub>i</sub>x<sub>i</sub> is a linear combination; a layer's output is Wx. Redundant (dependent) features add nothing new.</div>
+<div class="f-imp"><b>Linear Dependence Lemma:</b> if v<sub>1</sub>…v<sub>k</sub> is dependent and v<sub>1</sub> ≠ 0, some v<sub>i</sub> (i ≥ 2) lies in the span of the others, and removing it leaves the span unchanged.<br><b>Rank</b> = number of independent columns. More than n vectors in ℝ<sup>n</sup> are always dependent. Independent vectors need not span ℝ<sup>n</sup> (e.g. 2 independent vectors in ℝ<sup>3</sup> span only a plane), and X need not be square.</div>
+<div class="f-lim">With measured (noisy) data, exact dependence is rare; "nearly dependent" columns make solutions unstable.</div>
+</div>
+<div class="demo box" data-demo="linindep" data-title="Interactive — are these vectors independent? What do they span?"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="aerial">
+<h2><span class="num">1.10</span> Why ground-level models fail on aerial images</h2>
+<div class="two-col">
+<div class="concept"><h3>ImageNet / COCO images</h3><ul><li>Objects large, centred, upright.</li><li>Eye-level, side-on viewpoint (a dog fills the frame; a car seen from the side).</li><li>Moderate scale variation.</li></ul></div>
+<div class="concept"><h3>Drone / satellite images</h3><ul><li>Top-down or slant viewpoint.</li><li>Objects <b>small</b> and <b>densely packed</b>.</li><li><b>Arbitrary orientations</b>.</li><li><b>Large scale variation</b> between near and distant objects; occlusion.</li><li>Often other modalities (IR, SAR, multispectral) and night/weather changes.</li></ul></div>
+</div>
+<div class="box tip" data-title="Exam answer pattern"><p>When asked why a model trained on ground-level data underperforms on aerial data, choose the option about the <b>training distribution not representing</b> small, dense, rotated, top-down objects. Reject options blaming colour vs greyscale, number of classes, speed or GPU memory.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A1</span> Week 1 assignment — every question explained</h2>
+<div class="box tip" data-title="How to use"><p>Click an option to answer (multiple-correct questions have a <b>Check answer</b> button). After answering, the explanation shows why each option is right or wrong. The eye button in the top bar reveals all answers.</p></div>
+<div class="qb" data-week="1" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P1</span> Practice MCQs — Week 1</h2>
+<div class="qb" data-week="1" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

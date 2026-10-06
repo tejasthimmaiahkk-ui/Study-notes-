@@ -38,6 +38,25 @@
         { f: "solved.html", pill: "Solved Qs", t: "Solved University-Pattern Questions" },
         { f: "revision.html", pill: "Revision", t: "Revision & Exam Kit" }
       ]
+    },
+    ai: {
+      name: "AI Perception for Drones", code: "NPTEL · IISc", dir: "AI perception and more",
+      pages: [
+        { f: "week01.html", pill: "W1", t: "Foundations: Linear Algebra, AI/ML/DL & Aerial Perception" },
+        { f: "week02.html", pill: "W2", t: "Neurons, Learning Rules, Perceptron & Backpropagation" },
+        { f: "week03.html", pill: "W3", t: "Activations, Gradient Descent, Momentum, Regularisation & Loss Functions" },
+        { f: "week04.html", pill: "W4", t: "Tensors, Least Squares & Radial Basis Functions" },
+        { f: "week05.html", pill: "W5", t: "CNN Foundations: Vision Biology, Convolution, Pooling & Transfer Learning" },
+        { f: "week06.html", pill: "W6", t: "CNN Architectures & Normalisation" },
+        { f: "week07.html", pill: "W7", t: "Sequence Models: Memory Neurons, RNN, LSTM & Attention" },
+        { f: "week08.html", pill: "W8", t: "Object Detection: R-CNN Family, YOLO & DETR" },
+        { f: "week09.html", pill: "W9", t: "Semantic Segmentation: FCN, U-Net, DeepLab & MaskFormer" },
+        { f: "week10.html", pill: "W10", t: "Efficient & Self-Supervised Learning: Distillation, Contrastive, Pruning" },
+        { f: "week11.html", pill: "W11", t: "Reinforcement Learning & Generative Adversarial Networks" },
+        { f: "week12.html", pill: "W12", t: "Drones in Action: Perimeter Defence, Spiking Networks & Navigation" },
+        { f: "exam.html", pill: "Mock exam", t: "Mock Exams & Question Bank" },
+        { f: "revision.html", pill: "Revise", t: "One-Page Revision & Exam Traps" }
+      ]
     }
   };
   window.SITE = SITE;

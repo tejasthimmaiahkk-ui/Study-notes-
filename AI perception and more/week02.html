@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 2 · Neurons, Learning Rules &amp; Backpropagation — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week02.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 2 · Lectures 3, 4a, 4b, 5 + Math tutorial</div>
+  <h1>Neurons, Learning Rules, Perceptron &amp; Backpropagation</h1>
+  <p class="lead">The single neuron, why it needs a bias and a nonlinear activation, the three learning rules (Hebbian, perceptron/delta, gradient descent), Boolean gates and linear separability, the multi-layer perceptron, backpropagation with the chain rule, and when to stop training. This week has the most numerical questions — every one is reproducible in the demos.</p>
+  <div class="meta"><span class="chip acc">Hebb</span><span class="chip acc">Perceptron rule</span><span class="chip acc">Gradient descent</span><span class="chip acc">XOR</span><span class="chip acc">Backprop</span><span class="chip"><span data-qcount="2:A"></span> assignment Qs · <span data-qcount="2:P"></span> practice Qs</span></div>
+</div>
+
+<!-- ============================================================ -->
+<section class="topic" id="history">
+<h2><span class="num">2.1</span> Historical overview and the biological neuron</h2>
+<table class="compact">
+<tr><th>Year</th><th>Who</th><th>Contribution</th></tr>
+<tr><td>1943</td><td>McCulloch &amp; Pitts</td><td>Neural networks as computing machines — logical computation as a theoretical foundation for AI.</td></tr>
+<tr><td>1949</td><td>Donald Hebb</td><td>Self-organising learning — first model of <b>synaptic plasticity</b> and of <b>unsupervised</b> learning.</td></tr>
+<tr><td>1958</td><td>Rosenblatt</td><td><b>Perceptron</b> and <b>supervised</b> learning — the neuron mimics a teacher.</td></tr>
+<tr><td>1960</td><td>Widrow &amp; Hoff</td><td><b>Delta rule</b> (LMS) — error minimisation, the precursor of modern gradient descent.</td></tr>
+</table>
+<div class="concept">
+<h3>Biological neuron (the pyramidal cell)</h3>
+<div class="f-exp"><b>Dendrites</b> receive inputs from other neurons; the <b>axon</b> transmits the output; a <b>synapse</b> is where the axon of the <b>presynaptic</b> (source) neuron meets the dendrites of the <b>postsynaptic</b> (target) neuron; <b>neurotransmitters</b> are the chemical messengers across the synapse, either <b>excitatory</b> or <b>inhibitory</b>.</div>
+<div class="f-imp">Artificial mapping: inputs x<sub>j</sub> ↔ signals on dendrites; weights w<sub>j</sub> ↔ synaptic strengths (positive = excitatory, negative = inhibitory); summation and activation ↔ the cell body deciding whether to fire; output y ↔ axon.</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="neuron">
+<h2><span class="num">2.2</span> The single-neuron model and the bias</h2>
+<div class="box formula" data-title="Neuron (course notation)"><p>v = Σ<sub>j=1</sub><sup>m</sup> w<sub>j</sub>x<sub>j</sub> + w<sub>0</sub>x<sub>0</sub> = <b>w<sup>T</sup>x</b> with the augmented vectors x = [x<sub>0</sub>, x<sub>1</sub>, …, x<sub>m</sub>], w = [w<sub>0</sub>, w<sub>1</sub>, …, w<sub>m</sub>]; output <b>y = g(v)</b>.<br>The course uses a bias input <b>x<sub>0</sub> = −1</b> (so w<sub>0</sub> acts as a threshold) and writes w<sub>0</sub> <b>first</b> in the weight vector.</p></div>
+<div class="concept">
+<h3>Why a learnable bias?</h3>
+<div class="f-exp">Without a bias, v = 0 whenever all inputs are 0, and every decision boundary must pass through the origin.</div>
+<div class="f-imp"><ul style="margin:0">
+<li>Gives a non-zero output when the inputs are zero.</li>
+<li>Controls the decision boundary — most real data is not centred at zero.</li>
+<li>Acts like a <b>threshold</b> on the strength of the input signal.</li>
+<li>Shifts the activation function, i.e. adds an offset to the decision boundary.</li>
+<li><b>Weights control the orientation (tilt) of the hyperplane; the bias controls its position (shift).</b></li>
+</ul></div>
+</div>
+<div class="box example" data-title="Geometry of the boundary (bipolar neuron, x₀ = −1)"><p>Output 1 when Σw<sub>j</sub>x<sub>j</sub> + w<sub>0</sub>(−1) &gt; 0, i.e. <b>w<sup>T</sup>x &gt; w<sub>0</sub></b>, i.e. ‖w‖‖x‖cos θ &gt; w<sub>0</sub>. The projection of x on w must exceed <b>d = w<sub>0</sub>/‖w‖</b> — the distance of the boundary from the origin. Changing w tilts the line; changing w<sub>0</sub> slides it.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="activation">
+<h2><span class="num">2.3</span> Activation functions — why nonlinearity?</h2>
+<table class="compact">
+<tr><th>Type</th><th>Function</th><th>Output</th><th>Notes</th></tr>
+<tr><td>Unipolar hard limiter (binary step)</td><td>y = 1 if v &gt; 0, else 0</td><td>{0, 1} — discrete</td><td>Not differentiable at 0; derivative 0 elsewhere</td></tr>
+<tr><td>Bipolar hard limiter (sgn)</td><td>y = 1 if v &gt; 0, else −1</td><td>{−1, 1} — discrete</td><td>Used in the perceptron examples</td></tr>
+<tr><td>Piecewise linear</td><td>linear in a range, clipped outside</td><td>bounded</td><td>Hard-limiting with a linear zone</td></tr>
+<tr><td>Unipolar continuous (sigmoid)</td><td>σ(v) = 1/(1 + e<sup>−v</sup>)</td><td>(0, 1)</td><td>σ′ = σ(1 − σ), max 0.25</td></tr>
+<tr><td>Bipolar continuous (tanh)</td><td>tanh(v)</td><td>(−1, 1)</td><td>tanh′ = 1 − tanh², max 1</td></tr>
+<tr><td>ReLU</td><td>max(0, v)</td><td>[0, ∞)</td><td>Derivative 1 for v &gt; 0, 0 for v &lt; 0</td></tr>
+</table>
+<div class="box tip" data-title="The key sentence"><p>The purpose of activation functions is to <b>introduce nonlinearity</b>. Linear activations produce linear decisions <b>no matter how large the network is</b> (W<sub>2</sub>W<sub>1</sub>x is still one matrix times x). Nonlinearities let the network approximate arbitrarily complex functions. Continuous activations also allow <b>gradient computation</b> for learning.</p></div>
+<div class="demo box" data-demo="actplot" data-title="Interactive — activation functions and their derivatives"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="hebb">
+<h2><span class="num">2.4</span> Hebbian learning</h2>
+<div class="box def" data-title="Hebb's postulate (1949)"><p>"When an axon of cell A is near enough to excite a cell B and repeatedly or persistently takes part in firing it, some growth process or metabolic change takes place in one or both cells such that A's efficiency, as one of the cells firing B, is increased." — <b>"Neurons that fire together, wire together."</b></p></div>
+<div class="concept">
+<div class="f-exp">Update: <b>Δw = η y x</b> (vectorised for a layer: <b>ΔW = η y x<sup>T</sup></b>). Positive correlation (both sides active together) strengthens the synapse; asynchronous activity weakens it.</div>
+<div class="f-use">Self-organising feature learning; models of biological plasticity.</div>
+<div class="f-imp">It uses only the input x and the neuron's own output y — <b>never the target d</b>. So it is <b>unsupervised</b>, even if labels exist in the dataset: it strengthens connections whenever the neuron fires, even if that firing is "wrong".</div>
+<div class="f-lim">With constant x and y the weight grows by ηxy every step — <b>without bound</b> (x = y = 1, η = 0.2 → w = 2 after 10 steps). Practical versions add normalisation or decay (e.g. Oja's rule — beyond the syllabus).</div>
+</div>
+<div class="box example" data-title="Lecture 3 example (bipolar sgn, no bias, η = 1, w = [1, −1, 0, 0.5])"><table class="num compact">
+<tr><th>Sample x</th><th>v = w<sup>T</sup>x</th><th>y = sgn(v)</th><th>new w = w + ηyx</th></tr>
+<tr><td>[1, −2, 1.5, 0]</td><td>1 + 2 + 0 + 0 = 3</td><td>1</td><td>[2, −3, 1.5, 0.5]</td></tr>
+<tr><td>[1, −0.5, −2, −1.5]</td><td>2 + 1.5 − 3 − 0.75 = −0.25</td><td>−1</td><td>[1, −2.5, 3.5, 2]</td></tr>
+<tr><td>[0, 1, −1, 1.5]</td><td>0 − 2.5 − 3.5 + 3 = −3</td><td>−1</td><td>[1, −3.5, 4.5, 0.5]</td></tr>
+</table></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="perceptron">
+<h2><span class="num">2.5</span> The perceptron, Boolean gates and linear separability</h2>
+<p>A perceptron is a neuron with a hard-limiting activation. With a unipolar step and inputs in {0, 1} it can implement logic gates:</p>
+<table class="compact">
+<tr><th>Gate</th><th>Truth table (00, 01, 10, 11)</th><th>Weights that work</th></tr>
+<tr><td>AND</td><td>0 0 0 1</td><td>w<sub>1</sub> = w<sub>2</sub> = 1, bias −1.5 → x<sub>1</sub> + x<sub>2</sub> − 1.5</td></tr>
+<tr><td>OR</td><td>0 1 1 1</td><td>w<sub>1</sub> = w<sub>2</sub> = 1, bias −0.5</td></tr>
+<tr><td>NOT (1 input)</td><td>1 0</td><td>w<sub>1</sub> = −1, bias +0.5 → 0.5 − x</td></tr>
+<tr><td>NAND</td><td>1 1 1 0 (complement of AND)</td><td>w<sub>1</sub> = w<sub>2</sub> = −1, bias +1.5</td></tr>
+<tr><td><b>XOR</b></td><td>0 1 1 0 (1 when inputs differ)</td><td><b>None</b> — not linearly separable</td></tr>
+</table>
+<div class="box def" data-title="Linear separability"><p>A dataset is linearly separable if a straight line (a hyperplane in higher dimensions) separates the classes <b>without any misclassification</b>. AND, OR, NOT (and NAND, NOR) are separable; <b>XOR is not</b> — its 1s lie on one diagonal and its 0s on the other. A single-layer perceptron can only learn linearly separable functions.</p></div>
+<div class="demo box" data-demo="gates" data-title="Interactive — perceptron on logic gates (try training XOR)"></div>
+<h3>Multi-class classification with perceptrons</h3>
+<p>Use one perceptron per class: perceptron k outputs 1 if the pattern belongs to class k, otherwise −1 (one-vs-rest). This works when each class is linearly separable from the rest.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="perceptron-rule">
+<h2><span class="num">2.6</span> Perceptron learning rule (delta rule)</h2>
+<div class="concept">
+<div class="f-exp">Goal: find a boundary with w<sup>T</sup>x &gt; 0 for class 1 and ≤ 0 for class 2. <b>Correct classification → no change.</b> Misclassified class-1 sample → w ← w + ηx; misclassified class-2 sample → w ← w − ηx. Both cases in one formula:</div>
+<div class="f-imp"><p style="text-align:center;font-size:1.05rem"><b>w ← w + η e x, e = d − y</b> &nbsp; (i.e. Δw<sub>i</sub> = η(d − y)x<sub>i</sub>)</p>With bipolar outputs e is 0 or ±2, so a mistake moves w by ±2ηx.</div>
+<div class="f-use"><b>Convergence theorem:</b> if the training data is linearly separable (and η is small enough), the rule finds a separating boundary in a finite number of steps; mistakes become rarer, so updates become progressively smaller and stop. On non-separable data (XOR) it never converges.</div>
+<div class="f-lim">The hard limiter has no useful derivative (0 everywhere, undefined at 0), so the rule simply <b>omits g′(v)</b> — this is the correct way to train a hard-limiting neuron (assignment Q15).</div>
+</div>
+<div class="box example" data-title="Lecture 4a example (x₀ = −1, η = 1, w = [1, −1, 0, 0.5], d = [−1, 1, −1])"><table class="num compact">
+<tr><th>x (augmented)</th><th>v</th><th>y</th><th>d</th><th>Δw = η(d − y)x</th><th>new w</th></tr>
+<tr><td>[−1, 1, −2, 0]</td><td>−2</td><td>−1</td><td>−1</td><td>0</td><td>[1, −1, 0, 0.5]</td></tr>
+<tr><td>[−1, 0, 1.5, −0.5]</td><td>−1.25</td><td>−1</td><td>1</td><td>2x = [−2, 0, 3, −1]</td><td>[−1, −1, 3, −0.5]</td></tr>
+<tr><td>[−1, −1, 1, 0.5]</td><td>4.75</td><td>1</td><td>−1</td><td>−2x = [2, 2, −2, −1]</td><td>[1, 1, 1, −1.5]</td></tr>
+</table></div>
+<div class="demo box" data-demo="rulestep" data-title="Interactive — step through Hebbian, perceptron and gradient-descent updates (lecture and assignment examples preloaded)"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="gd">
+<h2><span class="num">2.7</span> Gradient descent for a continuous neuron</h2>
+<div class="concept">
+<div class="f-exp">For a differentiable activation, define the squared error over the training set D: <b>E(w) = ½ Σ<sub>d∈D</sub> (d − y)²</b>. Find w* that minimises E by repeatedly stepping <b>opposite to the gradient</b>: w(new) = w(old) − η∇E(w).</div>
+<div class="f-imp">Chain rule for one sample, y = g(v), v = w<sup>T</sup>x:<br>∂E/∂w<sub>i</sub> = (∂E/∂y)(∂y/∂v)(∂v/∂w<sub>i</sub>) = −(d − y) · g′(v) · x<sub>i</sub><br>so the update is <b>Δw<sub>i</sub> = −η ∂E/∂w<sub>i</sub> = η (d − y) g′(v) x<sub>i</sub></b>. The term <b>(d − y)g′(v)</b> is the <b>local gradient</b> δ: it gives the direction and size of the correction, and η scales the step. For a linear neuron (g′ = 1) this is the Widrow–Hoff delta / LMS rule: Δw<sub>i</sub> = η(t − y)x<sub>i</sub> with ∂E/∂w<sub>i</sub> = −(t − y)x<sub>i</sub>.</div>
+<div class="f-lim">Gradient descent finds a <b>local</b> minimum of the error surface, not necessarily the global one. The weights start random; each step goes "downhill".</div>
+</div>
+<div class="box warn" data-title="Watch the sign in the Lecture 4b slides"><p>The slides write the gradient-descent update as <b>Δw = −η(d − y)g′(v)x</b> (and the assignment's comparison table repeats it), and the worked example uses that sign. Check: after the slide's second update, sample 2's net input drops from −1.24 to −3.09 although its target is +1 — the error <i>grew</i>. The error-reducing update is Δw = −η∂E/∂w = <b>+η(d − y)g′(v)x</b>; with it, sample 2's net input rises to +0.58. In MCQs, recognise "Δw = −η(d − y)g′(v)x" as the course's label for the gradient-descent rule; when computing, use the direction that reduces the error. The stepper above uses the correct sign.</p></div>
+<table class="compact">
+<tr><th>Rule</th><th>Update</th><th>Uses target d?</th><th>Paradigm</th></tr>
+<tr><td>Hebbian</td><td>Δw = ηyx</td><td>No</td><td>Unsupervised (correlation)</td></tr>
+<tr><td>Perceptron / delta</td><td>Δw = η(d − y)x</td><td>Yes</td><td>Supervised (error-driven)</td></tr>
+<tr><td>Gradient descent</td><td>Δw = η(d − y)g′(v)x (course writes −η(d − y)g′(v)x)</td><td>Yes</td><td>Supervised, scaled by the local slope g′(v)</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="mlp">
+<h2><span class="num">2.8</span> Multi-layer perceptron and backpropagation</h2>
+<div class="concept">
+<div class="f-exp">An MLP with architecture <b>m : l : n</b> (inputs : hidden neurons : outputs). Forward pass: hidden net input v<sub>i</sub> = Σ w<sub>ij</sub><sup>(1)</sup>x<sub>j</sub> (w<sub>1i</sub> = weight from input i to hidden neuron 1), hidden output h<sub>i</sub> = φ(v<sub>i</sub>), output y<sub>k</sub> = Σ w<sub>ki</sub><sup>(2)</sup>h<sub>i</sub> (linear or nonlinear output). Error e<sub>k</sub> = d<sub>k</sub> − y<sub>k</sub>, loss E = ½Σe<sub>k</sub>².</div>
+<div class="f-imp"><b>Backpropagation = the chain rule applied layer by layer, from the output backwards.</b>
+<ul>
+<li>Output local gradient: <b>δ<sub>k</sub><sup>(2)</sup> = e<sub>k</sub> g′(v<sub>k</sub>)</b>; update Δw<sub>ki</sub><sup>(2)</sup> = η δ<sub>k</sub><sup>(2)</sup> h<sub>i</sub>.</li>
+<li>Hidden local gradient: <b>δ<sub>i</sub><sup>(1)</sup> = φ′(v<sub>i</sub><sup>(1)</sup>) · Σ<sub>k</sub> w<sub>ki</sub><sup>(2)</sup> δ<sub>k</sub><sup>(2)</sup></b> — its own slope times the output deltas, each weighted by the weight that carries hidden neuron i's signal to output k; update Δw<sub>ij</sub><sup>(1)</sup> = η δ<sub>i</sub><sup>(1)</sup> x<sub>j</sub>.</li>
+<li>Case A (one output) has a single term; Case B (n outputs) sums over all outputs, because hidden neuron i affects every output.</li>
+</ul>
+For the chain x → φ → y → E: ∂E/∂w<sub>1</sub> = (∂E/∂y)(∂y/∂v<sup>1</sup>)(∂v<sup>1</sup>/∂w<sub>1</sub>) — output-to-error, hidden-to-output, input-to-hidden. The chain rule is needed because w<sub>1</sub> only <b>directly</b> influences v<sup>1</sup>; its effect on E travels through every later step.</div>
+<div class="f-lim">Gradient descent over the whole weight vector finds a local minimum, not necessarily the global one.</div>
+</div>
+<div class="demo box" data-demo="backprop" data-title="Interactive — one neuron per layer: forward pass, chain rule, local gradients and updates"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="stopping">
+<h2><span class="num">2.9</span> When to stop training (Haykin's criteria)</h2>
+<p>Backpropagation has <b>no well-defined stopping point</b>; these heuristics are used:</p>
+<ol>
+<li><b>Gradient criterion</b> — stop when the Euclidean norm of the gradient ‖∇E(θ*)‖ is sufficiently small (Kramer &amp; Sangiovanni-Vincentelli, 1989). Drawback: needs the gradient and can take long.</li>
+<li><b>Error-change criterion</b> — stop when the absolute rate of change of the average squared error per epoch is small, typically <b>0.1 % to 1 % per epoch</b>.</li>
+<li><b>Generalisation criterion</b> — test the network after each iteration (cross-validation) and stop when generalisation performance has <b>peaked</b> (early stopping).</li>
+</ol>
+<div class="box warn" data-title="Assignment trap"><p>"Stop when the number of epochs exceeds the number of input features" is <b>not</b> a valid criterion.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="math">
+<h2><span class="num">2.10</span> Tutorial: why mathematics for AI</h2>
+<ul>
+<li><b>Linear algebra</b> — vectors, matrices and tensors represent data (images, text embeddings); a layer is a matrix multiply.</li>
+<li><b>Calculus</b> — backpropagation is the chain rule; optimisation needs derivatives.</li>
+<li><b>Probability &amp; statistics</b> — learning from data, uncertainty, Bayesian inference.</li>
+<li><b>Optimisation</b> — efficiency and accuracy of training.</li>
+<li><b>Evaluation</b> — accuracy, precision, recall, area under the ROC curve.</li>
+<li>Also: logic for reasoning, vector-space models for language, scalability for big data.</li>
+</ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A2</span> Week 2 assignment — every question explained</h2>
+<div class="box tip" data-title="Numerical questions"><p>Q1, Q2, Q4, Q19 and Q20 are calculations — redo each one in the stepper above (choose the "Assignment Q19–20" preset for the last two).</p></div>
+<div class="qb" data-week="2" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P2</span> Practice MCQs — Week 2</h2>
+<div class="qb" data-week="2" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

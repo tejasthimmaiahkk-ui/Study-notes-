@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 4 · Tensors, Least Squares &amp; RBF Networks — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week04.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 4 · Lecture files 15–19 (not in the shared folders)</div>
+  <h1>Tensors, Least Squares &amp; Radial Basis Function Networks</h1>
+  <p class="lead">How data is stored in tensors (rank, shape, size), why we fit models by least squares, and the Radial Basis Function (RBF) network: a single hidden layer of distance-based units, whose output weights are found by linear least squares.</p>
+  <div class="meta"><span class="chip acc">Tensor rank &amp; shape</span><span class="chip acc">Least squares</span><span class="chip acc">Cover's theorem</span><span class="chip acc">RBF networks</span><span class="chip"><span data-qcount="4:A"></span> assignment Qs · <span data-qcount="4:P"></span> practice Qs</span></div>
+</div>
+
+<div class="box warn" data-title="Where this week's notes come from"><p>The Week 4 lecture folder was not among the links you shared (the shared folders jump from Lecture 14 to Lecture 20). These notes are built from (1) exactly what the Week 4 assignment tests — tensor rank and shape, raw vs squared error, RBF properties — (2) the end of Lecture 7, which says the next lecture is "Radial Basis Function Network", and (3) Haykin's <i>Neural Networks: A Comprehensive Foundation</i>, the course's main reference for this part. If you can get the Week 4 slides, skim them for any extra example the instructor used.</p></div>
+
+<!-- ============================================================ -->
+<section class="topic" id="tensors">
+<h2><span class="num">4.1</span> Tensors: rank, shape and size</h2>
+<div class="concept">
+<div class="f-exp">A <b>tensor</b> is an n-dimensional array. Its <b>rank</b> (also called order or ndim) is the <b>number of axes</b> = the number of indices you need to pick out one value. Its <b>shape</b> lists the length of each axis; its <b>size</b> is the product of the shape (total number of elements).</div>
+<div class="f-use"><table class="compact">
+<tr><th>Rank</th><th>Name</th><th>Example in drone perception</th><th>Shape</th></tr>
+<tr><td>0</td><td>Scalar</td><td>altitude reading, loss value</td><td>()</td></tr>
+<tr><td>1</td><td>Vector</td><td>IMU sample (ax, ay, az, gx, gy, gz)</td><td>(6,)</td></tr>
+<tr><td>2</td><td>Matrix</td><td>grey-scale image; weight matrix of a layer</td><td>(H, W)</td></tr>
+<tr><td>3</td><td>3-D tensor</td><td>RGB image</td><td>(H, W, 3) or (3, H, W)</td></tr>
+<tr><td>4</td><td>4-D tensor</td><td>mini-batch of images (PyTorch order)</td><td>(N, C, H, W)</td></tr>
+<tr><td>5</td><td>5-D tensor</td><td>batch of video clips</td><td>(N, T, C, H, W)</td></tr>
+</table></div>
+<div class="f-imp"><ul style="margin:0">
+<li>The matrix [[1, 2], [3, 4], [5, 6]] has shape (3, 2), size 6 and rank <b>2</b>: the value 5 is at <b>row 2, column 0</b> — two indices. Rank is <b>not</b> the number of elements, rows or unique values.</li>
+<li><b>Reshape</b> changes the shape but keeps the size (6 × 20 = 120 = 3 × 2 × 4 × 5). <b>Transpose/permute</b> reorders axes: (3, 2, 4, 5) → (5, 2, 4, 3) is still rank 4 with 120 elements.</li>
+<li><b>Broadcasting</b>: shapes (3, 1) and (1, 4) combine to (3, 4) — size-1 axes stretch.</li>
+</ul></div>
+<div class="f-lim"><b>Tensor rank ≠ matrix rank.</b> The matrix rank of [[1, 2], [3, 4], [5, 6]] is also 2 here (two independent columns), but a 3 × 3 all-ones matrix has tensor rank 2 and matrix rank 1.</div>
+</div>
+<div class="demo box" data-demo="tensor" data-title="Interactive — tensor rank, size, indexing, reshape and permute"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="least-squares">
+<h2><span class="num">4.2</span> Least squares</h2>
+<div class="concept">
+<div class="f-exp">Fit a model ŷ = f(x, w) by minimising the <b>sum of squared errors</b> SSE = Σ(y<sub>i</sub> − ŷ<sub>i</sub>)² (or its mean, the MSE). This is the error function of the delta/LMS rule (Week 2) and of curve fitting (Week 3).</div>
+<div class="f-imp"><b>Why square?</b><ol style="margin:4px 0">
+<li><b>No cancellation:</b> errors (+8, −8, +8, −8) have raw sum 0 — a "perfect fit" that is wrong by 8 everywhere — but SSE = 4 × 64 = 256.</li>
+<li><b>Large errors cost much more:</b> errors (+1, +1, +1, +1) give SSE 4; (+10, −10, +1, −1) give 202. Least squares prefers small consistent errors to a few large ones.</li>
+<li><b>Smooth and differentiable</b> → gradient descent works, and for models linear in w there is a <b>closed-form</b> solution.</li></ol>
+<b>Straight line</b> ŷ = mx + c: m = Σ(x − x̄)(y − ȳ)/Σ(x − x̄)², c = ȳ − m x̄.<br>
+<b>Matrix form</b> (any model linear in w, design matrix Φ): minimise ‖t − Φw‖² → <b>normal equations ΦᵀΦw = Φᵀt</b> → w = (ΦᵀΦ)⁻¹Φᵀt = Φ⁺t (pseudo-inverse). With L2 regularisation: (ΦᵀΦ + λI)w = Φᵀt.</div>
+<div class="f-use">Line and polynomial fitting, linear regression, the output layer of an RBF network, calibration of sensors.</div>
+<div class="f-lim">Because errors are squared, a single <b>outlier</b> can pull the fit strongly. Absolute error (Σ|e|) or robust losses (e.g. Huber/smooth L1, Week 8) are less sensitive. Mean error alone is useless as a fit measure — with an intercept, the LS residuals always sum to 0.</div>
+</div>
+<div class="demo box" data-demo="lsline" data-title="Interactive — raw sum vs squared error, and the least-squares line"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="cover">
+<h2><span class="num">4.3</span> Cover's theorem — why a nonlinear hidden layer helps</h2>
+<div class="concept">
+<div class="f-exp"><b>Cover's theorem (1965):</b> a complex pattern-classification problem cast <b>nonlinearly</b> into a <b>high-dimensional</b> space is more likely to be linearly separable than in a low-dimensional space.</div>
+<div class="f-imp">This is the idea behind RBF networks: a hidden layer of nonlinear units φ<sub>k</sub>(x) maps each input to a new feature vector; a <b>linear</b> output layer then only has to draw a hyperplane.<br><b>XOR example (Haykin):</b> φ<sub>1</sub>(x) = exp(−‖x − t<sub>1</sub>‖²), φ<sub>2</sub>(x) = exp(−‖x − t<sub>2</sub>‖²) with t<sub>1</sub> = (1, 1), t<sub>2</sub> = (0, 0). The inputs (0, 1) and (1, 0) both map to (0.368, 0.368); (1, 1) → (1, 0.135) and (0, 0) → (0.135, 1). XOR becomes linearly separable — even without increasing the dimension.</div>
+</div>
+<div class="demo box" data-demo="rbfxor" data-title="Interactive — XOR in the RBF hidden space"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="rbf">
+<h2><span class="num">4.4</span> Radial basis functions and RBF networks</h2>
+<div class="concept">
+<div class="f-exp">A <b>radial basis function</b> depends only on the <b>distance between the input and a centre</b>: φ(x) = φ(‖x − c‖). Common choices (r = ‖x − c‖):
+<ul style="margin:4px 0"><li><b>Gaussian</b> φ(r) = exp(−r²/(2σ²)) — 1 at the centre, <b>decreasing</b> with distance; σ sets the width (most common).</li>
+<li>Multiquadric φ(r) = √(r² + c²) — <b>increases</b> with distance.</li>
+<li>Inverse multiquadric φ(r) = 1/√(r² + c²) — decreases with distance.</li></ul>
+So "the output always increases with distance" is false in general.</div>
+<div class="f-imp"><b>RBF network</b> (three layers):
+<ol style="margin:4px 0"><li><b>Input layer</b> — passes x on (no weights).</li>
+<li><b>Hidden layer</b> — K radial units, each with a centre c<sub>k</sub> and width σ<sub>k</sub>: h<sub>k</sub> = φ(‖x − c<sub>k</sub>‖). Nonlinear, <b>local</b> response.</li>
+<li><b>Output layer</b> — <b>linear</b>: y = w<sub>0</sub> + Σ<sub>k</sub> w<sub>k</sub>h<sub>k</sub>.</li></ol>
+<b>Training in two stages:</b> (1) choose centres — fixed at random training points, or by <b>k-means clustering</b> — and widths (e.g. σ = d<sub>max</sub>/√(2K), d<sub>max</sub> = largest distance between centres); (2) solve the output weights by <b>linear least squares</b> (pseudo-inverse) or the LMS rule. Centres can also be fine-tuned by gradient descent (supervised selection).<br>
+<b>Exact interpolation:</b> put one centre on each of the N data points → the N × N interpolation matrix Φ (Φ<sub>ij</sub> = φ(‖x<sub>i</sub> − x<sub>j</sub>‖)) gives Φw = d. <b>Micchelli's theorem</b>: for distinct points and Gaussian/multiquadric φ, Φ is non-singular, so w = Φ⁻¹d exists. The surface passes through every point — and so also fits the noise.</div>
+<div class="f-use">Interpolation and <b>function approximation</b> (an RBF network is a universal approximator), time-series prediction, classification, control.</div>
+<div class="f-lim">Needs many units in high dimensions (each unit only covers a local region — curse of dimensionality); the choice of centres and σ matters a lot: σ too small → spiky, poor generalisation; σ too large → over-smooth and ill-conditioned.</div>
+</div>
+<div class="demo box" data-demo="rbf" data-title="Interactive — an RBF network fitting noisy data (centres, width, exact interpolation)"></div>
+<table class="compact">
+<tr><th></th><th>RBF network</th><th>MLP</th></tr>
+<tr><td>Hidden layers</td><td>One</td><td>One or more</td></tr>
+<tr><td>Hidden unit computes</td><td>Distance to a centre (‖x − c‖)</td><td>Inner product w<sup>T</sup>x, then activation</td></tr>
+<tr><td>Response</td><td><b>Local</b> (only near the centre)</td><td><b>Global</b> (whole half-space)</td></tr>
+<tr><td>Output layer</td><td>Linear</td><td>Linear or nonlinear</td></tr>
+<tr><td>Training</td><td>Fast two-stage: clustering + linear least squares</td><td>Backpropagation through all layers (slower)</td></tr>
+<tr><td>Weakness</td><td>Many units needed in high dimensions</td><td>Local minima, slow training</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A4</span> Week 4 assignment — every question explained</h2>
+<div class="qb" data-week="4" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P4</span> Practice MCQs — Week 4</h2>
+<div class="qb" data-week="4" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

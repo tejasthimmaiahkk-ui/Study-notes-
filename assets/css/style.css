@@ -39,6 +39,7 @@
 body[data-subject="crypto"] { --acc: #3b5bdb; --acc-2: #2f4ac0; --acc-soft: #e9edff; }
 body[data-subject="quant"]  { --acc: #d9480f; --acc-2: #b8400f; --acc-soft: #fff0e6; }
 body[data-subject="da"]     { --acc: #0c8a6c; --acc-2: #08725a; --acc-soft: #e2f6f0; }
+body[data-subject="ai"]     { --acc: #7048e8; --acc-2: #5f3dc4; --acc-soft: #efeaff; }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -51,6 +52,7 @@ body[data-subject="da"]     { --acc: #0c8a6c; --acc-2: #08725a; --acc-soft: #e2f
   :root:not([data-theme="light"]) body[data-subject="crypto"] { --acc: #748ffc; --acc-2: #91a7ff; --acc-soft: #232a4d; }
   :root:not([data-theme="light"]) body[data-subject="quant"]  { --acc: #ff8a4c; --acc-2: #ffa94d; --acc-soft: #3a2518; }
   :root:not([data-theme="light"]) body[data-subject="da"]     { --acc: #38d9a9; --acc-2: #63e6be; --acc-soft: #153a30; }
+  :root:not([data-theme="light"]) body[data-subject="ai"]     { --acc: #9775fa; --acc-2: #b197fc; --acc-soft: #2b2250; }
 }
 :root[data-theme="dark"] {
   --bg: #15171c; --bg-2: #1b1e24; --card: #1e2128; --ink: #e8e6e3; --ink-2: #b6bcc6; --ink-3: #8a919c; --acc: #748ffc; --acc-2: #91a7ff;
@@ -62,6 +64,7 @@ body[data-subject="da"]     { --acc: #0c8a6c; --acc-2: #08725a; --acc-soft: #e2f
 :root[data-theme="dark"] body[data-subject="crypto"] { --acc: #748ffc; --acc-2: #91a7ff; --acc-soft: #232a4d; }
 :root[data-theme="dark"] body[data-subject="quant"]  { --acc: #ff8a4c; --acc-2: #ffa94d; --acc-soft: #3a2518; }
 :root[data-theme="dark"] body[data-subject="da"]     { --acc: #38d9a9; --acc-2: #63e6be; --acc-soft: #153a30; }
+:root[data-theme="dark"] body[data-subject="ai"]     { --acc: #9775fa; --acc-2: #b197fc; --acc-soft: #2b2250; }
 
 /* ---------- Base ---------- */
 * { box-sizing: border-box; }
@@ -498,3 +501,29 @@ footer.site-foot { text-align: center; color: var(--ink-3); font-size: .8rem; pa
 details.sol > summary { font-size: .9rem; padding: 7px 16px; }
 details.sol > div { background: var(--card); }
 details.sol > div h4:first-child { margin-top: .2em; }
+
+/* ---------- AI course: question bank, MSQ, mock exam ---------- */
+.mcq ol li:nth-child(5)::before { content: "e"; } .mcq ol li:nth-child(6)::before { content: "f"; }
+.aq .aq-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+.aq .aq-head .chip { font-size: .7rem; padding: 1px 8px; }
+.aq .kind { font-size: .7rem; font-weight: 700; border-radius: 999px; padding: 1px 8px; background: var(--warn-soft); color: var(--warn); }
+.aq .src-A { background: var(--acc); color: #fff; border-color: var(--acc); }
+.aq .keytag { font-size: .7rem; color: var(--ink-3); margin-left: auto; }
+.aq.msq ol li::after { content: ""; }
+.mcq ol li.sel { border-color: var(--acc); background: var(--acc-soft); }
+.mcq ol li.missed { border-style: dashed; border-color: var(--good); }
+.aq .aq-actions { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.aq .aq-res { font-weight: 700; font-size: .88rem; }
+.aq .aq-res.ok { color: var(--good); } .aq .aq-res.no { color: var(--bad); } .aq .aq-res.part { color: var(--warn); }
+.aq .why .keynote { display: block; margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: var(--warn-soft); color: var(--ink); }
+.aq .why b.k { color: var(--good); }
+.btn.small { padding: 5px 12px; font-size: .82rem; }
+.qb-score { position: sticky; top: calc(var(--topbar-h) + 6px); z-index: 5; background: var(--bg); padding: 6px 0; }
+.exam-bar { position: sticky; top: calc(var(--topbar-h) + 4px); z-index: 6; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; margin: 12px 0; }
+.exam-bar .timer { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; }
+.exam-bar .timer.low { color: var(--bad); }
+.wk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px 12px; }
+.wk-grid label { flex-direction: row !important; align-items: center; gap: 6px !important; font-weight: 500 !important; }
+.res-table td, .res-table th { text-align: center; }
+.mark-bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; min-width: 80px; }
+.mark-bar i { display: block; height: 100%; background: var(--acc); }
