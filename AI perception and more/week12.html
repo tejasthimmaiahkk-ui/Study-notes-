@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Week 12 · Drones in Action — AI Perception for Drones</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-subject="ai" data-page="week12.html">
+<div class="layout">
+<aside class="sidebar" id="toc"></aside>
+<main class="content">
+
+<div class="hero">
+  <div class="eyebrow">Week 12 · Perimeter defence lecture + Sensor-denied navigation, localisation &amp; mapping lecture</div>
+  <h1>Drones in Action: Perimeter Defence, Spiking Networks, GNSS-Denied Navigation &amp; SLAM</h1>
+  <p class="lead">The course ends with applications from the instructor's lab. A team of defender drones must intercept intruders before they enter a protected territory: this is posed as spatio-temporal task assignment, solved optimally by DREAM and learned by a spiking neural network. Then come drones that must fly when GNSS is jammed: IMU drift and learned inertial odometry, the SLAM family (visual, LiDAR, radar, multi-sensor, Gaussian splatting), and the move towards end-to-end navigation.</p>
+  <div class="meta"><span class="chip acc">(p<sub>T</sub>, t) per intruder</span><span class="chip acc">infeasible → κ / ∞</span><span class="chip acc">q infeasible → q reserves</span><span class="chip acc">drift ½bt²</span><span class="chip"><span data-qcount="12:A"></span> assignment Qs · <span data-qcount="12:P"></span> practice Qs</span></div>
+</div>
+
+<div class="box warn" data-title="About this week's answers"><p>The Week 12 assignment was <b>not answered</b> in your screenshots, so there is no official or submitted answer to compare against. Each answer below is worked out from the two Week 12 lectures, with the reasoning shown so you can check it.</p></div>
+
+<!-- ============================================================ -->
+<section class="topic" id="pdp">
+<h2><span class="num">12.1</span> The perimeter defence problem</h2>
+<div class="concept">
+<div class="f-exp"><b>Motivation.</b> Autonomous UAVs serve logistics, defence, and search &amp; reconnaissance, but they raise privacy, safety and security concerns. A freely moving intruder UAV can collect information about critical infrastructure, so a protected <b>territory</b> needs a team of <b>defender</b> UAVs operating inside it, with cooperation, coordination and collaboration. Other drivers of collaborative autonomy: urban intervention, forest-fire fighting, AI for dogfights.</div>
+<div class="f-imp"><b>Related problems:</b>
+<ul>
+<li><b>Guarding problem</b> (Isaacs, differential games): capture the evader <i>before</i> it enters the territory; 1 vs 1 or 2 vs 1; the guard can operate <b>outside</b> the territory.</li>
+<li><b>Reach–avoid</b>: an n vs m multiplayer game with points for intruding.</li>
+<li><b>Earlier perimeter-defence work</b> (Shishika &amp; Kumar): defenders move <b>on the perimeter</b>; more defenders than intruders; each defender assigned to at most one intruder; both are eliminated on capture.</li>
+</ul></div>
+<div class="f-use"><b>Research gaps addressed:</b> <b>scalability</b> (a decentralised solution), <b>dynamic intruders</b> (new intruders appear later), <b>distributed sensing and partial observability</b> (each defender senses independently), and <b>sequential capture</b> (one defender captures several intruders in turn).</div>
+</div>
+<div class="box formula"><p><b>Problem set-up.</b></p>
+<ul>
+<li><b>Objective</b>: capture intruders before they enter the territory.</li>
+<li>Defenders have sensors of radius R<sub>s</sub> and share information with neighbours by synchronous communication.</li>
+<li><b>N<sub>I</sub> &gt; N<sub>D</sub></b> (more intruders than defenders) and <b>V<sub>D,max</sub> &gt; V<sub>I,max</sub></b>.</li>
+<li>Intruders may be non-manoeuvring or manoeuvring.</li>
+<li><b>Neutralisation</b>: a defender captures an intruder when the intruder comes within an <b>ε-vicinity (a small capture ball)</b> of the defender.</li>
+</ul></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assign">
+<h2><span class="num">12.2</span> Spatio-temporal multi-task assignment and DREAM</h2>
+<div class="concept">
+<div class="f-exp">Defenders operate on and inside the territory. From an intruder's position, velocity and heading, compute its <b>arrival location p<sub>T</sub><sup>i</sup></b> (where it will cross the boundary) and <b>time of arrival t<sub>i</sub></b>. Each intruder becomes a <b>spatio-temporal task</b> T<sub>i</sub>(p<sub>T</sub><sup>i</sup>, t<sub>i</sub>). A defender neutralises it by being at that location at that time.</div>
+<div class="f-imp"><b>Optimisation</b>: min Σ<sub>i,j</sub> c<sup>f</sup><sub>ij</sub> δ<sup>f</sup><sub>ij</sub> + Σ<sub>k,j</sub> c<sup>s</sup><sub>kj</sub> δ<sup>s</sup><sub>kj</sub> with binary δ. Here δ<sup>f</sup> means defender i does task j <b>first</b>, and δ<sup>s</sup> means task j is done <b>immediately after</b> task k.
+<ul>
+<li><b>First-task cost</b>: c<sup>f</sup><sub>ij</sub> = α‖p<sub>T</sub><sup>j</sup> − p<sub>D</sub><sup>i</sup>‖ if ‖p<sub>T</sub><sup>j</sup> − p<sub>D</sub><sup>i</sup>‖/V<sub>max</sub> ≤ t<sub>j</sub>, otherwise <b>κ</b>.</li>
+<li><b>Subsequent-task cost</b>: c<sup>s</sup><sub>kj</sub> = α‖p<sub>T</sub><sup>j</sup> − p<sub>T</sub><sup>k</sup>‖ if t<sup>min</sup><sub>k,j</sub> ≤ t<sub>j</sub> − t<sub>k</sub>; κ if t<sup>min</sup><sub>k,j</sub> &gt; t<sub>j</sub> − t<sub>k</sub> &gt; 0; and <b>∞ if t<sub>j</sub> ≤ t<sub>k</sub></b>. Here t<sup>min</sup><sub>k,j</sub> = ‖p<sub>T</sub><sup>j</sup> − p<sub>T</sub><sup>k</sup>‖/V<sub>max</sub>.</li>
+<li><b>Constraints</b>: each task is executed <b>exactly once</b>; each defender does <b>at most one first task</b>; each task has <b>at most one immediate successor</b>.</li>
+</ul>
+<b>Infeasible pairs get a prohibitive cost</b> (the assignment answer: <b>infinity</b>), so the optimiser never chooses them while a feasible option exists.</div>
+<div class="f-use"><b>DREAM (Dynamic REsource Allocation with Multi-task assignment)</b>: the given defenders may not be able to neutralise all intruders because of the spatio-temporal nature of the tasks, so <b>reserve defenders</b> are used. It is a non-iterative two-step method:
+<ol>
+<li>Solve the assignment, count the <b>time-infeasible</b> assignments q, and add q reserve defenders.</li>
+<li>Re-solve; now every assignment is feasible.</li>
+</ol>
+It is scalable, online-computable, simple, and uses the <b>minimum</b> number of defenders.<br>
+<b>Theorem 1</b>: adding one reserve makes exactly one previously infeasible intruder feasible. <b>Corollary</b>: <b>q reserves are necessary and sufficient</b>. <b>Theorem 2</b>: with Euclidean costs, the optimal DREAM solution gives <b>collision-free</b> trajectories.</div>
+</div>
+<div class="demo box" data-demo="perimeter" data-title="Interactive — arrival points, feasibility, sequential tasks and DREAM's reserve count"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="snn">
+<h2><span class="num">12.3</span> Learning the assignment with a spiking neural network</h2>
+<div class="concept">
+<div class="f-exp">Optimisation must be re-solved for every configuration and can grow combinatorially. A learning-based approach must also handle uncertainty: changes in the territory's shape, in intruder velocities and in the defender team. <b>Spiking neural networks</b> efficiently handle <b>sparse spatio-temporal events</b>: information is carried by the <b>timing of spikes</b>, which also suits low-power neuromorphic hardware.</div>
+<div class="f-imp"><b>Spike input generation</b>: the perimeter is <b>segmented into zones</b>, which makes the approach generalisable to shape changes. The input is a <b>spike train representing the presence of intruders (and defenders) and their proportional distance/time to the perimeter</b>. A change in intruder velocity shows up as a change in spike time.<br>
+<b>Multitask assignment SNN</b> (DeALS and related work):
+<ul>
+<li><b>Input layer</b>: 2m neurons (m = observable zones) carrying the defender and intruder spikes.</li>
+<li><b>SEFRON layer</b>: 2m spiking neurons. If a defender should be assigned to zone j, output f<sub>2j−1</sub> is trained to spike <b>before</b> f<sub>2j</sub> (and vice versa).</li>
+<li><b>Binary output</b>: 1 = assigned, 0 = unassigned.</li>
+</ul></div>
+<div class="f-use"><b>Results</b>: mean success rate over <b>1000 runs</b>; in the partial-observation scenario the defender observes 41.67% of the area.<br>
+<b>Generalisability</b>:
+<ul>
+<li>The input encoding does not depend on the perimeter's shape.</li>
+<li>Heterogeneous intruders are handled because a velocity change only shifts spike times.</li>
+<li>An SNN trained on the unit circle with <b>5 defenders</b> still works when the radius grows to <b>1.5×</b> and when the team size changes, <b>with no retraining</b>.</li>
+</ul></div>
+</div>
+<div class="demo box" data-demo="lif" data-title="Interactive — a leaky integrate-and-fire neuron and time-to-first-spike coding"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="nav">
+<h2><span class="num">12.4</span> Sensor-denied navigation: where am I?</h2>
+<div class="concept">
+<div class="f-exp">The traditional autonomous-vehicle architecture starts with <b>localisation</b>. Its sensors are either:
+<ul>
+<li><b>Intrinsic</b> (proprioceptive): <b>IMU</b> (accelerometers + gyroscopes), GPS, flow, pitot.</li>
+<li><b>Extrinsic</b>: camera, LiDAR, radar, IR.</li>
+</ul>
+Traditionally <b>GNSS + IMU</b> are fused (Kalman filter) to estimate velocity and attitude. <b>GNSS-denied navigation</b> is crucial for UAVs because GNSS <b>jamming and spoofing</b> are now common.</div>
+<div class="f-imp">Alternatives:
+<ul>
+<li><b>LiDAR localisation</b> by scan matching (FAST-LIO2).</li>
+<li><b>Vision</b> via optical flow, feature matching or visual place recognition (AnyLoc).</li>
+<li><b>Thermal cameras</b>.</li>
+</ul>
+These extrinsic sensors are <b>vulnerable to environmental conditions</b>. The spectrum of solutions runs from intrinsic (IMU + GNSS, IMU + altitude, data-driven IMU) to extrinsic (visual, LiDAR, radar and Gaussian-splatting SLAM). A data-driven IMU approach is low-cost and works on aerial vehicles.</div>
+<div class="f-lim"><b>Challenges of inertial systems</b>: <b>bias estimation</b>, <b>drift prediction</b> and time synchronisation. Adaptive switching between sources brings its own problems: fusing multiple receivers and computational complexity.</div>
+</div>
+<div class="demo box" data-demo="imudrift" data-title="Interactive — how IMU bias turns into metres of drift"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="lio">
+<h2><span class="num">12.5</span> Learning-based inertial odometry</h2>
+<table class="compact">
+<tr><th>Method</th><th>Idea</th><th>Notes / limits</th></tr>
+<tr><td><b>S-MNN</b>: Spectrally Normalised Memory Neuron Network (Rao, Sundaram &amp; Raghavendra, 2023)</td><td>A memory-neuron network (Week 7) predicts <b>position</b> from past observations plus the thrust estimate; <b>RTK-GPS</b> is the ground truth; the estimate is fused with sensors through an <b>EKF</b>, then converted from local to global coordinates. Computationally light, for GPS-denied micro-UAVs.</td><td>Specific to one drone (not generalisable); long-term prediction drifts more; <b>no sensor-bias correction</b></td></tr>
+<tr><td><b>AirIO / AirIMU</b> (RAL 2025)</td><td><b>Data-driven IMU correction model</b> + <b>uncertainty-aware EKF</b>: robust state estimation without external sensors</td><td>Computational cost; drift during prolonged GPS absence; bias-correction error grows under domain change</td></tr>
+<tr><td><b>IMUNet</b> (bias correction)</td><td>Learns navigation-consistent IMU corrections from <b>DVL velocity supervision</b>, without explicit attitude information; dual-stream temporal features model the IMU bias. Velocity RMSE: X 0.0218 → 0.0067, Y 0.0314 → 0.0048, Z 0.2120 → <b>0.0026 m/s</b></td><td>About <b>23.7% drift reduction</b> over ~1.5-hour AUV-swarm missions and robust during DVL outages; lack of direct supervision for the IMU corrections limits generalisation</td></tr>
+<tr><td><b>Tartan IMU</b> (CVPR 2025): a foundation model for inertial positioning</td><td>A light IMU foundation model with better position estimates; <b>LoRA</b> (low-rank adaptation, from LLMs) for <b>online adaptation</b> to new platforms or motions, which also limits <b>catastrophic forgetting</b></td><td>Generalisable without extrinsic information; handles fast objects; the backbone sometimes needs retraining</td></tr>
+</table>
+<div class="box tip" data-title="Exam phrasing (assignment Q9)"><p>Data-driven <b>soft sensors</b> (e.g. an "<b>Acceleration Network</b>") fight long-term IMU drift by <b>training a network on unbiased data so it rectifies the current IMU data, producing output with the bias removed</b>. Wrong options to reject: cell-tower pinging, switching the IMU off, and a constant factory-calibrated filter (it cannot track a bias that changes).</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="slam">
+<h2><span class="num">12.6</span> SLAM: visual, LiDAR, radar, multi-sensor and Gaussian splatting</h2>
+<p><b>Simultaneous Localisation And Mapping</b> builds a map of an unknown environment while localising within it.</p>
+<table class="compact">
+<tr><th></th><th>Visual SLAM</th><th>LiDAR SLAM</th><th>Radar SLAM</th><th>Multi-sensor fusion SLAM</th></tr>
+<tr><td>Typical sensors</td><td>Mono camera (+ INS)</td><td>3D solid-state LiDAR + IMU + mono camera</td><td>4D long-range radar + IMU + mono camera</td><td>Zoom, event and wide-angle cameras + laser range finder</td></tr>
+<tr><td>Strengths</td><td>Cost and form factor; information density; semantic richness</td><td><b>Lighting immunity</b>; unmatched geometric precision; direct depth</td><td><b>All-weather</b> robustness; <b>direct (Doppler) velocity</b>; extended range</td><td>Complementary strengths; hardware redundancy; cross-calibration</td></tr>
+<tr><td>Challenges</td><td>Photometric (illumination, suspended particles); <b>texture-less scenes</b>; <b>scale ambiguity</b> (monocular); environment dynamics</td><td><b>Geometric degeneracy</b> (corridors, open fields); <b>motion distortion</b> (scan de-skewing); reflections and ghost returns; point-cloud memory</td><td><b>Low angular resolution</b>; noise and clutter (speckle, multipath); sparse landmarks; few mature algorithms</td><td>Spatial and temporal calibration; tight vs loose coupling; fault tolerance under sensor failure; embedded real-time compute</td></tr>
+</table>
+<p><b>Shared challenges:</b> loop closure (revisit detection), long-term operation (seasonal and map ageing), drift and error accumulation, dynamic scenes (the moving-world problem).</p>
+<ul>
+<li><b>RaI-SLAM</b> (radar–inertial): removes dynamic objects using <b>only Doppler velocities</b> and uses a dual-factor tightly coupled graph. Limits: it needs extensive filtering of radar data, and its place-recognition threshold δ<sub>d</sub> is a fixed prior, which can fail.</li>
+<li><b>R3LIVE++</b>: triple fusion of LiDAR + camera + IMU, where VIO and LIO share one map, producing a coloured radiance map. Limits: no loop closure, and if either LIO or VIO fails the model diverges.</li>
+<li><b>WildGS-SLAM</b> (CVPR 2025): monocular <b>3D Gaussian-splatting</b> SLAM that learns an online <b>uncertainty mask</b> to down-weight dynamic pixels, using rendering losses only. Fast camera motion and clutter make rendering and matching hard. The lab's variant adds multi-view feature consistency to train a teacher and distils a student that gives spatio-temporally consistent masks. ATE improves 3.1 → 2.8 cm and 1.3 → 1.2 cm on TUM sequences.</li>
+<li><b>DROID-Splat</b>: end-to-end SLAM + 3D Gaussian splatting. It handles static scenes and short-to-medium sequences, but colour becomes inaccurate and distorted on long ones.</li>
+</ul>
+<div class="demo box" data-demo="slamfail" data-title="Interactive — which sensor survives which environment?"></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="future">
+<h2><span class="num">12.7</span> The future: end-to-end navigation and foundation models</h2>
+<div class="concept">
+<div class="f-exp">Today's pipeline processes sensor input through <b>separate blocks</b> (perception → mapping → planning → control), and errors propagate between them. <b>End-to-end navigation</b> uses integrated AI models (foundation models, Vision-Language-Action models) that <b>convert sensor inputs (images, LiDAR) directly into safe trajectories and control commands</b>.</div>
+<div class="f-use"><b>Four priority research directions:</b>
+<ol>
+<li><b>Long-context backbones</b>: state-space models (Mamba) for inertial odometry over long horizons without t² drift.</li>
+<li><b>Physics-informed learning</b>: ODE and Lie-group constraints embedded in the training loss.</li>
+<li><b>End-to-end pose regression</b>: loop closure learned inside the model, which outputs pose, not just velocity.</li>
+<li><b>Multi-modal fusion</b>: the IMU co-trained with camera, LiDAR and radar in a shared navigation embedding.</li>
+</ol></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section class="topic" id="assignment">
+<h2><span class="num">A12</span> Week 12 assignment — every question explained</h2>
+<div class="qb" data-week="12" data-src="A"></div>
+</section>
+
+<section class="topic" id="practice">
+<h2><span class="num">P12</span> Practice MCQs — Week 12</h2>
+<div class="qb" data-week="12" data-src="P"></div>
+</section>
+
+</main>
+</div>
+<script src="../assets/js/app.js"></script>
+<script src="qbank.js"></script>
+<script src="practice.js"></script>
+<script src="ai.js"></script>
+<script src="demos.js"></script>
+</body>
+</html>

@@ -1420,5 +1420,142 @@
     on(host, "input", "input", run); run();
   };
 
-  /*__WEEK12__*/
+  /* ===================================================================
+     WEEK 12 — Perimeter defence, spiking networks, sensor-denied navigation
+     =================================================================== */
+  D.perimeter = function (host) {
+    var KAP = 100, seed = 3;
+    var PRE = {
+      easy: { d: [0, 120, 240], i: [[3, 30], [2.5, 150], [3.5, 260]] },
+      more: { d: [0, 180], i: [[2.2, 20], [3.6, 60], [2.6, 170], [3.9, 200], [3.2, 300]] }
+    };
+    host.innerHTML = '<div class="demo-row"><label>Intruder speed V<sub>I</sub> = <span id="vil"></span><input type="range" id="vi" min="0.4" max="1.5" step="0.05" value="1"></label><label>Defender speed V<sub>D</sub> = <span id="vdl"></span><input type="range" id="vd" min="0.4" max="3" step="0.05" value="1.5"></label><span class="seg" id="pre"><button data-p="easy" class="on">3 defenders vs 3 intruders</button><button data-p="more">2 defenders vs 5 intruders</button><button data-p="rand">New random scenario</button></span></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    var sc = PRE.easy;
+    function P(r, a) { a = a * Math.PI / 180; return [r * Math.cos(a), r * Math.sin(a)]; }
+    function dist(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+    function solve(Dp, T, VD) {
+      var M = T.length, N = Dp.length, best = { c: Infinity, a: null }, chains = [], asg = [];
+      (function rec(j, cost, used) {
+        if (cost >= best.c) return;
+        if (j === M) { best = { c: cost, a: asg.slice() }; return; }
+        for (var i = 0; i < N; i++) if (!(used & (1 << i))) {
+          var d = dist(Dp[i], T[j].p), ok = d / VD <= T[j].t + 1e-9, c = ok ? d : KAP;
+          chains.push({ d: i, last: j }); asg[j] = { s: false, from: i, def: i, d: d, need: d / VD, have: T[j].t, ok: ok, c: c };
+          rec(j + 1, cost + c, used | (1 << i)); chains.pop();
+        }
+        for (var k = 0; k < chains.length; k++) {
+          var ch = chains[k], pv = ch.last, dt = T[j].t - T[pv].t;
+          if (dt <= 0) continue;
+          var d2 = dist(T[pv].p, T[j].p), ok2 = d2 / VD <= dt + 1e-9, c2 = ok2 ? d2 : KAP;
+          ch.last = j; asg[j] = { s: true, from: pv, def: ch.d, d: d2, need: d2 / VD, have: dt, ok: ok2, c: c2 };
+          rec(j + 1, cost + c2, used); ch.last = pv;
+        }
+      })(0, 0, 0);
+      return best;
+    }
+    function run() {
+      var VI = +el(host, "#vi").value, VD = +el(host, "#vd").value; el(host, "#vil").textContent = f(VI, 2); el(host, "#vdl").textContent = f(VD, 2);
+      var Dp = sc.d.map(function (a) { return P(1, a); });
+      var T = sc.i.map(function (q, k) { return { k: k + 1, pos: P(q[0], q[1]), p: P(1, q[1]), ang: q[1], t: (q[0] - 1) / VI }; }).sort(function (a, b) { return a.t - b.t; });
+      var sol = solve(Dp, T, VD), q = 0;
+      var W = 320, C = W / 2, s = svgEl(W, W), U = C / 4.3;
+      function X(p) { return C + p[0] * U; } function Y(p) { return C - p[1] * U; }
+      css(S(s, "circle", { cx: C, cy: C, r: U }), { fill: "var(--good-soft)", stroke: "var(--good)", strokeWidth: 2 });
+      S(s, "text", { x: C, y: C + 4, "text-anchor": "middle" }, "territory");
+      T.forEach(function (t) {
+        css(S(s, "line", { x1: X(t.pos), y1: Y(t.pos), x2: X(t.p), y2: Y(t.p) }), { stroke: "var(--bad)", strokeDasharray: "3 3" });
+        css(S(s, "circle", { cx: X(t.pos), cy: Y(t.pos), r: 6 }), { fill: "var(--bad)" });
+        S(s, "text", { x: X(t.pos) + 8, y: Y(t.pos) - 6 }, "I" + t.k + " t=" + f(t.t, 2));
+        css(S(s, "circle", { cx: X(t.p), cy: Y(t.p), r: 3 }), { fill: "var(--bad)" });
+      });
+      if (sol.a) sol.a.forEach(function (a, j) {
+        if (!a.ok) q++;
+        var from = a.s ? T[a.from].p : Dp[a.from];
+        css(S(s, "line", { x1: X(from), y1: Y(from), x2: X(T[j].p), y2: Y(T[j].p) }), { stroke: a.ok ? "var(--acc)" : "var(--warn)", strokeWidth: 2.5, strokeDasharray: a.ok ? "" : "6 4" });
+      });
+      Dp.forEach(function (p, i) { css(S(s, "rect", { x: X(p) - 6, y: Y(p) - 6, width: 12, height: 12, rx: 2 }), { fill: "var(--acc)" }); S(s, "text", { x: X(p) + 9, y: Y(p) + 14 }, "D" + (i + 1)); });
+      var pl = el(host, "#pl"); pl.innerHTML = legend([{ name: "defender path (feasible)", color: "var(--acc)" }, { name: "time-infeasible (cost κ)", color: "var(--warn)" }, { name: "intruder → arrival point", color: "var(--bad)" }]); pl.appendChild(s);
+      var rows = sol.a ? sol.a.map(function (a, j) {
+        return "<tr><td>T" + (j + 1) + " (I" + T[j].k + ")</td><td>" + T[j].ang + "°</td><td>" + f(T[j].t, 2) + "</td><td>D" + (a.def + 1) + (a.s ? " after T" + (a.from + 1) : " first task") + "</td><td>" + f(a.need, 2) + " / " + f(a.have, 2) + "</td><td" + (a.ok ? "" : ' style="background:var(--warn-soft)"') + ">" + (a.ok ? f(a.c, 2) : "κ") + "</td></tr>";
+      }).join("") : "";
+      el(host, "#o").innerHTML = '<table class="num compact"><tr><th>Task</th><th>Arrival point</th><th>t<sub>j</sub></th><th>Assigned to</th><th>Travel time needed / available</th><th>Cost</th></tr>' + rows + "</table>" +
+        "Each intruder flies straight at the territory (radius 1): <b>arrival location</b> p<sub>T</sub> = where its line meets the boundary, <b>arrival time</b> t = distance/V<sub>I</sub>. A defender must reach p<sub>T</sub> by t (‖p<sub>T</sub> − p<sub>D</sub>‖/V<sub>D</sub> ≤ t), or after finishing task k, by t<sub>j</sub> − t<sub>k</sub>. Infeasible pairs get a huge cost κ (∞ when t<sub>j</sub> ≤ t<sub>k</sub>), so the minimum-cost assignment avoids them whenever possible.<br><br>" +
+        (q ? "<b>" + q + " time-infeasible assignment" + (q > 1 ? "s" : "") + "</b> remain → <b>DREAM adds " + q + " reserve defender" + (q > 1 ? "s" : "") + "</b> (q reserves are necessary and sufficient) and re-solves, so every intruder is neutralised." : "<b>All assignments are time-feasible</b>: no reserve defenders needed.") +
+        "<br><small>Try slowing the defenders or adding intruders. Sequential tasks (\"after T1\") let one defender neutralise several intruders in turn.</small>";
+    }
+    on(host, "input", "input", run);
+    on(host, "#pre button", "click", function () {
+      host.querySelectorAll("#pre button").forEach(function (b) { b.classList.remove("on"); }); this.classList.add("on");
+      var p = this.getAttribute("data-p");
+      if (p === "rand") {
+        var R = rng(seed++), nd = 2 + Math.floor(R() * 3), ni = nd + 1 + Math.floor(R() * 3), off = R() * 360;
+        sc = { d: [], i: [] };
+        for (var i = 0; i < nd; i++) sc.d.push(Math.round(off + i * 360 / nd) % 360);
+        for (var j = 0; j < ni; j++) sc.i.push([+(2 + R() * 2).toFixed(1), Math.round(R() * 360)]);
+      } else sc = PRE[p];
+      run();
+    });
+    run();
+  };
+
+  D.lif = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Input current R·I = <span id="il"></span><input type="range" id="i" min="0" max="4" step="0.05" value="1.5"></label><label>Membrane time constant τ<sub>m</sub> = <span id="tl"></span> ms<input type="range" id="t" min="5" max="50" step="1" value="20"></label><label>Refractory period = <span id="rl"></span> ms<input type="range" id="r" min="0" max="20" step="1" value="2"></label></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var I = +el(host, "#i").value, tau = +el(host, "#t").value, tr = +el(host, "#r").value, th = 1, dt = 0.05, Tend = 100;
+      el(host, "#il").textContent = f(I, 2); el(host, "#tl").textContent = tau; el(host, "#rl").textContent = tr;
+      var v = 0, vs = [], spikes = [], ref = 0;
+      for (var n = 0; n * dt <= Tend + 1e-9; n++) {
+        vs.push(v);
+        if (ref > 0) { ref -= dt; v = 0; continue; }
+        v += dt / tau * (-v + I);
+        if (v >= th) { spikes.push((n + 1) * dt); v = 0; ref = tr; }
+      }
+      var sv = plot([{ f: function (x) { return vs[Math.min(vs.length - 1, Math.round(x / dt))]; } }, { f: function () { return th; }, dash: "5 4", color: "var(--bad)", wd: 1.5 }], [0, Tend], [0, 1.6], { w: 400, h: 220 });
+      spikes.forEach(function (t) { css(S(sv, "line", { x1: sv._X(t), x2: sv._X(t), y1: sv._Y(1), y2: sv._Y(1.55) }), { stroke: "var(--warn)", strokeWidth: 2 }); });
+      var pl = el(host, "#pl"); pl.innerHTML = legend([{ name: "membrane potential v(t)", color: K.PALETTE[0] }, { name: "threshold θ = 1", color: "var(--bad)" }, { name: "spikes", color: "var(--warn)" }]); pl.appendChild(sv);
+      var t1 = I > th ? tau * Math.log(I / (I - th)) : Infinity;
+      el(host, "#o").innerHTML = "Leaky integrate-and-fire: τ<sub>m</sub>·dv/dt = −v + R·I. When v reaches θ the neuron <b>spikes</b> and resets to 0, then stays silent for the refractory period.<br><br>" +
+        (isFinite(t1) ? "First spike at t = τ<sub>m</sub>·ln(RI/(RI − θ)) = <b>" + f(t1, 2) + " ms</b> · " + spikes.length + " spikes in 100 ms (rate ≈ " + f(1000 / (t1 + tr), 1) + " Hz)" : "R·I ≤ θ: v leaks towards " + f(I, 2) + " and <b>never spikes</b>. Information arrives only when the input is strong enough.") +
+        "<br><br><b>Encoding the perimeter task</b>: the perimeter is split into m zones, and each zone's input neuron spikes at a time tied to the intruder's (or defender's) proportional distance/time to the boundary. A more urgent intruder means a stronger input and an <b>earlier spike</b>. In the SEFRON output layer, neuron f<sub>2j−1</sub> is trained to fire <b>before</b> f<sub>2j</sub> when a defender should be assigned to zone j. Because the encoding depends on zones and timing, not on the territory's exact shape, the trained SNN generalises without retraining.";
+    }
+    on(host, "input", "input", run); run();
+  };
+
+  D.imudrift = function (host) {
+    host.innerHTML = '<div class="demo-row"><label>Accelerometer bias b = <span id="bl"></span> m/s²<input type="range" id="b" min="0" max="0.2" step="0.002" value="0.02"></label><label>Gyro bias ω<sub>b</sub> = <span id="wl"></span> °/h<input type="range" id="w" min="0" max="100" step="1" value="10"></label><label>Bias removed by learned correction = <span id="cl"></span>%<input type="range" id="c" min="0" max="99" step="1" value="0"></label><label>Horizon<select id="h"><option value="10">10 s</option><option value="60" selected>60 s</option><option value="300">5 min</option></select></label></div><div class="two-col"><div id="pl"></div><div class="out" id="o"></div></div>';
+    function run() {
+      var b = +el(host, "#b").value, wd = +el(host, "#w").value, c = +el(host, "#c").value / 100, H = +el(host, "#h").value, g = 9.81;
+      el(host, "#bl").textContent = f(b, 3); el(host, "#wl").textContent = wd; el(host, "#cl").textContent = Math.round(c * 100);
+      var be = b * (1 - c), we = wd * Math.PI / 180 / 3600 * (1 - c);
+      var pa = function (t) { return 0.5 * be * t * t; }, pg = function (t) { return g * we * t * t * t / 6; }, pt = function (t) { return pa(t) + pg(t); };
+      var ymax = Math.max(1, pt(H) * 1.1);
+      var sv = plot([{ f: pa }, { f: pg }, { f: pt, dash: "6 4" }], [0, H], [0, ymax], { w: 400, h: 220 });
+      var pl = el(host, "#pl"); pl.innerHTML = legend([{ name: "accelerometer bias: ½bt²", color: K.PALETTE[0] }, { name: "gyro bias: tilt leaks gravity, (1/6)gω<sub>b</sub>t³", color: K.PALETTE[1] }, { name: "total position error", color: K.PALETTE[2] }]); pl.appendChild(sv);
+      el(host, "#o").innerHTML = "Dead reckoning integrates acceleration twice. A constant accelerometer bias b gives velocity error bt and <b>position error ½bt²</b>. A gyro bias tilts the estimated attitude by ω<sub>b</sub>t, so part of gravity leaks into the horizontal axes, growing as t³.<br><br>" +
+        "After " + H + " s: accelerometer term <b>" + f(pa(H), 2) + " m</b>, gyro term <b>" + f(pg(H), 2) + " m</b>, total <b>" + f(pt(H), 2) + " m</b>." +
+        (c > 0 ? "<br>The learned correction removed " + Math.round(c * 100) + "% of the bias, and the drift shrinks by the same factor. This is what data-driven soft sensors (an \"Acceleration Network\", AirIMU/AirIO, IMUNet, Tartan IMU) aim for: train on unbiased reference data, then rectify the live IMU stream." : "<br>Move the correction slider: a network trained on unbiased reference data (RTK-GPS, DVL) predicts and removes the bias from the raw IMU stream.") +
+        "<br><small>Even a small bias becomes metres within a minute. That is why GNSS-denied flight needs IMU bias correction, SLAM, or both.</small>";
+    }
+    on(host, "input,select", "input", run); run();
+  };
+
+  D.slamfail = function (host) {
+    var SEN = ["GNSS", "IMU (dead reckoning)", "Visual SLAM", "LiDAR SLAM", "Radar SLAM", "Multi-sensor fusion"];
+    var ENV = {
+      sea: ["Over the sea or a desert", ["ok", "drift", "fail", "weak", "weak", "ok"], ["Open sky", "Drifts as ½bt²", "Texture-less: no stable feature points, and water moves", "Flat, featureless geometry; few returns from water", "Sparse landmarks", "Falls back on GNSS + IMU"]],
+      tunnel: ["Long tunnel, corridor or open field", ["fail", "drift", "weak", "fail", "weak", "ok"], ["No satellite signal in a tunnel", "Drifts without correction", "Dark, repetitive walls", "Geometric degeneracy: every scan looks alike along the travel direction", "Low angular resolution, sparse features", "Complementary sensors cover each other"]],
+      fog: ["Fog, smoke, dust or rain", ["ok", "drift", "fail", "weak", "ok", "ok"], ["Unaffected", "Unaffected but drifts", "Suspended particles block the view", "Scattering and ghost returns", "All-weather: radio waves penetrate", "Radar keeps it alive"]],
+      night: ["Night or low light", ["ok", "drift", "fail", "ok", "ok", "ok"], ["Unaffected", "Unaffected but drifts", "Photometric failure: no light", "Lighting immunity: an active sensor", "Unaffected", "LiDAR/radar/thermal take over"]],
+      jam: ["GNSS jamming/spoofing in a city", ["fail", "drift", "ok", "ok", "ok", "ok"], ["Jammed or spoofed: the main motivation for GNSS-denied navigation", "Must be corrected by other sensors", "Rich texture in cities (watch for moving objects)", "Good geometry", "Works; Doppler helps", "Best option"]],
+      crowd: ["Crowded, dynamic scene", ["ok", "drift", "weak", "weak", "ok", "ok"], ["—", "—", "Moving objects corrupt tracking (use dynamic masks, e.g. WildGS-SLAM)", "Moving objects in the point cloud", "Doppler velocity identifies and removes dynamic objects (RaI-SLAM)", "Cross-checks between sensors"]],
+      fast: ["Fast, aggressive manoeuvres", ["ok", "ok", "weak", "weak", "ok", "ok"], ["Low update rate", "High rate; good over short horizons", "Motion blur; fast camera motion breaks rendering and matching", "Motion distortion: scans need de-skewing", "—", "IMU bridges the gaps (tight coupling)"]]
+    };
+    host.innerHTML = '<div class="demo-row"><label>Environment<select id="e">' + Object.keys(ENV).map(function (k) { return '<option value="' + k + '">' + ENV[k][0] + "</option>"; }).join("") + '</select></label></div><div class="out" id="o"></div>';
+    function run() {
+      var E = ENV[el(host, "#e").value], BG = { ok: "var(--good-soft)", weak: "var(--warn-soft)", fail: "var(--bad-soft)", drift: "var(--warn-soft)" }, TX = { ok: "✓ works", weak: "~ degraded", fail: "✗ fails", drift: "~ drifts" };
+      el(host, "#o").innerHTML = '<table class="compact"><tr><th>Sensor / method</th><th>Status</th><th>Why</th></tr>' + SEN.map(function (n, i) { return "<tr><td>" + n + '</td><td style="background:' + BG[E[1][i]] + '"><b>' + TX[E[1][i]] + "</b></td><td>" + E[2][i] + "</td></tr>"; }).join("") + "</table>" +
+        "<small>Shared challenges for every modality: loop closure (revisit detection), long-term operation (seasonal and map ageing), drift and error accumulation, dynamic scenes. Intrinsic sensors: IMU, GPS, flow, pitot. Extrinsic: camera, LiDAR, radar, IR.</small>";
+    }
+    on(host, "select", "input", run); run();
+  };
 })();

@@ -581,4 +581,59 @@
     ["Strided convolutions instead of pooling in D; strided transposed convolutions in G", "BatchNorm in both G and D", "ReLU in G with Tanh output; LeakyReLU in D", "Large fully connected hidden layers"], [0, 1, 2], "DCGAN removes fully connected hidden layers.");
   P(11, "In pix2pix (a conditional GAN mapping edges → photos), the discriminator judges:",
     ["Only the generated photo", "{edge map, photo} pairs, so both G and D see the input edge map", "Only the edge map", "Latent vectors"], [1], "Conditioning both networks ties the output to the given input; CycleGAN handles unpaired data.");
+  /* ---------- Week 12 ---------- */
+  P(12, "In the perimeter defence problem studied in the lecture, which conditions hold? (Select all that apply)",
+    ["More intruders than defenders (N<sub>I</sub> &gt; N<sub>D</sub>)", "Defenders are faster (V<sub>D,max</sub> &gt; V<sub>I,max</sub>)", "Defenders operate on and inside the territory", "Each defender may capture at most one intruder in total"], [0, 1, 2], "Sequential capture is allowed: one defender can neutralise several intruders in turn. The one-intruder limit belongs to earlier perimeter-defence work.");
+  P(12, "Which related problem lets the guard operate outside the territory and capture the evader before it enters (1 vs 1 or 2 vs 1)?",
+    ["Reach–avoid game", "Guarding problem (Isaacs' differential games)", "Earlier perimeter defence", "Multi-task assignment"], [1], "Reach–avoid is an n vs m multiplayer game. Earlier perimeter-defence work keeps the defenders on the perimeter.");
+  P(12, "An intruder 3 units from the centre flies straight at a circular territory of radius 1 at speed 0.5. Its time of arrival at the boundary is:",
+    ["6", "4", "2", "1.5"], [1], "Distance to the boundary = 3 − 1 = 2; t = 2/0.5 = 4. Its arrival location is where its line crosses the circle.");
+  P(12, "A defender is 1.8 units from an intruder's arrival point and flies at 1.5 units/s. The intruder arrives in 1.0 s. The first-task cost c<sup>f</sup> for this pair is:",
+    ["α × 1.8", "κ (time-infeasible)", "0", "1.2"], [1], "Travel time = 1.8/1.5 = 1.2 s &gt; 1.0 s, so the pair is infeasible and gets the prohibitive cost κ. It would be α·1.8 if the defender could arrive in time.");
+  P(12, "For a subsequent task j after task k, the cost is set to ∞ when:",
+    ["t<sub>j</sub> − t<sub>k</sub> is very large", "t<sub>j</sub> ≤ t<sub>k</sub>", "The distance is zero", "The defender is idle"], [1], "A task cannot follow one that happens later or at the same time. When t<sub>j</sub> &gt; t<sub>k</sub> but there is not enough time, the cost is κ.");
+  P(12, "Which constraints appear in the spatio-temporal multi-task assignment? (Select all that apply)",
+    ["Every task is executed exactly once", "Each defender does at most one first task", "Each task has at most one immediate successor task", "Every defender must be used"], [0, 1, 2], "Defenders can stay unused; the binary δ variables choose first and sequential tasks.");
+  P(12, "After solving the assignment, 3 assignments are time-infeasible. According to DREAM's corollary:",
+    ["1 reserve defender is enough", "3 reserve defenders are necessary and sufficient", "The problem has no solution", "6 reserves are needed"], [1], "Theorem 1: each added reserve fixes exactly one infeasible intruder. So q reserves are necessary and sufficient, and DREAM uses the minimum number of defenders.");
+  P(12, "Which properties describe DREAM? (Select all that apply)",
+    ["Non-iterative two-step solution", "Scalable and online computable", "Gives collision-free trajectories with Euclidean costs", "Requires retraining a neural network for every territory"], [0, 1, 2], "DREAM is optimisation, not learning. Theorem 2 gives collision-free trajectories.");
+  P(12, "Why are spiking neural networks a good fit for learning the defender assignment?",
+    ["They need dense image input", "They efficiently process sparse spatio-temporal events encoded in spike timing", "They cannot generalise", "They require a Q-table"], [1], "Intruder presence and urgency become spike times; neuromorphic hardware runs them at low power.");
+  P(12, "In the multitask assignment SNN with m observable zones, the input layer has:",
+    ["m neurons", "2m neurons", "m² neurons", "5 neurons"], [1], "2m input neurons carry defender and intruder spikes, followed by a SEFRON layer of 2m spiking neurons.");
+  P(12, "In the SEFRON output layer, a defender is assigned to zone j when:",
+    ["f<sub>2j</sub> fires before f<sub>2j−1</sub>", "f<sub>2j−1</sub> fires before f<sub>2j</sub>", "Neither neuron fires", "Both fire at exactly the same time"], [1], "The output is binary: 1 = assigned (f<sub>2j−1</sub> first), 0 = unassigned.");
+  P(12, "Why does the SNN approach generalise to a different territory shape without retraining?",
+    ["The perimeter is segmented into zones, so the spike encoding does not depend on the exact shape", "It memorises every shape", "It ignores the intruders", "It uses GPS coordinates directly"], [0], "Velocity changes only shift spike times. An SNN trained on a unit circle with 5 defenders still worked at 1.5× radius and with different team sizes.");
+  P(12, "A leaky integrate-and-fire neuron (τ<sub>m</sub> = 20 ms, threshold 1, reset 0) receives a constant input with R·I = 1.5. Its first spike occurs at about:",
+    ["13.9 ms", "22.0 ms", "30 ms", "Never"], [1], "t = τ ln(RI/(RI − θ)) = 20 ln 3 ≈ 22.0 ms. With R·I ≤ 1 it would never spike.");
+  P(12, "Which sensors are intrinsic (proprioceptive)? (Select all that apply)",
+    ["IMU (accelerometers and gyroscopes)", "GPS", "Pitot tube", "LiDAR"], [0, 1, 2], "Camera, LiDAR, radar and IR are extrinsic.");
+  P(12, "GNSS-denied navigation matters for UAVs today mainly because of:",
+    ["Battery limits", "GNSS jamming and spoofing", "Too many satellites", "Camera resolution"], [1], "This is the lecture's stated motivation; alternatives include LiDAR scan matching and visual localisation.");
+  P(12, "An uncorrected accelerometer bias of 0.05 m/s² is integrated for 60 s. The position error is about:",
+    ["3 m", "90 m", "1.5 m", "180 m"], [1], "½bt² = 0.5 × 0.05 × 3600 = 90 m. The error grows quadratically, which is why bias correction matters.");
+  P(12, "If the integration time doubles, the position error caused by a constant accelerometer bias:",
+    ["Doubles", "Quadruples", "Stays the same", "Halves"], [1], "It scales as t²: (2t)² = 4t².");
+  P(12, "The Spectrally Normalised Memory Neuron Network (S-MNN) estimator:",
+    ["Uses RTK-GPS as ground truth and fuses its position prediction with sensors via an EKF", "Corrects IMU bias for any drone without retraining", "Is a SLAM method using LiDAR", "Uses only camera images"], [0], "Its limits: drone-specific, larger long-term drift, and no sensor-bias correction.");
+  P(12, "Tartan IMU uses LoRA (low-rank adaptation) to:",
+    ["Increase IMU sampling rate", "Adapt the IMU foundation model online to new platforms or motions while limiting catastrophic forgetting", "Replace the EKF", "Compress images"], [1], "LoRA comes from LLM fine-tuning: a few low-rank parameters adapt the model without overwriting the backbone.");
+  P(12, "Which SLAM modality offers lighting immunity, unmatched geometric precision and direct depth?",
+    ["Visual SLAM", "LiDAR SLAM", "Radar SLAM", "Monocular SLAM"], [1], "Radar's strengths are all-weather robustness, direct velocity and range. Vision's are cost, information density and semantics.");
+  P(12, "Scale ambiguity is a typical failure mode of:",
+    ["Monocular visual SLAM", "LiDAR SLAM", "GNSS", "Radar SLAM"], [0], "A single camera cannot measure absolute distance. LiDAR measures depth directly.");
+  P(12, "Which modality is most robust in fog, smoke and rain, and can directly measure velocity via Doppler?",
+    ["Visual SLAM", "LiDAR SLAM", "Radar SLAM", "Thermal SLAM"], [2], "RaI-SLAM even uses Doppler velocities to remove dynamic objects. Radar's weaknesses are low angular resolution and clutter.");
+  P(12, "LiDAR scans taken during fast motion appear warped because points are captured at different times. The fix is:",
+    ["Loop closure", "Scan de-skewing (motion-distortion compensation)", "Colour correction", "Lowering the frame rate"], [1], "Motion distortion is a listed LiDAR challenge, alongside geometric degeneracy and reflections.");
+  P(12, "R3LIVE++'s key weakness noted in the lecture is that:",
+    ["It uses only a camera", "It has no loop closure, and the model diverges if either LIO or VIO fails", "It needs radar", "It cannot build a coloured map"], [1], "It fuses LiDAR, camera and IMU into a shared coloured radiance map.");
+  P(12, "WildGS-SLAM handles dynamic environments by:",
+    ["Ignoring all moving pixels by colour thresholding", "Learning an online uncertainty mask that down-weights dynamic pixels through 3D Gaussian rendering losses", "Using GNSS", "Using radar Doppler"], [1], "The lab's variant adds multi-view feature consistency and a distilled student for spatio-temporally consistent masks.");
+  P(12, "Which of these are listed as shared challenges for all SLAM modalities? (Select all that apply)",
+    ["Loop closure", "Long-term operation (seasonal changes, map ageing)", "Drift and error accumulation", "Dynamic scenes"], [0, 1, 2, 3], "All four apply to every modality.");
+  P(12, "\"State-space models such as Mamba for inertial odometry over long horizons without t² drift\" belongs to which future direction?",
+    ["Physics-informed learning", "Long-context backbone", "End-to-end pose regression", "Multi-modal fusion"], [1], "Physics-informed learning = ODE and Lie-group constraints in the loss; pose regression = loop closure inside the model; fusion = IMU with camera/LiDAR/radar in a shared embedding.");
 })();

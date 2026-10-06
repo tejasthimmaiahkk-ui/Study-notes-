@@ -404,7 +404,20 @@
       var host = document.createElement("div");
       host.className = "demo-body";
       el.appendChild(host);
-      try { D[name](host, el); } catch (e) { host.innerHTML = '<div class="out">Demo failed to load: ' + esc(e.message) + "</div>"; console.error(e); }
+      try { D[name](host, el); tidyLabels(host); } catch (e) { host.innerHTML = '<div class="out">Demo failed to load: ' + esc(e.message) + "</div>"; console.error(e); }
+    });
+  }
+  // Labels are flex columns, so "Speed V<sub>D</sub> = <span>1.5</span>" would stack each
+  // piece on its own line. Group everything before the control into one span.
+  function tidyLabels(root) {
+    root.querySelectorAll(".demo-row > label").forEach(function (lb) {
+      if (lb.getAttribute("style")) return;
+      var nodes = [], c = lb.firstChild;
+      while (c && !(c.nodeType === 1 && /^(INPUT|SELECT|TEXTAREA)$/.test(c.tagName))) { nodes.push(c); c = c.nextSibling; }
+      if (nodes.length < 2 || !c) return;
+      var sp = document.createElement("span");
+      lb.insertBefore(sp, nodes[0]);
+      nodes.forEach(function (n) { sp.appendChild(n); });
     });
   }
 })();
